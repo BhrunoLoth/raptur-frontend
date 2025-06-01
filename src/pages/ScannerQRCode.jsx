@@ -1,55 +1,60 @@
-import React, { useState, useRef } from "react";
-import Layout from "../components/Layout";
-import logo from "../assets/logo-raptur.png";
+import React, { useState } from 'react';
+import QrReader from 'react-qr-reader';
+import { validarQRCodeOffline } from '../../utils/offlineValidator';
+import { salvarEmbarqueLocal } from '../../services/offlineStorage';
+import { sincronizarEmbarques } from '../../services/syncService';
 
-const ScannerQRCode = () => {
-  const [codigo, setCodigo] = useState("");
-  const [erro, setErro] = useState("");
-  const inputRef = useRef(null);
+export default function ScannerQRCode() {
+  const [log, setLog] = useState('');
 
-  // Simulação de leitura de QR Code
-  const handleScan = (e) => {
-    e.preventDefault();
-    if (!codigo.trim()) {
-      setErro("Aponte a câmera para um QR Code ou cole o código.");
-      inputRef.current.focus();
-      return;
+  const handleScan = (data) => {
+    if (data) {
+      const validado = validarQRCodeOffline(data);
+      if (!validado) return setLog('❌ QR inválido.');
+
+      const embarque = {
+        passageiroId: validado.id,
+        tipo: validado.tipo,
+        timestamp: Date.now(),
+        onibusId: 1 // ⚠️ troque por valor dinâmico se necessário
+      };
+
+      salvarEmbarqueLocal(embarque);
+      setLog(`✅ Embarque salvo offline. Tipo: ${validado.tipo}`);
     }
-    setErro("");
-    alert(`QR Code lido com sucesso: ${codigo}`);
-    setCodigo("");
-    inputRef.current.focus();
+  };
+
+  const handleSync = async () => {
+    const msg = await sincronizarEmbarques();
+    setLog(msg);
   };
 
   return (
-    <Layout>
-      <div className="dashboard-main-card login-card" style={{ maxWidth: 420 }}>
-        <img src={logo} alt="Logo Raptur" width={110} style={{ margin: "0 auto 10px auto", display: "block" }} />
-        <h2 className="user-title" style={{ marginBottom: 18 }}>Scanner de QR Code 📷</h2>
-        <form className="login-form" onSubmit={handleScan} autoComplete="off">
-          <label htmlFor="codigo" className="user-label">Código do QR</label>
-          <input
-            id="codigo"
-            className="user-input"
-            placeholder="Aponte a câmera ou cole o código do QR aqui..."
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            ref={inputRef}
-            aria-label="Código do QR"
-            autoFocus
-          />
-          {erro && <div className="user-error">{erro}</div>}
-          <button className="action-btn login-btn" type="submit">
-            <span>📡 Ler QR Code</span>
-          </button>
-        </form>
-        {/* Dica para integração real */}
-        <div style={{ marginTop: 18, fontSize: "0.97rem", color: "#888", textAlign: "center" }}>
-          Para leitura automática, integre uma biblioteca como <b>react-qr-reader</b>.
-        </div>
-      </div>
-    </Layout>
-  );
-};
+    <div style={{ padding: 20 }}>
+      <h2>Modo Offline - Scanner QR</h2>
+      <QrReader
+        delay={300}
+        onScan={handleScan}
+        onError={(err) => console.error('Erro no scanner:', err)}
+        style={{ width: '100%' }}
+      />
 
-export default ScannerQRCode;
+      <button
+        onClick={handleSync}
+        style={{
+          marginTop: 12,
+          padding: '8px 16px',
+          background: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        🔄 Sincronizar Embarques
+      </button>
+
+      <p style={{ marginTop: 10 }}>{log}</p>
+    </div>
+  );
+}
