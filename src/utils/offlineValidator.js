@@ -1,18 +1,14 @@
-import CryptoJS from 'crypto-js';
-
-const SECRET = import.meta.env.VITE_QR_SECRET || 'super_secret_key';
-
-export function validarQRCodeOffline(tokenBase64) {
+export function validarQRCodeOffline(qrData) {
   try {
-    const json = JSON.parse(atob(tokenBase64));
-    const { signature, ...payload } = json;
-
-    const recalculated = CryptoJS.HmacSHA256(JSON.stringify(payload), SECRET).toString();
-
-    if (signature !== recalculated) return null;
-    return payload;
+    const decoded = JSON.parse(atob(qrData));
+    return {
+      valido: true,
+      dados: decoded
+    };
   } catch (err) {
-    console.error('QR inválido:', err);
-    return null;
+    return {
+      valido: false,
+      erro: 'QR inválido ou malformado'
+    };
   }
 }

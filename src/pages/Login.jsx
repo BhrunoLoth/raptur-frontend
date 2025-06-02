@@ -26,11 +26,17 @@ const Login = () => {
     }
 
     try {
-      const res = await login(email, senha);
+      const res = await login(email, senha); // <- faz requisição para login
       if (res?.token) {
-        navigate("/dashboard"); // ✅ redireciona após login
+        // Armazena token e usuário no localStorage
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("usuario", JSON.stringify(res.usuario));
+
+        // Redireciona para dashboard após login
+        navigate("/dashboard");
       }
     } catch (err) {
+      console.error(err);
       setErro("Credenciais inválidas ou erro no login.");
     }
   };
@@ -48,9 +54,7 @@ const Login = () => {
           Acessar Painel
         </h2>
         <form className="login-form" onSubmit={handleSubmit} autoComplete="off">
-          <label htmlFor="email" className="user-label">
-            Email
-          </label>
+          <label htmlFor="email" className="user-label">Email</label>
           <input
             id="email"
             className="user-input"
@@ -63,9 +67,7 @@ const Login = () => {
             type="email"
           />
 
-          <label htmlFor="senha" className="user-label">
-            Senha
-          </label>
+          <label htmlFor="senha" className="user-label">Senha</label>
           <input
             id="senha"
             className="user-input"
@@ -89,6 +91,7 @@ const Login = () => {
 };
 
 export default Login;
+
 
 
 

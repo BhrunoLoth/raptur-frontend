@@ -1,27 +1,32 @@
+// ✅ ScannerQRCode.jsx
 import React, { useState } from 'react';
-import QrReader from 'react-qr-reader';
-import { validarQRCodeOffline } from '../../utils/offlineValidator';
-import { salvarEmbarqueLocal } from '../../services/offlineStorage';
-import { sincronizarEmbarques } from '../../services/syncService';
+import { QrReader } from 'react-qr-reader'; // ✅ Correção: named import
+import { validarQRCodeOffline } from '../utils/offlineValidator';
+import { salvarEmbarqueLocal } from '../services/offlineStorage';
+import { sincronizarEmbarques } from '../services/syncService';
 
 export default function ScannerQRCode() {
   const [log, setLog] = useState('');
 
   const handleScan = (data) => {
-    if (data) {
-      const validado = validarQRCodeOffline(data);
-      if (!validado) return setLog('❌ QR inválido.');
+    if (!data) return;
 
-      const embarque = {
-        passageiroId: validado.id,
-        tipo: validado.tipo,
-        timestamp: Date.now(),
-        onibusId: 1 // ⚠️ troque por valor dinâmico se necessário
-      };
+    const validado = validarQRCodeOffline(data);
 
-      salvarEmbarqueLocal(embarque);
-      setLog(`✅ Embarque salvo offline. Tipo: ${validado.tipo}`);
+    if (!validado.valido) {
+      setLog(`❌ ${validado.erro}`);
+      return;
     }
+
+    const embarque = {
+      passageiroId: validado.dados.id,
+      tipo: validado.dados.tipo,
+      timestamp: Date.now(),
+      onibusId: 1 // 🔁 Em breve: identificar ônibus via login do motorista ou QR
+    };
+
+    salvarEmbarqueLocal(embarque);
+    setLog(`✅ Embarque salvo offline. Tipo: ${validado.dados.tipo}`);
   };
 
   const handleSync = async () => {
@@ -31,12 +36,17 @@ export default function ScannerQRCode() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Modo Offline - Scanner QR</h2>
+      <h2>🛰️ Modo Offline - Scanner QRCode</h2>
+
       <QrReader
-        delay={300}
-        onScan={handleScan}
-        onError={(err) => console.error('Erro no scanner:', err)}
-        style={{ width: '100%' }}
+        scanDelay={300} // ✅ Novo nome na lib atual
+        onResult={(result, error) => {
+          if (!!result) handleScan(result?.text);
+          if (!!error) console.warn('⚠️ Erro na leitura:', error);
+        }}
+        constraints={{ facingMode: 'environment' }}
+        containerStyle={{ width: '100%', maxWidth: '480px' }}
+        videoStyle={{ width: '100%' }}
       />
 
       <button
@@ -54,7 +64,7 @@ export default function ScannerQRCode() {
         🔄 Sincronizar Embarques
       </button>
 
-      <p style={{ marginTop: 10 }}>{log}</p>
+      <p style={{ marginTop: 10, fontFamily: 'monospace' }}>{log}</p>
     </div>
   );
 }

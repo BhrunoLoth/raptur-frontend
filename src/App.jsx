@@ -18,8 +18,9 @@ import OnibusManagement from "./pages/OnibusManagement";
 import EmbarqueManual from "./pages/EmbarqueManual";
 
 import Sidebar from "./components/Sidebar";
-import Layout from "./components/Layout"; // ✅ CORRIGIDO
+import Layout from "./components/Layout";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import PrivateRoute from "./routes/PrivateRoute";
 
 import "./styles/RapturStyle.css";
 
@@ -37,23 +38,144 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
+          {/* Rotas públicas */}
           <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/motorista/login" element={<MotoristaLogin />} />
 
-          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-          <Route path="/usuarios" element={<MainLayout><UserManagement /></MainLayout>} />
-          <Route path="/motoristas" element={<MainLayout><MotoristaManagement /></MainLayout>} />
-          <Route path="/motorista/dashboard" element={<MainLayout><MotoristaDashboard /></MainLayout>} />
-          <Route path="/pagamentos" element={<MainLayout><Pagamentos /></MainLayout>} />
-          <Route path="/embarques" element={<MainLayout><Embarques /></MainLayout>} />
-          <Route path="/relatorios" element={<MainLayout><Relatorios /></MainLayout>} />
-          <Route path="/configuracoes" element={<MainLayout><Configuracoes /></MainLayout>} />
-          <Route path="/qrcodesimulator" element={<MainLayout><QRCodeSimulator /></MainLayout>} />
-          <Route path="/scannerqrcode" element={<MainLayout><ScannerQRCode /></MainLayout>} />
-          <Route path="/simulador" element={<MainLayout><Simulador /></MainLayout>} />
-          <Route path="/onibus" element={<MainLayout><OnibusManagement /></MainLayout>} />
-          <Route path="/embarque-manual" element={<MainLayout><EmbarqueManual /></MainLayout>} />
+          {/* Rotas protegidas com PrivateRoute */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/usuarios"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <UserManagement />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/motoristas"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <MotoristaManagement />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/motorista/dashboard"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <MotoristaDashboard />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/pagamentos"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Pagamentos />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/embarques"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Embarques />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/relatorios"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Relatorios />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/configuracoes"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Configuracoes />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/qrcodesimulator"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <QRCodeSimulator />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/scannerqrcode"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <ScannerQRCode />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/simulador"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Simulador />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/onibus"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <OnibusManagement />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/embarque-manual"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <EmbarqueManual />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
 
+          {/* Fallback */}
           <Route path="*" element={<Login />} />
         </Routes>
       </Router>
@@ -62,6 +184,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
