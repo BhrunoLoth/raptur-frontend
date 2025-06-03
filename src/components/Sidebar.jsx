@@ -1,18 +1,37 @@
 import {
-  LayoutDashboard, Users, Truck, CreditCard, CheckSquare,
-  BarChart2, Settings, Bus, LogOut
+  LayoutDashboard,
+  Users,
+  Truck,
+  Bus,
+  CreditCard,
+  CheckSquare,
+  BarChart2,
+  Settings,
+  Route,
+  LogOut
 } from 'lucide-react';
+
 import { Link, useLocation } from 'react-router-dom';
-import { Box, Typography, Button, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
 
 const menuItems = [
   { icon: <LayoutDashboard size={20} />, label: 'Dashboard', to: '/dashboard' },
   { icon: <Users size={20} />, label: 'Usuários', to: '/usuarios' },
   { icon: <Truck size={20} />, label: 'Motoristas', to: '/motoristas' },
   { icon: <Bus size={20} />, label: 'Ônibus', to: '/onibus' },
+  { icon: <Route size={20} />, label: 'Viagens', to: '/viagens' }, // 🚀 NOVO
   { icon: <CreditCard size={20} />, label: 'Pagamentos', to: '/pagamentos' },
   { icon: <CheckSquare size={20} />, label: 'Embarques', to: '/embarques' },
   { icon: <BarChart2 size={20} />, label: 'Relatórios', to: '/relatorios' },
+  { icon: <BarChart2 size={20} />, label: 'Painel Visual', to: '/painel-visual' }, // ✅ NOVO
   { icon: <Settings size={20} />, label: 'Configurações', to: '/configuracoes' }
 ];
 
@@ -34,7 +53,12 @@ export default function Sidebar({ onLogout }) {
       }}
     >
       <Box>
-        <Typography variant="h6" fontWeight="bold" textAlign="center" mb={4}>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          textAlign="center"
+          mb={4}
+        >
           Raptur Admin
         </Typography>
 
@@ -47,14 +71,22 @@ export default function Sidebar({ onLogout }) {
               sx={{
                 mb: 1,
                 borderRadius: 2,
-                backgroundColor: location.pathname === to ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                backgroundColor:
+                  location.pathname === to
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'transparent',
                 '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)'
                 }
               }}
             >
-              <ListItemIcon sx={{ color: 'white', minWidth: 36 }}>{icon}</ListItemIcon>
-              <ListItemText primary={label} primaryTypographyProps={{ fontSize: 14 }} />
+              <ListItemIcon sx={{ color: 'white', minWidth: 36 }}>
+                {icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={label}
+                primaryTypographyProps={{ fontSize: 14 }}
+              />
             </ListItem>
           ))}
         </List>
@@ -83,4 +115,7 @@ export default function Sidebar({ onLogout }) {
     </Box>
   );
 }
+
+
+
 

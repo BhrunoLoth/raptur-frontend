@@ -2,104 +2,115 @@ import React, { useState, useRef, useEffect } from "react";
 import Layout from "../components/Layout";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { listarUsuarios, criarUsuario, deletarUsuario } from "../services/userService";
+import {
+  listarUsuarios,
+  criarUsuario,
+  deletarUsuario
+} from "../services/userService";
 
 function exportarCSV(usuarios) {
-  const header = ["Nome", "Email"];
-  const rows = usuarios.map((u) => [u.nome, u.email]);
-  let csvContent =
+  const header = ["Nome", "Email", "Perfil"];
+  const rows = usuarios.map((u) => [u.nome, u.email, u.perfil]);
+  const csv =
     "data:text/csv;charset=utf-8," +
     header.join(",") +
     "\n" +
     rows.map((e) => e.join(",")).join("\n");
-  const encodedUri = encodeURI(csvContent);
+  const encoded = encodeURI(csv);
   const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
+  link.setAttribute("href", encoded);
   link.setAttribute("download", "usuarios.csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
 
+function exportarPDF(usuarios) {
+  const doc = new jsPDF();
+  doc.text("Usuários Cadastrados", 14, 16);
+  doc.autoTable({
+    startY: 22,
+    head: [["Nome", "Email", "Perfil"]],
+    body: usuarios.map((u) => [u.nome, u.email, u.perfil]),
+  });
+  doc.save("usuarios.pdf");
+}
+
 const UserManagement = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [tipo, setTipo] = useState("");
+  const [perfil, setPerfil] = useState("");
   const [subtipo_passageiro, setSubtipoPassageiro] = useState("");
   const [erro, setErro] = useState("");
   const nomeRef = useRef(null);
 
   useEffect(() => {
-    async function fetchUsuarios() {
+    (async () => {
       try {
         const lista = await listarUsuarios();
         setUsuarios(lista);
-      } catch (err) {
-        setErro("Erro ao carregar usuários");
+      } catch {
+        setErro("Erro ao carregar usuários.");
       }
-    }
-    fetchUsuarios();
+    })();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!nome.trim() || !email.trim() || !tipo) {
-      setErro("Preencha todos os campos obrigatórios.");
-      return;
+    setErro("");
+
+    if (!nome.trim() || !email.trim() || !perfil) {
+      return setErro("Preencha todos os campos obrigatórios.");
     }
+
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setErro("Digite um e-mail válido.");
-      return;
+      return setErro("Digite um e-mail válido.");
     }
 
     try {
-      const novo = await criarUsuario({
+      const formData = {
         nome,
         email,
-        senha: "123456", // Ajuste conforme regra
-        tipo,
-        ...(tipo === "passageiro" && { subtipo_passageiro }),
-      });
+        senha: "123456", // senha padrão ou lógica de geração segura
+        perfil,
+      };
 
+      if (perfil === "passageiro") {
+        formData.subtipo_passageiro = subtipo_passageiro;
+        formData.saldo_credito = 0;
+      }
+
+      const novo = await criarUsuario(formData);
       setUsuarios([...usuarios, novo]);
+
       setNome("");
       setEmail("");
-      setTipo("");
+      setPerfil("");
       setSubtipoPassageiro("");
-      setErro("");
-      nomeRef.current.focus();
-    } catch (err) {
-      setErro("Erro ao criar usuário");
+      nomeRef.current?.focus();
+    } catch {
+      setErro("Erro ao criar usuário.");
     }
   };
 
   const removerUsuario = async (index) => {
     const usuario = usuarios[index];
-    if (!window.confirm(`Remover usuário ${usuario.nome}?`)) return;
+    if (!window.confirm(`Remover ${usuario.nome}?`)) return;
+
     try {
       await deletarUsuario(usuario.id);
       setUsuarios(usuarios.filter((_, i) => i !== index));
-    } catch (err) {
-      setErro("Erro ao remover usuário");
+    } catch {
+      setErro("Erro ao remover usuário.");
     }
-  };
-
-  const exportarPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Usuários Cadastrados", 14, 16);
-    doc.autoTable({
-      startY: 22,
-      head: [["Nome", "Email"]],
-      body: usuarios.map((u) => [u.nome, u.email]),
-    });
-    doc.save("usuarios.pdf");
   };
 
   return (
     <Layout>
       <div className="dashboard-main-card user-card">
         <h2 className="user-title">👤 Gerenciar Usuários</h2>
+
         <div className="dashboard-section user-form-section">
           <form onSubmit={handleSubmit} className="user-form" autoComplete="off">
             <label htmlFor="nome" className="user-label">Nome</label>
@@ -111,7 +122,6 @@ const UserManagement = () => {
               onChange={(e) => setNome(e.target.value)}
               ref={nomeRef}
               autoFocus
-              aria-label="Nome"
             />
 
             <label htmlFor="email" className="user-label">Email</label>
@@ -121,16 +131,15 @@ const UserManagement = () => {
               placeholder="Digite o e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              aria-label="Email"
               type="email"
             />
 
-            <label htmlFor="tipo" className="user-label">Tipo de Usuário</label>
+            <label htmlFor="perfil" className="user-label">Perfil</label>
             <select
-              id="tipo"
+              id="perfil"
               className="user-input"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
+              value={perfil}
+              onChange={(e) => setPerfil(e.target.value)}
             >
               <option value="">Selecione...</option>
               <option value="admin">Admin</option>
@@ -138,9 +147,9 @@ const UserManagement = () => {
               <option value="passageiro">Passageiro</option>
             </select>
 
-            {tipo === "passageiro" && (
+            {perfil === "passageiro" && (
               <>
-                <label htmlFor="subtipo" className="user-label">Subtipo de Passageiro</label>
+                <label htmlFor="subtipo" className="user-label">Subtipo Passageiro</label>
                 <select
                   id="subtipo"
                   className="user-input"
@@ -148,48 +157,27 @@ const UserManagement = () => {
                   onChange={(e) => setSubtipoPassageiro(e.target.value)}
                 >
                   <option value="">Selecione...</option>
-                  <option value="ALUNO_GRATUITO">Aluno com Gratuidade</option>
-                  <option value="ALUNO_PAGANTE">Aluno Pagante</option>
-                  <option value="IDOSO">Idoso</option>
+                  <option value="aluno_gratuito">Aluno com Gratuidade</option>
+                  <option value="aluno_pagante">Aluno Pagante</option>
+                  <option value="idoso">Idoso</option>
                 </select>
               </>
             )}
 
             {erro && <div className="user-error">{erro}</div>}
+
             <button className="action-btn user-create-btn" type="submit">
-              <span>➕ Criar</span>
+              ➕ Criar
             </button>
           </form>
         </div>
 
         <div className="dashboard-section user-table-section">
-          <div
-            className="dashboard-label"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
+          <div className="dashboard-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Usuários Cadastrados</span>
             <div style={{ display: "flex", gap: 8 }}>
-              <button
-                className="export-btn"
-                type="button"
-                onClick={exportarPDF}
-                aria-label="Exportar PDF"
-              >
-                <span style={{ marginRight: 4 }}>📄</span>PDF
-              </button>
-              <button
-                className="export-btn"
-                type="button"
-                onClick={() => exportarCSV(usuarios)}
-                aria-label="Exportar CSV"
-              >
-                <span style={{ marginRight: 4 }}>📑</span>CSV
-              </button>
+              <button className="export-btn" onClick={() => exportarPDF(usuarios)}>📄 PDF</button>
+              <button className="export-btn" onClick={() => exportarCSV(usuarios)}>📑 CSV</button>
             </div>
           </div>
 
@@ -199,13 +187,14 @@ const UserManagement = () => {
                 <tr>
                   <th>Nome</th>
                   <th>Email</th>
+                  <th>Perfil</th>
                   <th style={{ textAlign: "center" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {usuarios.length === 0 ? (
                   <tr>
-                    <td colSpan={3} style={{ textAlign: "center", opacity: 0.7 }}>
+                    <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
                       Nenhum usuário cadastrado
                     </td>
                   </tr>
@@ -214,12 +203,9 @@ const UserManagement = () => {
                     <tr key={u.id || i}>
                       <td>{u.nome}</td>
                       <td>{u.email}</td>
+                      <td>{u.perfil}</td>
                       <td style={{ textAlign: "center" }}>
-                        <button
-                          onClick={() => removerUsuario(i)}
-                          className="remove-btn"
-                          aria-label={`Remover usuário ${u.nome}`}
-                        >
+                        <button className="remove-btn" onClick={() => removerUsuario(i)}>
                           Remover
                         </button>
                       </td>
@@ -236,3 +222,4 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+

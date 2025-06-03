@@ -10,42 +10,63 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  CircularProgress,
 } from "@mui/material";
 import axios from "axios";
 import AppWrapper from "../components/AppWrapper";
 
-const MotoristaManagement = () => {
+export default function MotoristaManagement() {
+  const [motoristas, setMotoristas] = useState([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [motoristas, setMotoristas] = useState([]);
+  const [cnh, setCnh] = useState("");
+  const [senha, setSenha] = useState("123456");
+  const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
 
   const fetchMotoristas = async () => {
-    const res = await axios.get("http://localhost:3000/api/motoristas", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setMotoristas(res.data);
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:3000/api/admin/motoristas", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMotoristas(res.data);
+    } catch (err) {
+      console.error("Erro ao carregar motoristas:", err);
+    }
+    setLoading(false);
   };
 
   const handleCreate = async () => {
-    if (!nome || !email) return;
-    await axios.post(
-      "http://localhost:3000/api/motoristas",
-      { nome, email },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setNome("");
-    setEmail("");
-    fetchMotoristas();
+    if (!nome.trim() || !email.trim() || !cnh.trim()) return;
+
+    try {
+      await axios.post(
+        "http://localhost:3000/api/admin/motoristas",
+        { nome, email, senha, cnh },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setNome("");
+      setEmail("");
+      setCnh("");
+      fetchMotoristas();
+    } catch (err) {
+      console.error("Erro ao criar motorista:", err);
+    }
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:3000/api/motoristas/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchMotoristas();
+    if (!window.confirm("Tem certeza que deseja remover este motorista?")) return;
+    try {
+      await axios.delete(`http://localhost:3000/api/admin/motoristas/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchMotoristas();
+    } catch (err) {
+      console.error("Erro ao remover motorista:", err);
+    }
   };
 
   useEffect(() => {
@@ -56,7 +77,7 @@ const MotoristaManagement = () => {
     <AppWrapper>
       <Paper elevation={3} sx={{ maxWidth: 700, mx: "auto", p: 4 }}>
         <Typography variant="h5" gutterBottom>
-          🚌 Gerenciar Motoristas
+          🧑‍✈️ Gerenciar Motoristas
         </Typography>
 
         <TextField
@@ -69,57 +90,86 @@ const MotoristaManagement = () => {
         <TextField
           label="Email"
           value={email}
+          type="email"
           fullWidth
           margin="normal"
           onChange={(e) => setEmail(e.target.value)}
+        />
+        <TextField
+          label="CNH"
+          value={cnh}
+          fullWidth
+          margin="normal"
+          onChange={(e) => setCnh(e.target.value)}
+        />
+        <TextField
+          label="Senha (padrão)"
+          value={senha}
+          fullWidth
+          margin="normal"
+          type="password"
+          onChange={(e) => setSenha(e.target.value)}
         />
 
         <Button
           onClick={handleCreate}
           variant="contained"
-          color="success"
+          color="primary"
           fullWidth
           sx={{ mt: 2 }}
         >
-          ➕ Criar
+          ➕ Cadastrar Motorista
         </Button>
 
         <Typography variant="h6" sx={{ mt: 4 }}>
-          Motoristas Cadastrados
+          📋 Lista de Motoristas
         </Typography>
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nome</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {motoristas.map((m) => (
-                <TableRow key={m.id}>
-                  <TableCell>{m.nome}</TableCell>
-                  <TableCell>{m.email}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={() => handleDelete(m.id)}
-                    >
-                      Remover
-                    </Button>
-                  </TableCell>
+        {loading ? (
+          <CircularProgress sx={{ my: 4 }} />
+        ) : (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>CNH</TableCell>
+                  <TableCell>Ações</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {motoristas.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ opacity: 0.7 }}>
+                      Nenhum motorista cadastrado
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  motoristas.map((m) => (
+                    <TableRow key={m.id}>
+                      <TableCell>{m.nome}</TableCell>
+                      <TableCell>{m.email}</TableCell>
+                      <TableCell>{m.cnh || "N/A"}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          onClick={() => handleDelete(m.id)}
+                        >
+                          Remover
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Paper>
     </AppWrapper>
   );
-};
+}
 
-export default MotoristaManagement;
 

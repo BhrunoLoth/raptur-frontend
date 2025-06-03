@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -26,13 +27,12 @@ const Login = () => {
     }
 
     try {
-      const res = await login(email, senha); // <- faz requisição para login
+      const res = await login(email, senha);
       if (res?.token) {
-        // Armazena token e usuário no localStorage
         localStorage.setItem("token", res.token);
         localStorage.setItem("usuario", JSON.stringify(res.usuario));
+        localStorage.setItem("perfil", res.usuario.perfil); // ✅ SALVAR PERFIL
 
-        // Redireciona para dashboard após login
         navigate("/dashboard");
       }
     } catch (err) {
