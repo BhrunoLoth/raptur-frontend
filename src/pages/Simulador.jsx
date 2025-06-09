@@ -1,3 +1,4 @@
+// src/pages/Simulador.jsx
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -11,37 +12,56 @@ const Simulador = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!codigo.trim()) {
-      setErro("Insira um código válido.");
-      inputRef.current && inputRef.current.focus();
+
+    if (!codigo.trim() || codigo.trim().length < 6) {
+      setErro("Insira um código válido com pelo menos 6 caracteres.");
+      inputRef.current?.focus();
       return;
     }
+
     setErro("");
-    navigate(`/validar/${codigo}`);
+    navigate(`/validar/${codigo.trim()}`);
   };
 
   return (
     <Layout>
-      <div className="dashboard-main-card login-card" style={{ maxWidth: 420 }}>
-        <img src={logo} alt="Logo Raptur" width={110} style={{ margin: "0 auto 10px auto", display: "block" }} />
-        <h2 className="user-title" style={{ marginBottom: 18 }}>Simulador de QR Code 🧪</h2>
-        <form className="login-form" onSubmit={handleSubmit} autoComplete="off">
-          <label htmlFor="codigo" className="user-label">Código do QR</label>
-          <input
-            id="codigo"
-            className="user-input"
-            placeholder="Cole o código do QR aqui..."
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            ref={inputRef}
-            aria-label="Código do QR"
-            autoFocus
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-green-100 to-orange-100 px-4">
+        <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+          <img
+            src={logo}
+            alt="Logo Raptur"
+            className="w-28 mx-auto mb-4"
           />
-          {erro && <div className="user-error">{erro}</div>}
-          <button type="submit" className="action-btn login-btn">
-            <span>Validar Código</span>
-          </button>
-        </form>
+          <h2 className="text-xl font-bold text-center text-green-800 mb-4">
+            Simulador de QR Code 🧪
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="codigo" className="block text-sm font-medium text-gray-700 mb-1">
+                Código do QR
+              </label>
+              <input
+                id="codigo"
+                name="codigo"
+                className="w-full border p-2 rounded text-sm"
+                placeholder="Cole o código do QR aqui..."
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value)}
+                ref={inputRef}
+                aria-label="Código do QR"
+                autoFocus
+              />
+              {erro && <p className="text-red-600 text-sm mt-1">{erro}</p>}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800 transition"
+            >
+              Validar Código
+            </button>
+          </form>
+        </div>
       </div>
     </Layout>
   );

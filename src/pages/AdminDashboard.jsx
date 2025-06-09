@@ -1,3 +1,15 @@
+// ✅ src/pages/AdminDashboard.jsx
+
+import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Alert,
+  CircularProgress
+} from '@mui/material';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,117 +20,135 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import {
-  Box, Typography, Grid, Card, CardContent, Alert, CircularProgress, useTheme
-} from '@mui/material';
 import { Bar, Pie } from 'react-chartjs-2';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+import api from '../services/api';
 
-const Dashboard = () => {
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export default function AdminDashboard() {
   const [resumo, setResumo] = useState(null);
   const [estatisticas, setEstatisticas] = useState(null);
   const [notificacoes, setNotificacoes] = useState([]);
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
   const [loading, setLoading] = useState(true);
-  const theme = useTheme();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const stored = localStorage.getItem('usuario');
+    if (stored) {
       try {
-        const [resResumo, resNotificacoes, resEstatisticas] = await Promise.all([
-          axios.get('http://localhost:3000/api/dashboard/resumo'),
-          axios.get('http://localhost:3000/api/dashboard/notificacoes'),
-          axios.get('http://localhost:3000/api/dashboard/estatisticas'),
+        setUsuarioLogado(JSON.parse(stored));
+      } catch {
+        console.error('Erro ao carregar usuário do localStorage');
+      }
+    }
+
+    const fetchDashboard = async () => {
+      try {
+        const [rResumo, rNotifs, rStats] = await Promise.all([
+          api.get('/admin/dashboard/resumo'),
+          api.get('/admin/dashboard/notificacoes'),
+          api.get('/admin/dashboard/estatisticas'),
         ]);
-        setResumo(resResumo.data);
-        setNotificacoes(resNotificacoes.data || []);
-        setEstatisticas(resEstatisticas.data);
-      } catch (error) {
-        console.error('Erro ao carregar dados do dashboard:', error);
+
+        setResumo(rResumo.data);
+        setNotificacoes(Array.isArray(rNotifs.data) ? rNotifs.data : []);
+        setEstatisticas(rStats.data);
+      } catch (err) {
+        console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchDashboard();
   }, []);
-
-  const chartData = {
-    labels: ['Pagamentos', 'Embarques'],
-    datasets: [
-      {
-        label: 'Resumo',
-        data: [resumo?.totalPagamentos || 0, resumo?.totalEmbarques || 0],
-        backgroundColor: ['#00C853', '#2979FF'],
-        borderRadius: 6,
-      }
-    ]
-  };
-
-  const pieData = estatisticas && {
-    labels: Object.keys(estatisticas.distribuicaoTipos || {}),
-    datasets: [
-      {
-        data: Object.values(estatisticas.distribuicaoTipos || {}),
-        backgroundColor: [
-          '#4CAF50',
-          '#FF9800',
-          '#03A9F4',
-          '#E91E63',
-          '#9C27B0'
-        ]
-      }
-    ]
-  };
 
   if (loading) {
     return (
-      <Box sx={{ padding: 4, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
         <CircularProgress />
       </Box>
     );
   }
 
+  if (!resumo || !estatisticas) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Alert severity="error">
+          ⚠️ Dados incompletos ou não carregados. Verifique a API.
+        </Alert>
+      </Box>
+    );
+  }
+
+  const barData = {
+    labels: ['Pagamentos', 'Embarques'],
+    datasets: [
+      {
+        label: 'Resumo',
+        data: [
+          resumo.totalPagamentos ?? 0,
+          resumo.totalEmbarques ?? 0
+        ],
+        backgroundColor: ['#00C853', '#2979FF'],
+        borderRadius: 6
+      }
+    ]
+  };
+
+  const pieData = {
+    labels: Object.keys(estatisticas.distribuicaoTipos ?? {}),
+    datasets: [
+      {
+        data: Object.values(estatisticas.distribuicaoTipos ?? {}),
+        backgroundColor: ['#4CAF50', '#FF9800', '#03A9F4', '#E91E63', '#9C27B0']
+      }
+    ]
+  };
+
   return (
-    <Box sx={{ padding: 4 }}>
-      <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
+    <Box sx={{ p: { xs: 2, sm: 4 } }}>
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
         Dashboard
       </Typography>
 
-      <Grid container spacing={3}>
-        {/* Cards estatísticos */}
+      <Typography variant="h6" gutterBottom color="textSecondary">
+        Bem-vindo(a), {usuarioLogado?.nome ?? 'Administrador'} 👋
+      </Typography>
+
+      <Grid container spacing={2}>
         <Grid item xs={12} sm={4}>
           <Card sx={{ bgcolor: '#1b5e20', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">💰 Total Pagamentos</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                R$ {resumo?.totalPagamentos?.toFixed(2) || '0.00'}
+              <Typography variant="h5">
+                R$ {resumo.totalPagamentos.toFixed(2)}
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} sm={4}>
           <Card sx={{ bgcolor: '#1565c0', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">🚌 Total Embarques</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {resumo?.totalEmbarques || 0}
-              </Typography>
+              <Typography variant="h5">{resumo.totalEmbarques}</Typography>
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} sm={4}>
           <Card sx={{ bgcolor: '#4a148c', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">👥 Total Usuários</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {estatisticas?.totalUsuarios || 0}
-              </Typography>
+              <Typography variant="h5">{estatisticas.totalUsuarios}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -127,51 +157,48 @@ const Dashboard = () => {
           <Card sx={{ bgcolor: '#006064', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">🧑‍✈️ Total Motoristas</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {estatisticas?.totalMotoristas || 0}
-              </Typography>
+              <Typography variant="h5">{estatisticas.totalMotoristas}</Typography>
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} sm={6}>
           <Card sx={{ bgcolor: '#880e4f', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">🚌 Total Ônibus</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {estatisticas?.totalOnibus || 0}
-              </Typography>
+              <Typography variant="h5">{estatisticas.totalOnibus}</Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Gráfico de Barras */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3, borderRadius: 4, bgcolor: '#263238', color: 'white' }}>
-            <Typography variant="h6" mb={2}>Resumo Visual</Typography>
-            <Bar data={chartData} />
+          <Card sx={{ p: 2, borderRadius: 4 }}>
+            <Typography variant="h6" mb={2}>
+              Resumo Visual
+            </Typography>
+            <Bar data={barData} />
           </Card>
         </Grid>
-
-        {/* Gráfico de Pizza */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3, borderRadius: 4, bgcolor: '#1a237e', color: 'white' }}>
-            <Typography variant="h6" mb={2}>Usuários por Categoria</Typography>
+          <Card sx={{ p: 2, borderRadius: 4 }}>
+            <Typography variant="h6" mb={2}>
+              Usuários por Categoria
+            </Typography>
             <Pie data={pieData} />
           </Card>
         </Grid>
 
-        {/* Notificações */}
         <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom>📢 Notificações</Typography>
-          {Array.isArray(notificacoes) && notificacoes.length > 0 ? (
-            notificacoes.map((notificacao) => (
+          <Typography variant="h6" gutterBottom>
+            📢 Notificações
+          </Typography>
+          {notificacoes.length > 0 ? (
+            notificacoes.map((n) => (
               <Alert
-                key={notificacao.id || Math.random()}
-                severity={notificacao.tipo || 'info'}
-                sx={{ mb: 1, borderRadius: 2, boxShadow: 2 }}
+                key={n.id}
+                severity={n.tipo || 'info'}
+                sx={{ mb: 1, borderRadius: 2 }}
               >
-                {notificacao.mensagem || 'Mensagem não especificada'}
+                {n.mensagem}
               </Alert>
             ))
           ) : (
@@ -183,9 +210,16 @@ const Dashboard = () => {
       </Grid>
     </Box>
   );
-};
+}
 
-export default Dashboard;
+
+
+
+
+
+
+
+
 
 
 

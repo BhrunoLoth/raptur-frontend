@@ -1,38 +1,52 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// src/App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // 📄 Páginas
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import UserManagement from "./pages/UserManagement";
-import MotoristaLogin from "./pages/MotoristaLogin";
-import MotoristaDashboard from "./pages/MotoristaDashboard";
-import MotoristaManagement from "./pages/MotoristaManagement";
-import QRCodeSimulator from "./pages/QRCodeSimulator";
-import ScannerQRCode from "./pages/ScannerQRCode";
-import Simulador from "./pages/Simulador";
-import Embarques from "./pages/Embarques";
-import Pagamentos from "./pages/Pagamentos";
-import Relatorios from "./pages/Relatorios";
-import Configuracoes from "./pages/Configuracoes";
-import OnibusManagement from "./pages/OnibusManagement";
-import EmbarqueManual from "./pages/EmbarqueManual";
-import DashboardVisual from "./pages/DashboardVisual"; // ✅ NOVO
+import Login from './pages/Login';
+import CadastroPassageiro from './pages/CadastroPassageiro';
+import UserManagement from './pages/UserManagement';
+import MotoristaLogin from './pages/MotoristaLogin';
+import MotoristaDashboard from './pages/MotoristaDashboard';
+import MotoristaManagement from './pages/MotoristaManagement';
+import QRCodeSimulator from './pages/QRCodeSimulator';
+import ScannerQRCode from './pages/ScannerQRCode';
+import Simulador from './pages/Simulador';
+import Embarques from './pages/Embarques';
+import Pagamentos from './pages/Pagamentos';
+import Relatorios from './pages/Relatorios';
+import Configuracoes from './pages/Configuracoes';
+import OnibusManagement from './pages/OnibusManagement';
+import EmbarqueManual from './pages/EmbarqueManual';
+import DashboardVisual from './pages/DashboardVisual';
+import AdminDashboard from './pages/AdminDashboard';
+import PassageiroDashboard from './pages/PassageiroDashboard';
+import RecargaPix from './pages/RecargaPix';
+import HistoricoEmbarques from './pages/HistoricoEmbarques';
 
-// 🧱 Layout e Contextos
-import Sidebar from "./components/Sidebar";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import PrivateRoute from "./routes/PrivateRoute";
-import ProtectedRouteByPerfil from "./routes/ProtectedRouteByPerfil"; // ✅ NOVO
+// 🧱 Layouts e Contextos
+import Sidebar from './components/Sidebar';
+import SidebarPassageiro from './components/SidebarPassageiro';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
-// 🎨 Estilos
-import "./styles/RapturStyle.css";
+import './styles/RapturStyle.css';
 
-// 🧩 Layout principal
+// Layout Admin/Motorista
 function MainLayout({ children }) {
   return (
     <div className="flex">
       <Sidebar />
+      <div className="flex-1 p-4">{children}</div>
+    </div>
+  );
+}
+
+// Layout Passageiro
+function PassageiroLayout({ children }) {
+  return (
+    <div className="flex">
+      <SidebarPassageiro />
       <div className="flex-1 p-4">{children}</div>
     </div>
   );
@@ -43,16 +57,16 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
-
           {/* 🔓 Públicas */}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<CadastroPassageiro />} />
           <Route path="/motorista/login" element={<MotoristaLogin />} />
 
           {/* 🔐 Admin */}
           <Route path="/dashboard" element={
             <ProtectedRouteByPerfil permitido={['admin']}>
-              <MainLayout><Dashboard /></MainLayout>
+              <MainLayout><AdminDashboard /></MainLayout>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/usuarios" element={
@@ -123,9 +137,25 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
+          {/* 👤 Passageiro */}
+          <Route path="/passageiro/dashboard" element={
+            <ProtectedRouteByPerfil permitido={['passageiro']}>
+              <PassageiroLayout><PassageiroDashboard /></PassageiroLayout>
+            </ProtectedRouteByPerfil>
+          } />
+          <Route path="/passageiro/recarga" element={
+            <ProtectedRouteByPerfil permitido={['passageiro']}>
+              <PassageiroLayout><RecargaPix /></PassageiroLayout>
+            </ProtectedRouteByPerfil>
+          } />
+          <Route path="/passageiro/historico" element={
+            <ProtectedRouteByPerfil permitido={['passageiro']}>
+              <PassageiroLayout><HistoricoEmbarques /></PassageiroLayout>
+            </ProtectedRouteByPerfil>
+          } />
+
           {/* 🧭 Fallback */}
           <Route path="*" element={<Login />} />
-
         </Routes>
       </Router>
     </ThemeProvider>
@@ -133,6 +163,11 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
 
 
 

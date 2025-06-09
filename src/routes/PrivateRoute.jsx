@@ -1,8 +1,41 @@
+// src/routes/PrivateRoute.jsx
+
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
+/**
+ * PrivateRoute
+ *
+ * Protege rotas que exigem usuário autenticado.
+ * Verifica a existência de um token JWT no localStorage.
+ *
+ * Uso (React Router v6):
+ *
+ * // Rota isolada:
+ * <Route
+ *   path="/dashboard"
+ *   element={
+ *     <PrivateRoute>
+ *       <Dashboard />
+ *     </PrivateRoute>
+ *   }
+ * />
+ *
+ * // Layout com rotas aninhadas:
+ * <Route element={<PrivateRoute />}>
+ *   <Route path="/dashboard" element={<Dashboard />} />
+ *   <Route path="/settings" element={<Settings />} />
+ * </Route>
+ */
 export default function PrivateRoute({ children }) {
-  const token = localStorage.getItem('token'); // ou useContext(AuthContext)
+  // Busca token JWT no localStorage
+  const token = localStorage.getItem('token');
 
-  return token ? children : <Navigate to="/login" />;
+  // Se não tiver token, redireciona para tela de login
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Se houve children, renderiza-os; senão assume rotas aninhadas e usa <Outlet/>
+  return children ? children : <Outlet />;
 }

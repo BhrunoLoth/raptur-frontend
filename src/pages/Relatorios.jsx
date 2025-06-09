@@ -7,6 +7,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import api from '../services/apiService';
 
 export default function Relatorios() {
   const [aba, setAba] = useState(0);
@@ -25,13 +26,10 @@ export default function Relatorios() {
     dataFim: ''
   });
 
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
-
   useEffect(() => {
-    axios.get('http://localhost:3000/api/usuarios', { headers }).then(res => setUsuarios(res.data));
-    axios.get('http://localhost:3000/api/motoristas', { headers }).then(res => setMotoristas(res.data));
-    axios.get('http://localhost:3000/api/onibus', { headers }).then(res => setOnibus(res.data));
+    api.get('/usuarios').then(res => setUsuarios(res.data)).catch(console.error);
+    api.get('/motoristas').then(res => setMotoristas(res.data)).catch(console.error);
+    api.get('/onibus').then(res => setOnibus(res.data)).catch(console.error);
   }, []);
 
   const handleBuscar = async () => {
@@ -62,9 +60,11 @@ export default function Relatorios() {
           endpoint = `viagens/${filtros.usuario_id}`;
           params = { inicio: filtros.dataInicio, fim: filtros.dataFim };
           break;
+        default:
+          return;
       }
 
-      const res = await axios.get(`http://localhost:3000/api/relatorios/${endpoint}`, { params, headers });
+      const res = await api.get(`/relatorios/${endpoint}`, { params });
       setResultados(res.data);
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
@@ -110,7 +110,7 @@ export default function Relatorios() {
 
     return (
       <>
-        <Box display="flex" gap={2} my={2}>
+        <Box display="flex" flexWrap="wrap" gap={2} my={2}>
           <Button variant="outlined" onClick={exportarCSV}>📥 Exportar CSV</Button>
           <Button variant="outlined" onClick={exportarPDF}>📄 Exportar PDF</Button>
         </Box>
@@ -144,10 +144,16 @@ export default function Relatorios() {
   };
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" gutterBottom>📈 Relatórios Avançados</Typography>
+    <Box p={2} maxWidth="100%">
+      <Typography variant="h5" gutterBottom>📈 Relatórios Avançados</Typography>
 
-      <Tabs value={aba} onChange={(_, v) => setAba(v)} sx={{ mb: 2 }}>
+      <Tabs
+        value={aba}
+        onChange={(_, v) => setAba(v)}
+        sx={{ mb: 2 }}
+        variant="scrollable"
+        scrollButtons="auto"
+      >
         <Tab label="Pagamentos" />
         <Tab label="Embarques" />
         <Tab label="Viagens" />
@@ -159,7 +165,7 @@ export default function Relatorios() {
           <TextField
             select label="Passageiro" value={filtros.usuario_id}
             onChange={e => setFiltros({ ...filtros, usuario_id: e.target.value })}
-            sx={{ minWidth: 200 }}
+            sx={{ minWidth: 200, flexGrow: 1 }}
           >
             {usuarios.map(u => (
               <MenuItem key={u.id} value={u.id}>{u.nome}</MenuItem>
@@ -171,7 +177,7 @@ export default function Relatorios() {
             <TextField
               select label="Motorista" value={filtros.motorista_id}
               onChange={e => setFiltros({ ...filtros, motorista_id: e.target.value })}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: 200, flexGrow: 1 }}
             >
               {motoristas.map(m => (
                 <MenuItem key={m.id} value={m.id}>{m.nome}</MenuItem>
@@ -180,7 +186,7 @@ export default function Relatorios() {
             <TextField
               select label="Ônibus" value={filtros.onibus_id}
               onChange={e => setFiltros({ ...filtros, onibus_id: e.target.value })}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: 200, flexGrow: 1 }}
             >
               {onibus.map(o => (
                 <MenuItem key={o.id} value={o.id}>{o.placa}</MenuItem>
@@ -192,7 +198,7 @@ export default function Relatorios() {
           <TextField
             select label="Status" value={filtros.status}
             onChange={e => setFiltros({ ...filtros, status: e.target.value })}
-            sx={{ minWidth: 150 }}
+            sx={{ minWidth: 150, flexGrow: 1 }}
           >
             <MenuItem value="pendente">Pendente</MenuItem>
             <MenuItem value="em andamento">Em Andamento</MenuItem>
@@ -205,17 +211,19 @@ export default function Relatorios() {
           value={filtros.dataInicio}
           onChange={e => setFiltros({ ...filtros, dataInicio: e.target.value })}
           InputLabelProps={{ shrink: true }}
+          sx={{ flexGrow: 1, minWidth: 150 }}
         />
         <TextField
           type="date" label="Fim"
           value={filtros.dataFim}
           onChange={e => setFiltros({ ...filtros, dataFim: e.target.value })}
           InputLabelProps={{ shrink: true }}
+          sx={{ flexGrow: 1, minWidth: 150 }}
         />
         <Button
           onClick={handleBuscar}
           variant="contained"
-          sx={{ height: 56 }}
+          sx={{ height: 56, flexShrink: 0 }}
           disabled={!filtros.dataInicio || !filtros.dataFim}
         >
           Buscar
@@ -226,4 +234,3 @@ export default function Relatorios() {
     </Box>
   );
 }
-

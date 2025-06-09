@@ -14,14 +14,14 @@ const OnibusManagement = () => {
   const [capacidade, setCapacidade] = useState('');
   const [onibus, setOnibus] = useState([]);
   const [erro, setErro] = useState('');
+  const [criando, setCriando] = useState(false);
 
   const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
 
   const fetchOnibus = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/admin/onibus', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get('/api/onibus', { headers });
       setOnibus(res.data);
     } catch (error) {
       console.error("Erro ao carregar ônibus:", error);
@@ -36,27 +36,26 @@ const OnibusManagement = () => {
     }
 
     try {
-      await axios.post('http://localhost:3000/api/admin/onibus', {
+      setCriando(true);
+      await axios.post('/api/onibus', {
         placa,
         modelo,
         capacidade: parseInt(capacidade)
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      }, { headers });
       setPlaca('');
       setModelo('');
       setCapacidade('');
       fetchOnibus();
     } catch (error) {
       setErro("Erro ao criar ônibus. Placa pode já estar cadastrada.");
+    } finally {
+      setCriando(false);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/api/admin/onibus/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(`/api/onibus/${id}`, { headers });
       fetchOnibus();
     } catch (error) {
       setErro("Erro ao deletar ônibus.");
@@ -92,7 +91,7 @@ const OnibusManagement = () => {
   return (
     <Box p={4}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Gestão de Ônibus
+        🚌 Gestão de Ônibus
       </Typography>
 
       <Card sx={{ mb: 4, backgroundColor: '#f5f5f5', borderRadius: 3 }}>
@@ -120,8 +119,13 @@ const OnibusManagement = () => {
               onChange={(e) => setCapacidade(e.target.value)}
               fullWidth
             />
-            <Button variant="contained" onClick={handleCreate} sx={{ minWidth: '150px' }}>
-              Criar
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              sx={{ minWidth: '150px' }}
+              disabled={criando}
+            >
+              {criando ? 'Criando...' : 'Criar'}
             </Button>
           </Stack>
           {erro && <Typography mt={2} color="error">{erro}</Typography>}
@@ -131,10 +135,10 @@ const OnibusManagement = () => {
       <Divider sx={{ mb: 3 }} />
 
       <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h6">Ônibus Cadastrados</Typography>
+        <Typography variant="h6">🗂️ Ônibus Cadastrados</Typography>
         <Stack direction="row" spacing={1}>
-          <Button onClick={exportarPDF} variant="outlined">📄 PDF</Button>
-          <Button onClick={exportarCSV} variant="outlined">📑 CSV</Button>
+          <Button onClick={exportarPDF} variant="outlined">📄 Exportar PDF</Button>
+          <Button onClick={exportarCSV} variant="outlined">📑 Exportar CSV</Button>
         </Stack>
       </Box>
 
@@ -180,5 +184,6 @@ const OnibusManagement = () => {
 };
 
 export default OnibusManagement;
+
 
 

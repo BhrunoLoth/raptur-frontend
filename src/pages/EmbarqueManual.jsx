@@ -14,11 +14,16 @@ const EmbarqueManual = () => {
     setMensagem("");
     setErro("");
 
+    if (!usuarioId || !viagemId || !veiculoId) {
+      setErro("Todos os campos são obrigatórios.");
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token"); // ou onde estiver salvo
+      const token = localStorage.getItem("token");
 
       const response = await axios.post(
-        "/api/embarques",
+        "http://localhost:3000/api/embarques",
         { usuarioId, viagemId, veiculoId },
         {
           headers: {
@@ -27,34 +32,79 @@ const EmbarqueManual = () => {
         }
       );
 
-      setMensagem(response.data.mensagem || "Embarque realizado com sucesso!");
+      setMensagem(response.data.mensagem || "✅ Embarque registrado com sucesso!");
+      setUsuarioId("");
+      setViagemId("");
+      setVeiculoId("");
     } catch (err) {
-      setErro(err.response?.data?.erro || "Erro ao registrar embarque.");
+      const msg =
+        err.response?.data?.erro ||
+        err.response?.data?.message ||
+        "Erro ao registrar embarque.";
+      setErro(`❌ ${msg}`);
     }
   };
 
   return (
     <Layout>
-      <div className="dashboard-main-card user-card">
-        <h2>🚌 Registrar Embarque Manual</h2>
-        <form onSubmit={handleSubmit} className="user-form">
-          <label>Usuário ID:</label>
-          <input value={usuarioId} onChange={(e) => setUsuarioId(e.target.value)} />
+      <div className="dashboard-main-card max-w-lg mx-auto p-6 bg-white rounded shadow">
+        <h2 className="text-2xl font-bold mb-4">🚌 Registrar Embarque Manual</h2>
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          <div>
+            <label className="block mb-1 font-medium">Usuário ID</label>
+            <input
+              type="text"
+              value={usuarioId}
+              onChange={(e) => setUsuarioId(e.target.value)}
+              placeholder="Ex: 101"
+              required
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-          <label>Viagem ID:</label>
-          <input value={viagemId} onChange={(e) => setViagemId(e.target.value)} />
+          <div>
+            <label className="block mb-1 font-medium">Viagem ID</label>
+            <input
+              type="text"
+              value={viagemId}
+              onChange={(e) => setViagemId(e.target.value)}
+              placeholder="Ex: 202"
+              required
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-          <label>Veículo ID:</label>
-          <input value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} />
+          <div>
+            <label className="block mb-1 font-medium">Veículo ID</label>
+            <input
+              type="text"
+              value={veiculoId}
+              onChange={(e) => setVeiculoId(e.target.value)}
+              placeholder="Ex: 303"
+              required
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
 
-          <button type="submit" className="action-btn user-create-btn">🚀 Enviar</button>
+          <button
+            type="submit"
+            className="bg-green-700 hover:bg-green-800 text-white py-2 rounded"
+          >
+            🚀 Enviar
+          </button>
         </form>
 
-        {mensagem && <div style={{ color: "green", marginTop: 12 }}>{mensagem}</div>}
-        {erro && <div style={{ color: "red", marginTop: 12 }}>{erro}</div>}
+        {mensagem && (
+          <div className="text-green-600 mt-4 bg-green-50 p-3 rounded">{mensagem}</div>
+        )}
+        {erro && (
+          <div className="text-red-600 mt-4 bg-red-50 p-3 rounded">{erro}</div>
+        )}
       </div>
     </Layout>
   );
 };
 
 export default EmbarqueManual;
+
+

@@ -24,7 +24,6 @@ const Pagamentos = () => {
     fetchPagamentos();
   }, []);
 
-  // Remover pagamento
   const removerPagamento = async (id) => {
     if (!window.confirm("Deseja remover este pagamento?")) return;
     try {
@@ -35,7 +34,6 @@ const Pagamentos = () => {
     }
   };
 
-  // Editar status do pagamento
   const iniciarEdicao = (id, statusAtual) => {
     setEditandoId(id);
     setNovoStatus(statusAtual);
@@ -58,65 +56,85 @@ const Pagamentos = () => {
 
   return (
     <Layout>
-      <div className="dashboard-main-card">
-        <h2>Gestão de Pagamentos</h2>
-        {erro && <div style={{ color: "red" }}>{erro}</div>}
-        <div className="dashboard-table-wrapper">
-          <table className="dashboard-table">
-            <thead>
+      <div className="dashboard-main-card px-4 py-6 max-w-full overflow-x-auto">
+        <h2 className="text-2xl font-bold mb-4">💳 Gestão de Pagamentos</h2>
+
+        {erro && (
+          <div className="text-red-600 bg-red-100 p-3 rounded mb-4">
+            {erro}
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-left border border-gray-200 rounded shadow">
+            <thead className="bg-green-900 text-white">
               <tr>
-                <th>ID</th>
-                <th>Viagem</th>
-                <th>Usuário</th>
-                <th>Valor</th>
-                <th>Método</th>
-                <th>Status</th>
-                <th>Ações</th>
+                <th className="p-3">ID</th>
+                <th className="p-3">Viagem</th>
+                <th className="p-3">Usuário</th>
+                <th className="p-3">Valor</th>
+                <th className="p-3">Método</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Ações</th>
               </tr>
             </thead>
             <tbody>
               {pagamentos.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", opacity: 0.7 }}>
+                  <td colSpan={7} className="text-center p-4 text-gray-500">
                     Nenhum pagamento cadastrado
                   </td>
                 </tr>
               ) : (
                 pagamentos.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.id}</td>
-                    <td>{p.viagemId}</td>
-                    <td>{p.usuarioId}</td>
-                    <td>{p.valor}</td>
-                    <td>{p.metodo}</td>
-                    <td>
+                  <tr key={p.id} className="border-t">
+                    <td className="p-3">{p.id}</td>
+                    <td className="p-3">{p.viagemId}</td>
+                    <td className="p-3">{p.usuarioId}</td>
+                    <td className="p-3">R$ {p.valor}</td>
+                    <td className="p-3">{p.metodo}</td>
+                    <td className="p-3">
                       {editandoId === p.id ? (
                         <select
                           value={novoStatus}
                           onChange={(e) => setNovoStatus(e.target.value)}
+                          className="border rounded px-2 py-1"
                         >
                           <option value="Pendente">Pendente</option>
                           <option value="Pago">Pago</option>
                           <option value="Cancelado">Cancelado</option>
                         </select>
                       ) : (
-                        p.status
+                        <span className="font-medium">{p.status}</span>
                       )}
                     </td>
-                    <td>
+                    <td className="p-3 flex gap-2 flex-wrap">
                       {editandoId === p.id ? (
                         <>
-                          <button onClick={() => salvarEdicao(p.id)}>Salvar</button>
-                          <button onClick={() => setEditandoId(null)}>Cancelar</button>
+                          <button
+                            onClick={() => salvarEdicao(p.id)}
+                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                          >
+                            Salvar
+                          </button>
+                          <button
+                            onClick={() => setEditandoId(null)}
+                            className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+                          >
+                            Cancelar
+                          </button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => iniciarEdicao(p.id, p.status)}>
+                          <button
+                            onClick={() => iniciarEdicao(p.id, p.status)}
+                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          >
                             Editar
                           </button>
                           <button
-                            style={{ marginLeft: 8, color: "red" }}
                             onClick={() => removerPagamento(p.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                           >
                             Remover
                           </button>

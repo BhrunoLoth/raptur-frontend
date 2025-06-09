@@ -10,19 +10,24 @@ import {
 const Embarques = () => {
   const [embarques, setEmbarques] = useState([]);
   const [erro, setErro] = useState("");
-  const [novo, setNovo] = useState({ viagemId: "", usuarioId: "", status: "", dataHora: "" });
+  const [novo, setNovo] = useState({
+    viagemId: "",
+    usuarioId: "",
+    status: "pendente",
+    dataHora: "",
+  });
   const [editandoId, setEditandoId] = useState(null);
   const [editStatus, setEditStatus] = useState("");
 
   useEffect(() => {
-    async function fetchEmbarques() {
+    const fetchEmbarques = async () => {
       try {
         const lista = await buscarEmbarques();
         setEmbarques(lista);
       } catch (err) {
         setErro("Erro ao carregar embarques");
       }
-    }
+    };
     fetchEmbarques();
   }, []);
 
@@ -35,8 +40,9 @@ const Embarques = () => {
     try {
       const criado = await criarEmbarque(novo);
       setEmbarques([...embarques, criado]);
-      setNovo({ viagemId: "", usuarioId: "", status: "", dataHora: "" });
-    } catch {
+      setNovo({ viagemId: "", usuarioId: "", status: "pendente", dataHora: "" });
+      setErro("");
+    } catch (err) {
       setErro("Erro ao criar embarque");
     }
   };
@@ -66,6 +72,7 @@ const Embarques = () => {
       );
       setEditandoId(null);
       setEditStatus("");
+      setErro("");
     } catch {
       setErro("Erro ao atualizar embarque");
     }
@@ -73,15 +80,22 @@ const Embarques = () => {
 
   return (
     <Layout>
-      <div className="dashboard-main-card">
-        <h2>Gestão de Embarques</h2>
-        {erro && <div style={{ color: "red" }}>{erro}</div>}
-        <form onSubmit={handleCriar} style={{ marginBottom: 20 }}>
+      <div className="dashboard-main-card px-4 py-6 max-w-full">
+        <h2 className="text-2xl font-bold mb-4">📦 Gestão de Embarques</h2>
+
+        {erro && (
+          <div className="text-red-600 bg-red-100 p-3 rounded mb-4">
+            {erro}
+          </div>
+        )}
+
+        <form onSubmit={handleCriar} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <input
             name="viagemId"
             placeholder="Viagem ID"
             value={novo.viagemId}
             onChange={handleChange}
+            className="border px-3 py-2 rounded"
             required
           />
           <input
@@ -89,75 +103,106 @@ const Embarques = () => {
             placeholder="Usuário ID"
             value={novo.usuarioId}
             onChange={handleChange}
+            className="border px-3 py-2 rounded"
             required
           />
-          <input
+          <select
             name="status"
-            placeholder="Status"
             value={novo.status}
             onChange={handleChange}
+            className="border px-3 py-2 rounded"
             required
-          />
+          >
+            <option value="pendente">Pendente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
           <input
             name="dataHora"
-            placeholder="Data e Hora"
+            type="datetime-local"
             value={novo.dataHora}
             onChange={handleChange}
+            className="border px-3 py-2 rounded"
             required
-            type="datetime-local"
           />
-          <button type="submit">Criar</button>
+          <button
+            type="submit"
+            className="col-span-full sm:col-span-2 lg:col-span-1 bg-green-700 hover:bg-green-800 text-white py-2 rounded"
+          >
+            ➕ Criar
+          </button>
         </form>
-        <div className="dashboard-table-wrapper">
-          <table className="dashboard-table">
-            <thead>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-left border border-gray-200 rounded shadow">
+            <thead className="bg-green-900 text-white">
               <tr>
-                <th>ID</th>
-                <th>Viagem</th>
-                <th>Usuário</th>
-                <th>Status</th>
-                <th>Data/Hora</th>
-                <th>Ações</th>
+                <th className="p-3">ID</th>
+                <th className="p-3">Viagem</th>
+                <th className="p-3">Usuário</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Data/Hora</th>
+                <th className="p-3">Ações</th>
               </tr>
             </thead>
             <tbody>
               {embarques.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", opacity: 0.7 }}>
+                  <td colSpan={6} className="text-center p-4 text-gray-500">
                     Nenhum embarque cadastrado
                   </td>
                 </tr>
               ) : (
                 embarques.map((e) => (
-                  <tr key={e.id}>
-                    <td>{e.id}</td>
-                    <td>{e.viagemId}</td>
-                    <td>{e.usuarioId}</td>
-                    <td>
+                  <tr key={e.id} className="border-t">
+                    <td className="p-3">{e.id}</td>
+                    <td className="p-3">{e.viagemId}</td>
+                    <td className="p-3">{e.usuarioId}</td>
+                    <td className="p-3">
                       {editandoId === e.id ? (
-                        <input
+                        <select
                           value={editStatus}
                           onChange={(ev) => setEditStatus(ev.target.value)}
-                        />
+                          className="border px-2 py-1 rounded"
+                        >
+                          <option value="pendente">Pendente</option>
+                          <option value="confirmado">Confirmado</option>
+                          <option value="cancelado">Cancelado</option>
+                        </select>
                       ) : (
-                        e.status
+                        <span className="font-medium">{e.status}</span>
                       )}
                     </td>
-                    <td>{e.dataHora}</td>
-                    <td>
+                    <td className="p-3">
+                      {new Date(e.dataHora).toLocaleString()}
+                    </td>
+                    <td className="p-3 flex gap-2 flex-wrap">
                       {editandoId === e.id ? (
                         <>
-                          <button onClick={() => salvarEdicao(e.id)}>Salvar</button>
-                          <button onClick={() => setEditandoId(null)}>Cancelar</button>
+                          <button
+                            onClick={() => salvarEdicao(e.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                          >
+                            Salvar
+                          </button>
+                          <button
+                            onClick={() => setEditandoId(null)}
+                            className="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded"
+                          >
+                            Cancelar
+                          </button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => iniciarEdicao(e.id, e.status)}>
+                          <button
+                            onClick={() => iniciarEdicao(e.id, e.status)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                          >
                             Editar
                           </button>
                           <button
-                            style={{ marginLeft: 8, color: "red" }}
                             onClick={() => removerEmbarque(e.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                           >
                             Remover
                           </button>
@@ -176,3 +221,4 @@ const Embarques = () => {
 };
 
 export default Embarques;
+

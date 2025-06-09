@@ -1,3 +1,5 @@
+// ✅ src/pages/UserManagement.jsx - Atualizado e Responsivo
+
 import React, { useState, useRef, useEffect } from "react";
 import Layout from "../components/Layout";
 import jsPDF from "jspdf";
@@ -13,8 +15,7 @@ function exportarCSV(usuarios) {
   const rows = usuarios.map((u) => [u.nome, u.email, u.perfil]);
   const csv =
     "data:text/csv;charset=utf-8," +
-    header.join(",") +
-    "\n" +
+    header.join(",") + "\n" +
     rows.map((e) => e.join(",")).join("\n");
   const encoded = encodeURI(csv);
   const link = document.createElement("a");
@@ -46,14 +47,16 @@ const UserManagement = () => {
   const nomeRef = useRef(null);
 
   useEffect(() => {
-    (async () => {
+    const carregar = async () => {
       try {
         const lista = await listarUsuarios();
         setUsuarios(lista);
-      } catch {
+      } catch (e) {
         setErro("Erro ao carregar usuários.");
+        console.error(e);
       }
-    })();
+    };
+    carregar();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -64,7 +67,8 @@ const UserManagement = () => {
       return setErro("Preencha todos os campos obrigatórios.");
     }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailValido) {
       return setErro("Digite um e-mail válido.");
     }
 
@@ -72,7 +76,7 @@ const UserManagement = () => {
       const formData = {
         nome,
         email,
-        senha: "123456", // senha padrão ou lógica de geração segura
+        senha: "123456",
         perfil,
       };
 
@@ -89,7 +93,8 @@ const UserManagement = () => {
       setPerfil("");
       setSubtipoPassageiro("");
       nomeRef.current?.focus();
-    } catch {
+    } catch (e) {
+      console.error(e);
       setErro("Erro ao criar usuário.");
     }
   };
@@ -101,113 +106,120 @@ const UserManagement = () => {
     try {
       await deletarUsuario(usuario.id);
       setUsuarios(usuarios.filter((_, i) => i !== index));
-    } catch {
+    } catch (e) {
+      console.error(e);
       setErro("Erro ao remover usuário.");
     }
   };
 
   return (
     <Layout>
-      <div className="dashboard-main-card user-card">
-        <h2 className="user-title">👤 Gerenciar Usuários</h2>
+      <div className="p-4 max-w-7xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4 text-green-900">👤 Gerenciar Usuários</h2>
 
-        <div className="dashboard-section user-form-section">
-          <form onSubmit={handleSubmit} className="user-form" autoComplete="off">
-            <label htmlFor="nome" className="user-label">Nome</label>
-            <input
-              id="nome"
-              className="user-input"
-              placeholder="Digite o nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              ref={nomeRef}
-              autoFocus
-            />
+        <form
+          onSubmit={handleSubmit}
+          className="grid md:grid-cols-2 gap-4 mb-6 bg-white p-4 rounded shadow"
+          autoComplete="off"
+        >
+          <input
+            id="nome"
+            className="border p-2 rounded"
+            placeholder="Nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            ref={nomeRef}
+            required
+          />
 
-            <label htmlFor="email" className="user-label">Email</label>
-            <input
-              id="email"
-              className="user-input"
-              placeholder="Digite o e-mail"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-            />
+          <input
+            id="email"
+            className="border p-2 rounded"
+            placeholder="E-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            required
+          />
 
-            <label htmlFor="perfil" className="user-label">Perfil</label>
+          <select
+            id="perfil"
+            className="border p-2 rounded"
+            value={perfil}
+            onChange={(e) => setPerfil(e.target.value)}
+            required
+          >
+            <option value="">Selecione o Perfil</option>
+            <option value="admin">Admin</option>
+            <option value="motorista">Motorista</option>
+            <option value="passageiro">Passageiro</option>
+          </select>
+
+          {perfil === "passageiro" && (
             <select
-              id="perfil"
-              className="user-input"
-              value={perfil}
-              onChange={(e) => setPerfil(e.target.value)}
+              id="subtipo"
+              className="border p-2 rounded"
+              value={subtipo_passageiro}
+              onChange={(e) => setSubtipoPassageiro(e.target.value)}
             >
-              <option value="">Selecione...</option>
-              <option value="admin">Admin</option>
-              <option value="motorista">Motorista</option>
-              <option value="passageiro">Passageiro</option>
+              <option value="">Subtipo Passageiro</option>
+              <option value="aluno_gratuito">Aluno com Gratuidade</option>
+              <option value="aluno_pagante">Aluno Pagante</option>
+              <option value="idoso">Idoso</option>
             </select>
+          )}
 
-            {perfil === "passageiro" && (
-              <>
-                <label htmlFor="subtipo" className="user-label">Subtipo Passageiro</label>
-                <select
-                  id="subtipo"
-                  className="user-input"
-                  value={subtipo_passageiro}
-                  onChange={(e) => setSubtipoPassageiro(e.target.value)}
-                >
-                  <option value="">Selecione...</option>
-                  <option value="aluno_gratuito">Aluno com Gratuidade</option>
-                  <option value="aluno_pagante">Aluno Pagante</option>
-                  <option value="idoso">Idoso</option>
-                </select>
-              </>
-            )}
-
-            {erro && <div className="user-error">{erro}</div>}
-
-            <button className="action-btn user-create-btn" type="submit">
-              ➕ Criar
+          <div className="col-span-full">
+            {erro && <div className="text-red-600 text-sm mb-2">{erro}</div>}
+            <button className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded">
+              ➕ Criar Usuário
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
 
-        <div className="dashboard-section user-table-section">
-          <div className="dashboard-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Usuários Cadastrados</span>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="export-btn" onClick={() => exportarPDF(usuarios)}>📄 PDF</button>
-              <button className="export-btn" onClick={() => exportarCSV(usuarios)}>📑 CSV</button>
+        <div className="bg-white p-4 rounded shadow">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Usuários Cadastrados</h3>
+            <div className="flex gap-2 mt-2 md:mt-0">
+              <button
+                className="border px-3 py-1 rounded hover:bg-gray-100"
+                onClick={() => exportarPDF(usuarios)}
+              >📄 PDF</button>
+              <button
+                className="border px-3 py-1 rounded hover:bg-gray-100"
+                onClick={() => exportarCSV(usuarios)}
+              >📑 CSV</button>
             </div>
           </div>
 
-          <div className="dashboard-table-wrapper">
-            <table className="dashboard-table user-table">
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto border border-gray-200">
               <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Perfil</th>
-                  <th style={{ textAlign: "center" }}>Ações</th>
+                <tr className="bg-gray-100">
+                  <th className="px-4 py-2">Nome</th>
+                  <th className="px-4 py-2">Email</th>
+                  <th className="px-4 py-2">Perfil</th>
+                  <th className="px-4 py-2 text-center">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {usuarios.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
+                    <td colSpan={4} className="text-center py-4 text-gray-500">
                       Nenhum usuário cadastrado
                     </td>
                   </tr>
                 ) : (
                   usuarios.map((u, i) => (
-                    <tr key={u.id || i}>
-                      <td>{u.nome}</td>
-                      <td>{u.email}</td>
-                      <td>{u.perfil}</td>
-                      <td style={{ textAlign: "center" }}>
-                        <button className="remove-btn" onClick={() => removerUsuario(i)}>
-                          Remover
-                        </button>
+                    <tr key={u.id || i} className="border-t">
+                      <td className="px-4 py-2">{u.nome}</td>
+                      <td className="px-4 py-2">{u.email}</td>
+                      <td className="px-4 py-2">{u.perfil}</td>
+                      <td className="px-4 py-2 text-center">
+                        <button
+                          onClick={() => removerUsuario(i)}
+                          className="text-red-600 hover:underline"
+                        >Remover</button>
                       </td>
                     </tr>
                   ))
@@ -222,4 +234,5 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+
 

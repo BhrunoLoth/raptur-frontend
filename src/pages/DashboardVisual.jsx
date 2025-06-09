@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, TextField, MenuItem, Button,
-  CircularProgress
+  Box, Typography, TextField, MenuItem, Button, CircularProgress
 } from '@mui/material';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
@@ -17,24 +16,31 @@ export default function DashboardVisual() {
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
+  const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
-    axios.get('http://localhost:3000/api/onibus', { headers })
+    axios.get(`${BACKEND}/api/onibus`, { headers })
       .then(res => setOnibusLista(res.data))
-      .catch(err => console.error('Erro ao carregar ônibus:', err));
+      .catch(err => console.error('❌ Erro ao carregar ônibus:', err));
   }, []);
 
   const buscarDados = async () => {
     if (!dataInicio || !dataFim) {
-      alert("Selecione o intervalo de datas.");
+      alert("📆 Selecione o intervalo de datas.");
       return;
     }
 
     setLoading(true);
     try {
-      const params = { dataInicio, dataFim, tipo, onibus_id: onibusId };
-      const res = await axios.get('http://localhost:3000/api/relatorios/embarques', { params, headers });
+      const params = {
+        dataInicio,
+        dataFim,
+        tipo,
+        onibus_id: onibusId
+      };
+
+      const res = await axios.get(`${BACKEND}/api/relatorios/embarques`, { params, headers });
 
       const porTipo = {};
       res.data.forEach(e => {
@@ -42,30 +48,30 @@ export default function DashboardVisual() {
         porTipo[categoria] = (porTipo[categoria] || 0) + 1;
       });
 
-      const labels = Object.keys(porTipo);
-      const valores = Object.values(porTipo);
-
       setGraficoData({
-        labels,
+        labels: Object.keys(porTipo),
         datasets: [{
           label: 'Qtd. Embarques',
-          data: valores,
+          data: Object.values(porTipo),
           backgroundColor: 'rgba(63, 81, 181, 0.7)',
-          borderRadius: 4,
+          borderRadius: 4
         }]
       });
+
     } catch (err) {
-      console.error('Erro ao buscar embarques:', err);
+      console.error('❌ Erro ao buscar embarques:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" gutterBottom>📊 Painel Visual Administrativo</Typography>
+    <Box p={2} className="max-w-full mx-auto">
+      <Typography variant="h5" gutterBottom className="text-green-800 font-bold">
+        📊 Painel Visual Administrativo
+      </Typography>
 
-      <Box display="flex" gap={2} flexWrap="wrap" mb={3}>
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={2} flexWrap="wrap" mb={3}>
         <TextField
           type="date"
           label="Data Início"
@@ -112,17 +118,27 @@ export default function DashboardVisual() {
       </Box>
 
       {loading && <CircularProgress />}
+
       {!loading && graficoData && (
-        <Bar
-          data={graficoData}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: { position: 'top' },
-              title: { display: true, text: 'Distribuição de Embarques por Tipo' },
-            },
-          }}
-        />
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <Bar
+            data={graficoData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Distribuição de Embarques por Tipo' },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }}
+            height={300}
+          />
+        </Box>
       )}
     </Box>
   );
