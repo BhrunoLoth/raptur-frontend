@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, Stack, IconButton, Drawer } from '@mui/material';
-import { LogOut, CreditCard, Clock3, Menu } from 'lucide-react';
+import { LogOut, CreditCard, Clock3, Menu, Home, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SidebarPassageiro() {
@@ -15,6 +15,16 @@ export default function SidebarPassageiro() {
   const handleNavigate = (path) => {
     setMobileOpen(false);
     navigate(path);
+  };
+
+  // ✅ ESTILO padrão de botões
+  const btnStyle = {
+    borderColor: 'rgba(255,255,255,0.4)',
+    color: 'white',
+    '&:hover': {
+      borderColor: 'white',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+    }
   };
 
   const drawerContent = (
@@ -38,17 +48,20 @@ export default function SidebarPassageiro() {
         <Stack spacing={2}>
           <Button
             variant="outlined"
+            startIcon={<Home />}
+            onClick={() => handleNavigate('/passageiro/dashboard')}
+            fullWidth
+            sx={btnStyle}
+          >
+            Início
+          </Button>
+
+          <Button
+            variant="outlined"
             startIcon={<CreditCard />}
             onClick={() => handleNavigate('/passageiro/recarga')}
             fullWidth
-            sx={{
-              borderColor: 'rgba(255,255,255,0.4)',
-              color: 'white',
-              '&:hover': {
-                borderColor: 'white',
-                backgroundColor: 'rgba(255,255,255,0.1)'
-              }
-            }}
+            sx={btnStyle}
           >
             Recarga Pix
           </Button>
@@ -58,16 +71,20 @@ export default function SidebarPassageiro() {
             startIcon={<Clock3 />}
             onClick={() => handleNavigate('/passageiro/historico')}
             fullWidth
-            sx={{
-              borderColor: 'rgba(255,255,255,0.4)',
-              color: 'white',
-              '&:hover': {
-                borderColor: 'white',
-                backgroundColor: 'rgba(255,255,255,0.1)'
-              }
-            }}
+            sx={btnStyle}
           >
             Histórico
+          </Button>
+
+          {/* ✅ Nova opção de Trocar Senha */}
+          <Button
+            variant="outlined"
+            startIcon={<KeyRound />}
+            onClick={() => handleNavigate('/trocar-senha')}
+            fullWidth
+            sx={btnStyle}
+          >
+            Trocar Senha
           </Button>
         </Stack>
       </Box>
@@ -97,7 +114,7 @@ export default function SidebarPassageiro() {
 
   return (
     <>
-      {/* Menu superior para mobile */}
+      {/* Topbar mobile */}
       <Box
         sx={{
           display: { xs: 'flex', md: 'none' },
@@ -129,7 +146,7 @@ export default function SidebarPassageiro() {
         {drawerContent}
       </Drawer>
 
-      {/* Sidebar fixa para desktop */}
+      {/* Sidebar desktop */}
       <Box
         sx={{
           width: 240,

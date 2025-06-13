@@ -1,5 +1,3 @@
-// ✅ src/pages/UserManagement.jsx - Atualizado e Responsivo
-
 import React, { useState, useRef, useEffect } from "react";
 import Layout from "../components/Layout";
 import jsPDF from "jspdf";
@@ -76,8 +74,9 @@ const UserManagement = () => {
       const formData = {
         nome,
         email,
-        senha: "123456",
+        senha: "123456", // senha padrão inicial
         perfil,
+        precisaTrocarSenha: true
       };
 
       if (perfil === "passageiro") {
@@ -234,5 +233,3 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
-
-

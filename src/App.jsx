@@ -23,6 +23,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PassageiroDashboard from './pages/PassageiroDashboard';
 import RecargaPix from './pages/RecargaPix';
 import HistoricoEmbarques from './pages/HistoricoEmbarques';
+import TrocarSenha from './pages/TrocarSenha'; // 🔐 Novo import
 
 // 🧱 Layouts e Contextos
 import Sidebar from './components/Sidebar';
@@ -62,6 +63,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<CadastroPassageiro />} />
           <Route path="/motorista/login" element={<MotoristaLogin />} />
+
+          {/* 🔐 Alteração obrigatória de senha */}
+          <Route path="/trocar-senha" element={<TrocarSenha />} />
 
           {/* 🔐 Admin */}
           <Route path="/dashboard" element={
@@ -163,7 +167,6 @@ function App() {
 }
 
 export default App;
-
 
 
 

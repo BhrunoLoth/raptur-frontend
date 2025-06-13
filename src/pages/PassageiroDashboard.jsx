@@ -3,12 +3,17 @@ import React, { useEffect, useState } from 'react';
 export default function PassageiroDashboard() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchUsuarioAtualizado = async () => {
       try {
         const usuarioStorage = JSON.parse(localStorage.getItem('usuario'));
+        const token = localStorage.getItem('token');
+
+        if (!usuarioStorage?.id || !token) {
+          throw new Error('Token ou ID de usuário ausente.');
+        }
+
         const resp = await fetch(`/api/usuarios/${usuarioStorage.id}`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -16,21 +21,38 @@ export default function PassageiroDashboard() {
         });
 
         if (!resp.ok) {
-          throw new Error('Erro ao buscar dados do passageiro.');
+          const erro = await resp.json().catch(() => ({}));
+          throw new Error(erro.erro || 'Erro ao buscar dados do passageiro.');
         }
 
         const dadosAtualizados = await resp.json();
         localStorage.setItem('usuario', JSON.stringify(dadosAtualizados));
         setUsuario(dadosAtualizados);
       } catch (error) {
-        console.error('[Dashboard Passageiro] Erro:', error);
+        console.error('[Dashboard Passageiro] Erro:', error.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsuarioAtualizado();
-  }, [token]);
+  }, []);
+
+  const baixarQRCode = () => {
+    const img = document.getElementById('qrcode-img');
+    if (!img) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = 'qrcode-raptur.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
 
   if (loading) return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
   if (!usuario) return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
@@ -49,14 +71,23 @@ export default function PassageiroDashboard() {
         <strong>Saldo:</strong> R$ {usuario.saldo_credito?.toFixed(2) || '0,00'}
       </div>
 
-      <div className="text-sm md:text-base">
+      <div className="text-sm md:text-base text-center mt-4">
         <strong>QR Code para embarque:</strong><br />
-        {usuario.qrCode ? (
-          <img
-            src={`data:image/png;base64,${usuario.qrCode}`}
-            alt="QR Code"
-            className="mt-4 mx-auto w-40 h-40 md:w-48 md:h-48"
-          />
+        {usuario.qrCode?.startsWith('data:image') ? (
+          <>
+            <img
+              id="qrcode-img"
+              src={usuario.qrCode}
+              alt="QR Code"
+              className="mt-4 mx-auto w-40 h-40 md:w-48 md:h-48"
+            />
+            <button
+              onClick={baixarQRCode}
+              className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Baixar QR Code
+            </button>
+          </>
         ) : (
           <p className="text-red-500 mt-2">QR Code indisponível.</p>
         )}

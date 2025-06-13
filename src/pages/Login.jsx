@@ -1,4 +1,5 @@
 // src/pages/Login.jsx
+
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -21,6 +22,7 @@ const Login = () => {
       setErro('Preencha todos os campos.');
       return;
     }
+
     if (!/\S+@\S+\.\S+/.test(email)) {
       setErro('Digite um e-mail válido.');
       return;
@@ -34,10 +36,25 @@ const Login = () => {
       localStorage.setItem('usuario', JSON.stringify(usuario));
       localStorage.setItem('perfil', usuario.perfil);
 
-      navigate('/dashboard');
+      // ✅ Corrigido: redireciona para troca de senha se for necessário
+      if (usuario.precisaTrocarSenha) {
+        return navigate('/trocar-senha');
+      }
+
+      // Redirecionamento conforme perfil
+      switch (usuario.perfil) {
+        case 'admin':
+          return navigate('/dashboard');
+        case 'motorista':
+          return navigate('/motorista/dashboard');
+        case 'passageiro':
+          return navigate('/passageiro/dashboard');
+        default:
+          setErro('Perfil não reconhecido. Contate o administrador.');
+      }
     } catch (err) {
       console.error('[Login] erro no login:', err);
-      setErro(err.message || 'Credenciais inválidas ou erro no login.');
+      setErro(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }
@@ -105,10 +122,6 @@ const Login = () => {
 };
 
 export default Login;
-
-
-
-
 
 
 
