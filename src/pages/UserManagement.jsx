@@ -9,8 +9,8 @@ import {
 } from "../services/userService";
 
 function exportarCSV(usuarios) {
-  const header = ["Nome", "Email", "Perfil"];
-  const rows = usuarios.map((u) => [u.nome, u.email, u.perfil]);
+  const header = ["Nome", "Email", "CPF", "RG", "Perfil"];
+  const rows = usuarios.map((u) => [u.nome, u.email, u.cpf, u.rg, u.perfil]);
   const csv =
     "data:text/csv;charset=utf-8," +
     header.join(",") + "\n" +
@@ -29,8 +29,8 @@ function exportarPDF(usuarios) {
   doc.text("Usuários Cadastrados", 14, 16);
   doc.autoTable({
     startY: 22,
-    head: [["Nome", "Email", "Perfil"]],
-    body: usuarios.map((u) => [u.nome, u.email, u.perfil]),
+    head: [["Nome", "Email", "CPF", "RG", "Perfil"]],
+    body: usuarios.map((u) => [u.nome, u.email, u.cpf, u.rg, u.perfil]),
   });
   doc.save("usuarios.pdf");
 }
@@ -39,6 +39,8 @@ const UserManagement = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [rg, setRg] = useState("");
   const [perfil, setPerfil] = useState("");
   const [subtipo_passageiro, setSubtipoPassageiro] = useState("");
   const [erro, setErro] = useState("");
@@ -61,7 +63,7 @@ const UserManagement = () => {
     e.preventDefault();
     setErro("");
 
-    if (!nome.trim() || !email.trim() || !perfil) {
+    if (!nome.trim() || !email.trim() || !cpf.trim() || !rg.trim() || !perfil) {
       return setErro("Preencha todos os campos obrigatórios.");
     }
 
@@ -69,11 +71,16 @@ const UserManagement = () => {
     if (!emailValido) {
       return setErro("Digite um e-mail válido.");
     }
+    if (cpf.length < 8 || rg.length < 5) {
+      return setErro("Digite um CPF e RG válidos.");
+    }
 
     try {
       const formData = {
         nome,
         email,
+        cpf,
+        rg,
         senha: "123456", // senha padrão inicial
         perfil,
         precisaTrocarSenha: true
@@ -89,12 +96,19 @@ const UserManagement = () => {
 
       setNome("");
       setEmail("");
+      setCpf("");
+      setRg("");
       setPerfil("");
       setSubtipoPassageiro("");
       nomeRef.current?.focus();
     } catch (e) {
+      // Aqui tratamos o erro detalhado vindo do backend!
+      if (e.response && e.response.data && e.response.data.erro) {
+        setErro(e.response.data.erro);
+      } else {
+        setErro("Erro ao criar usuário.");
+      }
       console.error(e);
-      setErro("Erro ao criar usuário.");
     }
   };
 
@@ -138,6 +152,24 @@ const UserManagement = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
+            required
+          />
+
+          <input
+            id="cpf"
+            className="border p-2 rounded"
+            placeholder="CPF"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+            required
+          />
+
+          <input
+            id="rg"
+            className="border p-2 rounded"
+            placeholder="RG"
+            value={rg}
+            onChange={(e) => setRg(e.target.value)}
             required
           />
 
@@ -196,7 +228,9 @@ const UserManagement = () => {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="px-4 py-2">Nome</th>
-                  <th className="px-4 py-2">Email</th>
+                  <th className="px-4 py-2">E-mail</th>
+                  <th className="px-4 py-2">CPF</th>
+                  <th className="px-4 py-2">RG</th>
                   <th className="px-4 py-2">Perfil</th>
                   <th className="px-4 py-2 text-center">Ações</th>
                 </tr>
@@ -204,7 +238,7 @@ const UserManagement = () => {
               <tbody>
                 {usuarios.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-4 text-gray-500">
+                    <td colSpan={6} className="text-center py-4 text-gray-500">
                       Nenhum usuário cadastrado
                     </td>
                   </tr>
@@ -213,6 +247,8 @@ const UserManagement = () => {
                     <tr key={u.id || i} className="border-t">
                       <td className="px-4 py-2">{u.nome}</td>
                       <td className="px-4 py-2">{u.email}</td>
+                      <td className="px-4 py-2">{u.cpf}</td>
+                      <td className="px-4 py-2">{u.rg}</td>
                       <td className="px-4 py-2">{u.perfil}</td>
                       <td className="px-4 py-2 text-center">
                         <button
