@@ -8,6 +8,7 @@ export default function RecargaPix() {
   const [carregando, setCarregando] = useState(false);
   const [verificando, setVerificando] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL;
   const passageiro = JSON.parse(localStorage.getItem('usuario'));
   const token = localStorage.getItem('token');
 
@@ -18,7 +19,7 @@ export default function RecargaPix() {
     setCarregando(true);
 
     try {
-      const resp = await fetch('/api/pix/cobrar', {
+      const resp = await fetch(`${API_URL}/pix/cobrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ export default function RecargaPix() {
     setVerificando(true);
     const intervalo = setInterval(async () => {
       try {
-        const resp = await fetch(`/api/pix/status/${transacaoId}`, {
+        const resp = await fetch(`${API_URL}/pix/status/${transacaoId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -75,7 +76,7 @@ export default function RecargaPix() {
 
   const atualizarDadosPassageiro = async () => {
     try {
-      const resp = await fetch(`/api/passageiros/${passageiro.id}`, {
+      const resp = await fetch(`${API_URL}/passageiros/${passageiro.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -138,5 +139,3 @@ export default function RecargaPix() {
     </div>
   );
 }
-
-

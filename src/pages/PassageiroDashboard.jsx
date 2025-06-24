@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function PassageiroDashboard() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,8 @@ export default function PassageiroDashboard() {
           throw new Error('Token ou ID de usuário ausente.');
         }
 
-        const resp = await fetch(`/api/usuarios/${usuarioStorage.id}`, {
+        // ✅ CORRIGIDO: rota correta para passageiros
+        const resp = await fetch(`${API_URL}/passageiros/${usuarioStorage.id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -54,8 +57,13 @@ export default function PassageiroDashboard() {
     link.click();
   };
 
-  if (loading) return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
-  if (!usuario) return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
+  if (loading) {
+    return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
+  }
+
+  if (!usuario) {
+    return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
@@ -64,11 +72,11 @@ export default function PassageiroDashboard() {
       </h2>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Tipo de passageiro:</strong> {usuario.subtipo_passageiro}
+        <strong>Tipo de passageiro:</strong> {usuario.subtipo_passageiro || '---'}
       </div>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Saldo:</strong> R$ {usuario.saldo_credito?.toFixed(2) || '0,00'}
+        <strong>Saldo:</strong> R$ {Number(usuario.saldo_credito || 0).toFixed(2)}
       </div>
 
       <div className="text-sm md:text-base text-center mt-4">

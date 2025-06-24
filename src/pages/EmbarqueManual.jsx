@@ -9,6 +9,9 @@ const EmbarqueManual = () => {
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
+  const apiBase = import.meta.env.VITE_API_URL;
+  const token = localStorage.getItem("token");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensagem("");
@@ -20,10 +23,8 @@ const EmbarqueManual = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
       const response = await axios.post(
-        "http://localhost:3000/api/embarques",
+        `${apiBase}/embarques`,
         { usuarioId, viagemId, veiculoId },
         {
           headers: {
@@ -106,5 +107,6 @@ const EmbarqueManual = () => {
 };
 
 export default EmbarqueManual;
+
 
 

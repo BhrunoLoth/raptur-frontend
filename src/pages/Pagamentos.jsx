@@ -89,9 +89,9 @@ const Pagamentos = () => {
                 pagamentos.map((p) => (
                   <tr key={p.id} className="border-t">
                     <td className="p-3">{p.id}</td>
-                    <td className="p-3">{p.viagemId}</td>
-                    <td className="p-3">{p.usuarioId}</td>
-                    <td className="p-3">R$ {p.valor}</td>
+                    <td className="p-3">{p.viagemId || p.viagem?.id || '—'}</td>
+                    <td className="p-3">{p.usuario?.nome || p.usuarioId}</td>
+                    <td className="p-3">R$ {Number(p.valor).toFixed(2)}</td>
                     <td className="p-3">{p.metodo}</td>
                     <td className="p-3">
                       {editandoId === p.id ? (
@@ -100,12 +100,12 @@ const Pagamentos = () => {
                           onChange={(e) => setNovoStatus(e.target.value)}
                           className="border rounded px-2 py-1"
                         >
-                          <option value="Pendente">Pendente</option>
-                          <option value="Pago">Pago</option>
-                          <option value="Cancelado">Cancelado</option>
+                          <option value="pendente">Pendente</option>
+                          <option value="pago">Pago</option>
+                          <option value="falhou">Falhou</option>
                         </select>
                       ) : (
-                        <span className="font-medium">{p.status}</span>
+                        <span className="font-medium capitalize">{p.status}</span>
                       )}
                     </td>
                     <td className="p-3 flex gap-2 flex-wrap">

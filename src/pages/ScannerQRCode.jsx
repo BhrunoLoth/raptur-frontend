@@ -161,4 +161,3 @@ const ScannerQRCode = () => {
 };
 
 export default ScannerQRCode;
-

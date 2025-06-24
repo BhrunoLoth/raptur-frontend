@@ -1,4 +1,3 @@
-// src/pages/ViagemManagement.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, TextField, Button, Stack,
@@ -24,7 +23,7 @@ export default function ViagemManagement() {
 
   const fetchViagens = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/admin/viagens', {
+      const res = await axios.get('/api/admin/viagens', {
         headers,
         params: {
           status: statusFiltro,
@@ -39,23 +38,37 @@ export default function ViagemManagement() {
   };
 
   const fetchMotoristas = async () => {
-    const res = await axios.get('http://localhost:3000/api/motoristas', { headers });
-    setMotoristas(res.data);
+    try {
+      const res = await axios.get('/api/motoristas', { headers });
+      setMotoristas(res.data);
+    } catch (err) {
+      console.error('Erro ao carregar motoristas:', err);
+    }
   };
 
   const fetchOnibus = async () => {
-    const res = await axios.get('http://localhost:3000/api/onibus', { headers });
-    setOnibus(res.data);
+    try {
+      const res = await axios.get('/api/onibus', { headers });
+      setOnibus(res.data);
+    } catch (err) {
+      console.error('Erro ao carregar ônibus:', err);
+    }
   };
 
   const handleCreate = async () => {
+    if (!destino || !dataHora || !onibusId || !motoristaId) {
+      alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
     try {
-      await axios.post('http://localhost:3000/api/admin/viagens', {
+      await axios.post('/api/admin/viagens', {
         destino,
         data_hora: dataHora,
         onibus_id: onibusId,
         motorista_id: motoristaId
       }, { headers });
+
       setDestino('');
       setDataHora('');
       setOnibusId('');
@@ -69,7 +82,7 @@ export default function ViagemManagement() {
   const handleDelete = async (id) => {
     if (!window.confirm('Deseja realmente remover esta viagem?')) return;
     try {
-      await axios.delete(`http://localhost:3000/api/admin/viagens/${id}`, { headers });
+      await axios.delete(`/api/admin/viagens/${id}`, { headers });
       fetchViagens();
     } catch (err) {
       console.error('Erro ao deletar viagem:', err);
@@ -89,7 +102,13 @@ export default function ViagemManagement() {
       </Typography>
 
       <Stack spacing={2} mb={4}>
-        <TextField label="Destino" value={destino} onChange={e => setDestino(e.target.value)} fullWidth />
+        <TextField
+          label="Destino"
+          value={destino}
+          onChange={e => setDestino(e.target.value)}
+          placeholder="Ex: Terminal Central"
+          fullWidth
+        />
         <TextField
           label="Data e Hora"
           type="datetime-local"
@@ -100,7 +119,11 @@ export default function ViagemManagement() {
         />
         <FormControl fullWidth>
           <InputLabel>Ônibus</InputLabel>
-          <Select value={onibusId} onChange={e => setOnibusId(e.target.value)} label="Ônibus">
+          <Select
+            value={onibusId}
+            onChange={e => setOnibusId(e.target.value)}
+            label="Ônibus"
+          >
             {onibus.map(o => (
               <MenuItem key={o.id} value={o.id}>{o.placa}</MenuItem>
             ))}
@@ -108,20 +131,30 @@ export default function ViagemManagement() {
         </FormControl>
         <FormControl fullWidth>
           <InputLabel>Motorista</InputLabel>
-          <Select value={motoristaId} onChange={e => setMotoristaId(e.target.value)} label="Motorista">
+          <Select
+            value={motoristaId}
+            onChange={e => setMotoristaId(e.target.value)}
+            label="Motorista"
+          >
             {motoristas.map(m => (
               <MenuItem key={m.id} value={m.id}>{m.nome}</MenuItem>
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={handleCreate}>➕ Criar Viagem</Button>
+        <Button variant="contained" onClick={handleCreate}>
+          ➕ Criar Viagem
+        </Button>
       </Stack>
 
       <Typography variant="h6" gutterBottom>📅 Filtros</Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>Status</InputLabel>
-          <Select value={statusFiltro} label="Status" onChange={e => setStatusFiltro(e.target.value)}>
+          <Select
+            value={statusFiltro}
+            label="Status"
+            onChange={e => setStatusFiltro(e.target.value)}
+          >
             <MenuItem value="">Todos</MenuItem>
             <MenuItem value="pendente">Pendente</MenuItem>
             <MenuItem value="em andamento">Em Andamento</MenuItem>
@@ -143,7 +176,9 @@ export default function ViagemManagement() {
           onChange={(e) => setDataFim(e.target.value)}
           InputLabelProps={{ shrink: true }}
         />
-        <Button variant="outlined" onClick={fetchViagens}>🔍 Filtrar</Button>
+        <Button variant="outlined" onClick={fetchViagens}>
+          🔍 Filtrar
+        </Button>
       </Stack>
 
       <TableContainer component={Paper}>
@@ -159,22 +194,31 @@ export default function ViagemManagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {viagens.map(v => (
-              <TableRow key={v.id}>
-                <TableCell>{v.destino}</TableCell>
-                <TableCell>{new Date(v.data_hora).toLocaleString()}</TableCell>
-                <TableCell>{v.onibus?.placa || v.onibus_id}</TableCell>
-                <TableCell>{v.motorista?.nome || v.motorista_id}</TableCell>
-                <TableCell>{v.status}</TableCell>
-                <TableCell>
-                  <Button color="error" onClick={() => handleDelete(v.id)}>Remover</Button>
+            {viagens.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  Nenhuma viagem encontrada.
                 </TableCell>
               </TableRow>
-            ))}
-            {viagens.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} align="center">Nenhuma viagem encontrada.</TableCell>
-              </TableRow>
+            ) : (
+              viagens.map(v => (
+                <TableRow key={v.id}>
+                  <TableCell>{v.destino}</TableCell>
+                  <TableCell>{new Date(v.data_hora).toLocaleString()}</TableCell>
+                  <TableCell>{v.onibus?.placa || v.onibus_id}</TableCell>
+                  <TableCell>{v.motorista?.nome || v.motorista_id}</TableCell>
+                  <TableCell>{v.status}</TableCell>
+                  <TableCell>
+                    <Button
+                      color="error"
+                      size="small"
+                      onClick={() => handleDelete(v.id)}
+                    >
+                      Remover
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
@@ -182,4 +226,3 @@ export default function ViagemManagement() {
     </Box>
   );
 }
-

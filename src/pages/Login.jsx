@@ -1,5 +1,3 @@
-// src/pages/Login.jsx
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -36,12 +34,10 @@ const Login = () => {
       localStorage.setItem('usuario', JSON.stringify(usuario));
       localStorage.setItem('perfil', usuario.perfil);
 
-      // ✅ Corrigido: redireciona para troca de senha se for necessário
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
       }
 
-      // Redirecionamento conforme perfil
       switch (usuario.perfil) {
         case 'admin':
           return navigate('/dashboard');

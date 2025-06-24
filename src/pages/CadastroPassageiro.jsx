@@ -1,6 +1,7 @@
-// src/pages/CadastroPassageiro.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const apiBase = import.meta.env.VITE_API_URL;
 
 export default function CadastroPassageiro() {
   const [nome, setNome] = useState('');
@@ -16,10 +17,15 @@ export default function CadastroPassageiro() {
     setErro('');
 
     try {
-      const resposta = await fetch('/api/usuarios', {
+      const resposta = await fetch(`${apiBase}/usuarios`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, senha, subtipo_passageiro: subtipo })
+        body: JSON.stringify({
+          nome,
+          email,
+          senha,
+          subtipo_passageiro: subtipo
+        })
       });
 
       if (!resposta.ok) {

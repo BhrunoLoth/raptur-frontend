@@ -5,19 +5,26 @@ import logo from "../assets/logo-raptur.png";
 const QRCodeSimulator = () => {
   const [codigo, setCodigo] = useState("");
   const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
   const inputRef = useRef(null);
 
   const validarCodigo = (e) => {
     e.preventDefault();
+    setErro("");
+    setSucesso("");
+
     if (!codigo.trim()) {
       setErro("Insira um código válido.");
-      inputRef.current.focus();
+      inputRef.current?.focus();
       return;
     }
-    setErro("");
-    alert(`✅ Código validado com sucesso: ${codigo}`);
-    setCodigo("");
-    inputRef.current.focus();
+
+    // Simula validação
+    setTimeout(() => {
+      setSucesso(`✅ Código validado com sucesso: ${codigo}`);
+      setCodigo("");
+      inputRef.current?.focus();
+    }, 300);
   };
 
   return (
@@ -49,6 +56,9 @@ const QRCodeSimulator = () => {
             />
             {erro && (
               <div className="text-red-600 text-sm mt-1">{erro}</div>
+            )}
+            {sucesso && (
+              <div className="text-green-600 text-sm mt-2">{sucesso}</div>
             )}
           </div>
           <button

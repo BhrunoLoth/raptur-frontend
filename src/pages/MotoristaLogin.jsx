@@ -1,9 +1,10 @@
-// src/pages/MotoristaLogin.jsx
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import logo from "../assets/logo-raptur.png";
 import "../styles/RapturStyle.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function MotoristaLogin() {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ export default function MotoristaLogin() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha }),
@@ -47,7 +48,7 @@ export default function MotoristaLogin() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("onibusId", onibusId);
         localStorage.setItem("nome", data.usuario.nome || "Motorista");
-        localStorage.setItem("perfil", data.usuario.perfil); // ✅ SALVAR PERFIL
+        localStorage.setItem("perfil", data.usuario.perfil);
 
         await sincronizarPassageiros(data.token);
         navigate("/motorista/dashboard");
@@ -62,7 +63,7 @@ export default function MotoristaLogin() {
 
   const sincronizarPassageiros = async (token) => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/usuarios", {
+      const res = await fetch(`${API_URL}/admin/usuarios`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -140,6 +141,4 @@ export default function MotoristaLogin() {
     </Layout>
   );
 }
-
-
 

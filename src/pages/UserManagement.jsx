@@ -102,13 +102,11 @@ const UserManagement = () => {
       setSubtipoPassageiro("");
       nomeRef.current?.focus();
     } catch (e) {
-      // Aqui tratamos o erro detalhado vindo do backend!
-      if (e.response && e.response.data && e.response.data.erro) {
+      if (e.response?.data?.erro) {
         setErro(e.response.data.erro);
       } else {
         setErro("Erro ao criar usuário.");
       }
-      console.error(e);
     }
   };
 
@@ -192,6 +190,7 @@ const UserManagement = () => {
               className="border p-2 rounded"
               value={subtipo_passageiro}
               onChange={(e) => setSubtipoPassageiro(e.target.value)}
+              required
             >
               <option value="">Subtipo Passageiro</option>
               <option value="aluno_gratuito">Aluno com Gratuidade</option>

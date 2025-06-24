@@ -8,6 +8,8 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const OnibusManagement = () => {
   const [placa, setPlaca] = useState('');
   const [modelo, setModelo] = useState('');
@@ -21,7 +23,7 @@ const OnibusManagement = () => {
 
   const fetchOnibus = async () => {
     try {
-      const res = await axios.get('/api/onibus', { headers });
+      const res = await axios.get(`${API_URL}/onibus`, { headers });
       setOnibus(res.data);
     } catch (error) {
       console.error("Erro ao carregar ônibus:", error);
@@ -37,7 +39,7 @@ const OnibusManagement = () => {
 
     try {
       setCriando(true);
-      await axios.post('/api/onibus', {
+      await axios.post(`${API_URL}/onibus`, {
         placa,
         modelo,
         capacidade: parseInt(capacidade)
@@ -55,7 +57,7 @@ const OnibusManagement = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/onibus/${id}`, { headers });
+      await axios.delete(`${API_URL}/onibus/${id}`, { headers });
       fetchOnibus();
     } catch (error) {
       setErro("Erro ao deletar ônibus.");
@@ -184,6 +186,4 @@ const OnibusManagement = () => {
 };
 
 export default OnibusManagement;
-
-
 

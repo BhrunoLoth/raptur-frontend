@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, TextField, MenuItem, Button, CircularProgress
+  Box, Typography, TextField, MenuItem, Button, CircularProgress, Paper
 } from '@mui/material';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
@@ -16,11 +16,11 @@ export default function DashboardVisual() {
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem('token');
-  const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+  const BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
-    axios.get(`${BACKEND}/api/onibus`, { headers })
+    axios.get(`${BACKEND}/onibus`, { headers })
       .then(res => setOnibusLista(res.data))
       .catch(err => console.error('❌ Erro ao carregar ônibus:', err));
   }, []);
@@ -40,7 +40,7 @@ export default function DashboardVisual() {
         onibus_id: onibusId
       };
 
-      const res = await axios.get(`${BACKEND}/api/relatorios/embarques`, { params, headers });
+      const res = await axios.get(`${BACKEND}/relatorios/embarques`, { params, headers });
 
       const porTipo = {};
       res.data.forEach(e => {
@@ -50,28 +50,31 @@ export default function DashboardVisual() {
 
       setGraficoData({
         labels: Object.keys(porTipo),
-        datasets: [{
-          label: 'Qtd. Embarques',
-          data: Object.values(porTipo),
-          backgroundColor: 'rgba(63, 81, 181, 0.7)',
-          borderRadius: 4
-        }]
+        datasets: [
+          {
+            label: 'Qtd. Embarques',
+            data: Object.values(porTipo),
+            backgroundColor: 'rgba(63, 81, 181, 0.7)',
+            borderRadius: 4
+          }
+        ]
       });
 
     } catch (err) {
       console.error('❌ Erro ao buscar embarques:', err);
+      alert('Erro ao buscar dados. Verifique a API ou o filtro.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box p={2} className="max-w-full mx-auto">
-      <Typography variant="h5" gutterBottom className="text-green-800 font-bold">
+    <Box p={{ xs: 2, sm: 4 }}>
+      <Typography variant="h5" fontWeight="bold" color="green" gutterBottom>
         📊 Painel Visual Administrativo
       </Typography>
 
-      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={2} flexWrap="wrap" mb={3}>
+      <Paper sx={{ p: 2, mb: 4, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <TextField
           type="date"
           label="Data Início"
@@ -91,7 +94,7 @@ export default function DashboardVisual() {
           label="Tipo de Passageiro"
           value={tipo}
           onChange={e => setTipo(e.target.value)}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: 180 }}
         >
           <MenuItem value="">Todos</MenuItem>
           <MenuItem value="aluno_gratuito">Aluno Gratuito</MenuItem>
@@ -105,7 +108,7 @@ export default function DashboardVisual() {
           label="Ônibus"
           value={onibusId}
           onChange={e => setOnibusId(e.target.value)}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: 180 }}
         >
           <MenuItem value="">Todos</MenuItem>
           {onibusLista.map(o => (
@@ -115,12 +118,12 @@ export default function DashboardVisual() {
         <Button onClick={buscarDados} variant="contained" sx={{ height: 56 }}>
           🔍 Aplicar Filtros
         </Button>
-      </Box>
+      </Paper>
 
       {loading && <CircularProgress />}
 
       {!loading && graficoData && (
-        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+        <Box sx={{ width: '100%', height: 400 }}>
           <Bar
             data={graficoData}
             options={{
@@ -136,7 +139,6 @@ export default function DashboardVisual() {
                 }
               }
             }}
-            height={300}
           />
         </Box>
       )}

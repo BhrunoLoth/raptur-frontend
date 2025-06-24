@@ -9,6 +9,8 @@ import {
   iniciarSincronizacaoAutomatica
 } from "../services/syncService";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function exportarCSV(corridas) {
   const header = ["ID", "Passageiro", "Data"];
   const rows = corridas.map((c) => [c.id, c.passageiro, c.data]);
@@ -47,7 +49,7 @@ export default function MotoristaDashboard() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("/api/motorista/embarques", {
+        const res = await axios.get(`${API_URL}/motorista/embarques`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -149,6 +151,4 @@ export default function MotoristaDashboard() {
     </Layout>
   );
 }
-
-
 

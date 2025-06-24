@@ -1,5 +1,3 @@
-// ✅ src/pages/AdminDashboard.jsx
-
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -22,8 +20,6 @@ import {
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 
-import api from '../services/api';
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -33,6 +29,8 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+const apiBase = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
   const [resumo, setResumo] = useState(null);
@@ -53,15 +51,20 @@ export default function AdminDashboard() {
 
     const fetchDashboard = async () => {
       try {
+        const token = localStorage.getItem('token');
+        const headers = {
+          Authorization: `Bearer ${token}`
+        };
+
         const [rResumo, rNotifs, rStats] = await Promise.all([
-          api.get('/admin/dashboard/resumo'),
-          api.get('/admin/dashboard/notificacoes'),
-          api.get('/admin/dashboard/estatisticas'),
+          fetch(`${apiBase}/admin/dashboard/resumo`, { headers }).then(res => res.json()),
+          fetch(`${apiBase}/admin/dashboard/notificacoes`, { headers }).then(res => res.json()),
+          fetch(`${apiBase}/admin/dashboard/estatisticas`, { headers }).then(res => res.json()),
         ]);
 
-        setResumo(rResumo.data);
-        setNotificacoes(Array.isArray(rNotifs.data) ? rNotifs.data : []);
-        setEstatisticas(rStats.data);
+        setResumo(rResumo);
+        setNotificacoes(Array.isArray(rNotifs) ? rNotifs : []);
+        setEstatisticas(rStats);
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
@@ -211,9 +214,6 @@ export default function AdminDashboard() {
     </Box>
   );
 }
-
-
-
 
 
 

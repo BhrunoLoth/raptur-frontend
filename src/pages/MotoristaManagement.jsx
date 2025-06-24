@@ -17,6 +17,8 @@ import {
 import axios from "axios";
 import AppWrapper from "../components/AppWrapper";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function MotoristaManagement() {
   const [motoristas, setMotoristas] = useState([]);
   const [nome, setNome] = useState("");
@@ -24,14 +26,14 @@ export default function MotoristaManagement() {
   const [cnh, setCnh] = useState("");
   const [senha, setSenha] = useState("123456");
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
 
+  const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchMotoristas = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/api/motoristas", { headers });
+      const res = await axios.get(`${API_URL}/motoristas`, { headers });
       setMotoristas(res.data);
     } catch (err) {
       console.error("Erro ao carregar motoristas:", err);
@@ -47,7 +49,7 @@ export default function MotoristaManagement() {
 
     try {
       await axios.post(
-        "/api/motoristas",
+        `${API_URL}/motoristas`,
         { nome, email, senha, cnh },
         { headers }
       );
@@ -64,7 +66,7 @@ export default function MotoristaManagement() {
   const handleDelete = async (id) => {
     if (!window.confirm("Tem certeza que deseja remover este motorista?")) return;
     try {
-      await axios.delete(`/api/motoristas/${id}`, { headers });
+      await axios.delete(`${API_URL}/motoristas/${id}`, { headers });
       fetchMotoristas();
     } catch (err) {
       console.error("Erro ao remover motorista:", err);
@@ -171,4 +173,3 @@ export default function MotoristaManagement() {
     </AppWrapper>
   );
 }
-

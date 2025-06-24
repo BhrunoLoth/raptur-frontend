@@ -1,4 +1,3 @@
-// src/pages/HistoricoEmbarques.jsx
 import React, { useEffect, useState } from 'react';
 
 export default function HistoricoEmbarques() {
@@ -11,14 +10,20 @@ export default function HistoricoEmbarques() {
         const token = localStorage.getItem('token');
         const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-        const res = await fetch(`/api/passageiros/${usuario.id}/embarques`, {
+        if (!token || !usuario?.id) {
+          throw new Error('Usuário não autenticado.');
+        }
+
+        const API_URL = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API_URL}/passageiros/${usuario.id}/embarques`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         if (!res.ok) {
-          throw new Error('Erro ao buscar histórico');
+          const erro = await res.json().catch(() => ({}));
+          throw new Error(erro.erro || 'Erro ao buscar histórico.');
         }
 
         const data = await res.json();
@@ -51,13 +56,14 @@ export default function HistoricoEmbarques() {
               className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
             >
               <div className="mb-1">
-                <strong>Data:</strong> {new Date(e.data_hora).toLocaleString()}
+                <strong>Data:</strong>{' '}
+                {new Date(e.data_hora || e.data).toLocaleString()}
               </div>
               <div className="mb-1">
                 <strong>Ônibus:</strong> {e.onibus?.placa || '---'}
               </div>
               <div>
-                <strong>Tipo:</strong> {e.tipo}
+                <strong>Tipo:</strong> {e.tipo || '---'}
               </div>
             </li>
           ))}
@@ -66,7 +72,6 @@ export default function HistoricoEmbarques() {
     </div>
   );
 }
-
 
 
 

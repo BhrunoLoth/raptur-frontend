@@ -1,4 +1,3 @@
-// src/pages/Simulador.jsx
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -13,29 +12,32 @@ const Simulador = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!codigo.trim() || codigo.trim().length < 6) {
+    const valor = codigo.trim();
+
+    if (!valor || valor.length < 6) {
       setErro("Insira um código válido com pelo menos 6 caracteres.");
       inputRef.current?.focus();
       return;
     }
 
     setErro("");
-    navigate(`/validar/${codigo.trim()}`);
+    navigate(`/validar/${valor}`);
   };
 
   return (
     <Layout>
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-green-100 to-orange-100 px-4">
-        <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+        <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md">
           <img
             src={logo}
             alt="Logo Raptur"
-            className="w-28 mx-auto mb-4"
+            className="w-24 mx-auto mb-4"
           />
-          <h2 className="text-xl font-bold text-center text-green-800 mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-center text-green-800 mb-4">
             Simulador de QR Code 🧪
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div>
               <label htmlFor="codigo" className="block text-sm font-medium text-gray-700 mb-1">
                 Código do QR
@@ -43,7 +45,7 @@ const Simulador = () => {
               <input
                 id="codigo"
                 name="codigo"
-                className="w-full border p-2 rounded text-sm"
+                className="w-full border border-gray-300 p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                 placeholder="Cole o código do QR aqui..."
                 value={codigo}
                 onChange={(e) => setCodigo(e.target.value)}
