@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function PassageiroDashboard() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     const fetchUsuarioAtualizado = async () => {
@@ -23,14 +24,18 @@ export default function PassageiroDashboard() {
         });
 
         if (!resp.ok) {
-          const erro = await resp.json().catch(() => ({}));
-          throw new Error(erro.erro || 'Erro ao buscar dados do passageiro.');
+          const erroApi = await resp.json().catch(() => ({}));
+          throw new Error(erroApi.erro || 'Erro ao buscar dados do passageiro.');
         }
 
         const dadosAtualizados = await resp.json();
+        // Garante que os dados estejam sempre atualizados no localStorage também:
         localStorage.setItem('usuario', JSON.stringify(dadosAtualizados));
         setUsuario(dadosAtualizados);
+        setErro('');
       } catch (error) {
+        setErro(error.message || 'Erro ao carregar dados.');
+        setUsuario(null);
         console.error('[Dashboard Passageiro] Erro:', error.message);
       } finally {
         setLoading(false);
@@ -56,8 +61,18 @@ export default function PassageiroDashboard() {
     link.click();
   };
 
-  if (loading) return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
-  if (!usuario) return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
+  if (loading)
+    return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
+
+  if (erro)
+    return <p className="text-center text-red-600">{erro}</p>;
+
+  if (!usuario)
+    return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
+
+  // Aceita qrCode como URL http(s) ou como base64 (caso venha assim)
+  const isQrUrl = usuario.qrCode && usuario.qrCode.startsWith('http');
+  const isQrBase64 = usuario.qrCode && usuario.qrCode.startsWith('data:image/');
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
@@ -66,16 +81,16 @@ export default function PassageiroDashboard() {
       </h2>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Tipo de passageiro:</strong> {usuario.subtipo_passageiro || '---'}
+        <strong>Tipo de passageiro:</strong> {usuario.tipo || usuario.subtipo_passageiro || '---'}
       </div>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Saldo:</strong> R$ {Number(usuario.saldo || 0).toFixed(2)}
+        <strong>Saldo:</strong> R$ {Number(usuario.saldo_credito ?? usuario.saldo ?? 0).toFixed(2)}
       </div>
 
       <div className="text-sm md:text-base text-center mt-4">
         <strong>QR Code para embarque:</strong><br />
-        {usuario.qrCode?.startsWith('http') ? (
+        {isQrUrl || isQrBase64 ? (
           <>
             <img
               id="qrcode-img"
