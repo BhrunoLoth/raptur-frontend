@@ -1,17 +1,19 @@
-// src/services/apiService.js
 import axios from 'axios';
 
+// Garante o backend certo: em produção pega VITE_API_URL, senão usa proxy
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api', // ✅ usa o proxy do Vite para redirecionar para localhost:3000
+  baseURL,
   withCredentials: true,
 });
 
-// ✅ Interceptor para injetar o token JWT no header Authorization
+// Interceptor para injetar o token JWT
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // ✅ template string correta
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -23,8 +25,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.warn('⚠️ Sessão expirada ou não autorizada. Redirecionando...');
-      // window.location.href = '/login'; // Descomente se quiser forçar logout
+      // Você pode forçar logout aqui se quiser
+      // window.location.href = '/login';
     }
     return Promise.reject(error);
   }
