@@ -62,9 +62,9 @@ export default function AdminDashboard() {
           fetch(`${apiBase}/admin/dashboard/estatisticas`, { headers }).then(res => res.json()),
         ]);
 
-        setResumo(rResumo);
+        setResumo(rResumo && !rResumo.erro ? rResumo : null);
         setNotificacoes(Array.isArray(rNotifs) ? rNotifs : []);
-        setEstatisticas(rStats);
+        setEstatisticas(rStats && !rStats.erro ? rStats : null);
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
@@ -88,6 +88,8 @@ export default function AdminDashboard() {
       <Box sx={{ p: 4 }}>
         <Alert severity="error">
           ⚠️ Dados incompletos ou não carregados. Verifique a API.
+          {resumo?.erro && <div>{resumo.erro}</div>}
+          {estatisticas?.erro && <div>{estatisticas.erro}</div>}
         </Alert>
       </Box>
     );
@@ -99,8 +101,8 @@ export default function AdminDashboard() {
       {
         label: 'Resumo',
         data: [
-          resumo.totalPagamentos ?? 0,
-          resumo.totalEmbarques ?? 0
+          typeof resumo.totalPagamentos === 'number' ? resumo.totalPagamentos : 0,
+          typeof resumo.totalEmbarques === 'number' ? resumo.totalEmbarques : 0
         ],
         backgroundColor: ['#00C853', '#2979FF'],
         borderRadius: 6
@@ -134,7 +136,9 @@ export default function AdminDashboard() {
             <CardContent>
               <Typography variant="h6">💰 Total Pagamentos</Typography>
               <Typography variant="h5">
-                R$ {resumo.totalPagamentos.toFixed(2)}
+                R$ {typeof resumo.totalPagamentos === 'number'
+                  ? resumo.totalPagamentos.toFixed(2)
+                  : '--'}
               </Typography>
             </CardContent>
           </Card>
@@ -143,7 +147,11 @@ export default function AdminDashboard() {
           <Card sx={{ bgcolor: '#1565c0', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">🚌 Total Embarques</Typography>
-              <Typography variant="h5">{resumo.totalEmbarques}</Typography>
+              <Typography variant="h5">
+                {typeof resumo.totalEmbarques === 'number'
+                  ? resumo.totalEmbarques
+                  : '--'}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -151,7 +159,11 @@ export default function AdminDashboard() {
           <Card sx={{ bgcolor: '#4a148c', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">👥 Total Usuários</Typography>
-              <Typography variant="h5">{estatisticas.totalUsuarios}</Typography>
+              <Typography variant="h5">
+                {typeof estatisticas.totalUsuarios === 'number'
+                  ? estatisticas.totalUsuarios
+                  : '--'}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -160,7 +172,11 @@ export default function AdminDashboard() {
           <Card sx={{ bgcolor: '#006064', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">🧑‍✈️ Total Motoristas</Typography>
-              <Typography variant="h5">{estatisticas.totalMotoristas}</Typography>
+              <Typography variant="h5">
+                {typeof estatisticas.totalMotoristas === 'number'
+                  ? estatisticas.totalMotoristas
+                  : '--'}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -168,7 +184,11 @@ export default function AdminDashboard() {
           <Card sx={{ bgcolor: '#880e4f', color: 'white', borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">🚌 Total Ônibus</Typography>
-              <Typography variant="h5">{estatisticas.totalOnibus}</Typography>
+              <Typography variant="h5">
+                {typeof estatisticas.totalOnibus === 'number'
+                  ? estatisticas.totalOnibus
+                  : '--'}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -214,9 +234,6 @@ export default function AdminDashboard() {
     </Box>
   );
 }
-
-
-
 
 
 

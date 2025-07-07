@@ -16,7 +16,6 @@ export default function PassageiroDashboard() {
           throw new Error('Token ou ID de usuário ausente.');
         }
 
-        // ✅ CORRIGIDO: rota correta para passageiros
         const resp = await fetch(`${API_URL}/passageiros/${usuarioStorage.id}`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -57,13 +56,8 @@ export default function PassageiroDashboard() {
     link.click();
   };
 
-  if (loading) {
-    return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
-  }
-
-  if (!usuario) {
-    return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
-  }
+  if (loading) return <p className="text-center text-gray-500">Carregando dados atualizados...</p>;
+  if (!usuario) return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
@@ -76,12 +70,12 @@ export default function PassageiroDashboard() {
       </div>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Saldo:</strong> R$ {Number(usuario.saldo_credito || 0).toFixed(2)}
+        <strong>Saldo:</strong> R$ {Number(usuario.saldo || 0).toFixed(2)}
       </div>
 
       <div className="text-sm md:text-base text-center mt-4">
         <strong>QR Code para embarque:</strong><br />
-        {usuario.qrCode?.startsWith('data:image') ? (
+        {usuario.qrCode?.startsWith('http') ? (
           <>
             <img
               id="qrcode-img"
