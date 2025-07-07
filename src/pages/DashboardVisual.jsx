@@ -7,6 +7,7 @@ import axios from 'axios';
 import 'chart.js/auto';
 
 export default function DashboardVisual() {
+  // Estados
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [tipo, setTipo] = useState('');
@@ -15,16 +16,23 @@ export default function DashboardVisual() {
   const [graficoData, setGraficoData] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Sempre use APENAS o valor do env
+  const BACKEND = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem('token');
-  const BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
+  // Carrega lista de ônibus ao montar componente
   useEffect(() => {
     axios.get(`${BACKEND}/onibus`, { headers })
       .then(res => setOnibusLista(res.data))
-      .catch(err => console.error('❌ Erro ao carregar ônibus:', err));
+      .catch(err => {
+        setOnibusLista([]);
+        console.error('❌ Erro ao carregar ônibus:', err);
+      });
+    // eslint-disable-next-line
   }, []);
 
+  // Função para buscar dados filtrados
   const buscarDados = async () => {
     if (!dataInicio || !dataFim) {
       alert("📆 Selecione o intervalo de datas.");
@@ -32,6 +40,8 @@ export default function DashboardVisual() {
     }
 
     setLoading(true);
+    setGraficoData(null);
+
     try {
       const params = {
         dataInicio,
@@ -42,8 +52,9 @@ export default function DashboardVisual() {
 
       const res = await axios.get(`${BACKEND}/relatorios/embarques`, { params, headers });
 
+      // Agrupa por subtipo_passageiro
       const porTipo = {};
-      res.data.forEach(e => {
+      (res.data || []).forEach(e => {
         const categoria = e.passageiro?.subtipo_passageiro || 'Desconhecido';
         porTipo[categoria] = (porTipo[categoria] || 0) + 1;
       });
@@ -61,6 +72,7 @@ export default function DashboardVisual() {
       });
 
     } catch (err) {
+      setGraficoData(null);
       console.error('❌ Erro ao buscar embarques:', err);
       alert('Erro ao buscar dados. Verifique a API ou o filtro.');
     } finally {
@@ -121,7 +133,6 @@ export default function DashboardVisual() {
       </Paper>
 
       {loading && <CircularProgress />}
-
       {!loading && graficoData && (
         <Box sx={{ width: '100%', height: 400 }}>
           <Bar
