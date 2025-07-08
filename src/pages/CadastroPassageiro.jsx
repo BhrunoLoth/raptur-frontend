@@ -98,7 +98,7 @@ export default function CadastroPassageiro() {
             <option value="aluno_pagante">Aluno Pagante</option>
             <option value="aluno_gratuito">Aluno Gratuito</option>
             <option value="idoso">Idoso</option>
-            <option value="usuario_comum">Usuário Comum</option>
+            <option value="comum">Usuário Comum</option>
           </select>
           <input
             type="text"
