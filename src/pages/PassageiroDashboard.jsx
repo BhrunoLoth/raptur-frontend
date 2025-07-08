@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -86,18 +86,14 @@ export default function PassageiroDashboard() {
         {usuario.qrCode ? (
           <>
             {isQrUrl || isQrBase64 ? (
-              // Se já for URL ou base64
-              <>
-                <img
-                  id="qrcode-img"
-                  src={usuario.qrCode}
-                  alt="QR Code"
-                  className="mt-4 mx-auto w-40 h-40 md:w-48 md:h-48"
-                />
-              </>
+              <img
+                id="qrcode-img"
+                src={usuario.qrCode}
+                alt="QR Code"
+                className="mt-4 mx-auto w-40 h-40 md:w-48 md:h-48"
+              />
             ) : (
-              // Se for apenas um token ou string (gera QR no client)
-              <QRCode
+              <QRCodeCanvas
                 id="qrcode-canvas"
                 value={usuario.qrCode}
                 size={180}
