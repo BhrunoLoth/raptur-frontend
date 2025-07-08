@@ -8,6 +8,8 @@ export default function CadastroPassageiro() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [subtipo, setSubtipo] = useState('aluno_pagante');
+  const [cpf, setCpf] = useState('');
+  const [rg, setRg] = useState('');
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState(false);
   const navigate = useNavigate();
@@ -24,7 +26,9 @@ export default function CadastroPassageiro() {
           nome,
           email,
           senha,
-          subtipo_passageiro: subtipo
+          subtipo_passageiro: subtipo,
+          cpf,
+          rg
         })
       });
 
@@ -46,7 +50,9 @@ export default function CadastroPassageiro() {
         <h2 className="text-2xl font-bold mb-4 text-center text-green-800">
           Cadastro de Passageiro
         </h2>
-
+        <p className="text-center text-sm text-red-500 mb-2">
+          Nome, e-mail, senha, perfil, CPF e RG são obrigatórios.
+        </p>
         {erro && (
           <p className="text-red-600 text-sm mb-2 text-center">
             {erro}
@@ -92,6 +98,24 @@ export default function CadastroPassageiro() {
             <option value="aluno_gratuito">Aluno Gratuito</option>
             <option value="idoso">Idoso</option>
           </select>
+          <input
+            type="text"
+            placeholder="CPF"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+            className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            required
+            maxLength={14}
+          />
+          <input
+            type="text"
+            placeholder="RG"
+            value={rg}
+            onChange={(e) => setRg(e.target.value)}
+            className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            required
+            maxLength={12}
+          />
           <button
             type="submit"
             className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800 transition"
