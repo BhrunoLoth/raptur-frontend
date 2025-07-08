@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode.react';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -7,7 +7,6 @@ export default function PassageiroDashboard() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
-  const qrRef = useRef();
 
   useEffect(() => {
     const fetchUsuarioAtualizado = async () => {
@@ -46,10 +45,10 @@ export default function PassageiroDashboard() {
     fetchUsuarioAtualizado();
   }, []);
 
-  // Função para baixar o QR gerado pelo react-qrcode.react
   const baixarQRCode = () => {
-    const canvas = qrRef.current?.querySelector('canvas');
+    const canvas = document.getElementById('qrcode-canvas');
     if (!canvas) return;
+
     const link = document.createElement('a');
     link.download = 'qrcode-raptur.png';
     link.href = canvas.toDataURL('image/png');
@@ -65,8 +64,8 @@ export default function PassageiroDashboard() {
   if (!usuario)
     return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
 
-  // O campo qrCode pode ser uma string base64, URL ou um token puro (string)
-  const showQRCode = Boolean(usuario.qrCode);
+  const isQrUrl = usuario.qrCode && usuario.qrCode.startsWith('http');
+  const isQrBase64 = usuario.qrCode && usuario.qrCode.startsWith('data:image/');
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
@@ -84,17 +83,29 @@ export default function PassageiroDashboard() {
 
       <div className="text-sm md:text-base text-center mt-4">
         <strong>QR Code para embarque:</strong><br />
-        {showQRCode ? (
+        {usuario.qrCode ? (
           <>
-            <div className="flex justify-center mt-4" ref={qrRef}>
+            {isQrUrl || isQrBase64 ? (
+              // Se já for URL ou base64
+              <>
+                <img
+                  id="qrcode-img"
+                  src={usuario.qrCode}
+                  alt="QR Code"
+                  className="mt-4 mx-auto w-40 h-40 md:w-48 md:h-48"
+                />
+              </>
+            ) : (
+              // Se for apenas um token ou string (gera QR no client)
               <QRCode
+                id="qrcode-canvas"
                 value={usuario.qrCode}
-                size={192}
-                level="M"
+                size={180}
+                level="H"
                 includeMargin={true}
-                renderAs="canvas"
+                style={{ margin: '16px auto', display: 'block' }}
               />
-            </div>
+            )}
             <button
               onClick={baixarQRCode}
               className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
