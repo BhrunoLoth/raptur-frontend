@@ -28,8 +28,8 @@ export default function CadastroPassageiro() {
           senha,
           subtipo_passageiro: subtipo,
           cpf,
-          rg
-        })
+          rg,
+        }),
       });
 
       if (!resposta.ok) {
@@ -75,7 +75,7 @@ export default function CadastroPassageiro() {
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -93,10 +93,12 @@ export default function CadastroPassageiro() {
             value={subtipo}
             onChange={(e) => setSubtipo(e.target.value)}
             className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            required
           >
             <option value="aluno_pagante">Aluno Pagante</option>
             <option value="aluno_gratuito">Aluno Gratuito</option>
             <option value="idoso">Idoso</option>
+            <option value="usuario_comum">Usuário Comum</option>
           </select>
           <input
             type="text"
