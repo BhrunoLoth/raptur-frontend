@@ -30,15 +30,29 @@ const Login = () => {
       setLoading(true);
       const { token, usuario } = await login(email, senha);
 
+      // Garantir que todo passageiro tenha perfil "passageiro"
+      let perfil = usuario.perfil;
+      let subtipo = usuario.subtipo_passageiro || usuario.tipo || '';
+      if (perfil !== 'admin' && perfil !== 'motorista') {
+        perfil = 'passageiro';
+      }
+
       localStorage.setItem('token', token);
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-      localStorage.setItem('perfil', usuario.perfil);
+      localStorage.setItem(
+        'usuario',
+        JSON.stringify({
+          ...usuario,
+          perfil, // sempre correto
+          subtipo_passageiro: subtipo
+        })
+      );
+      localStorage.setItem('perfil', perfil);
 
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
       }
 
-      switch (usuario.perfil) {
+      switch (perfil) {
         case 'admin':
           return navigate('/dashboard');
         case 'motorista':
@@ -118,10 +132,6 @@ const Login = () => {
 };
 
 export default Login;
-
-
-
-
 
 
 
