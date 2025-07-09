@@ -24,20 +24,29 @@ export async function login(email, senha) {
 
   const data = await res.json();
   if (data.token) {
+    // Garante que passageiro tem os campos padronizados no localStorage
+    let usuario = { ...data.usuario };
+    let perfil = usuario.perfil;
+    let subtipo = usuario.subtipo_passageiro || usuario.tipo || '';
+    if (perfil !== 'admin' && perfil !== 'motorista') perfil = 'passageiro';
+
+    usuario.perfil = perfil;
+    usuario.subtipo_passageiro = subtipo;
+
     localStorage.setItem('token', data.token);
-    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    localStorage.setItem('perfil', perfil);
+    data.usuario = usuario; // Atualiza retorno também para o login.jsx
   }
   return data;
 }
 
+// RESTANTE MANTÉM IGUAL, já está correto:
 export async function listarUsuarios() {
-  const res = await fetch(API_USUARIOS, {
-    headers: getAuthHeader()
-  });
+  const res = await fetch(API_USUARIOS, { headers: getAuthHeader() });
   if (!res.ok) throw new Error(`Erro ao listar usuários (${res.status})`);
   return res.json();
 }
-
 export async function criarUsuario(dados) {
   const res = await fetch(API_USUARIOS, {
     method: 'POST',
@@ -50,7 +59,6 @@ export async function criarUsuario(dados) {
   }
   return res.json();
 }
-
 export async function atualizarUsuario(id, dados) {
   const res = await fetch(`${API_USUARIOS}/${id}`, {
     method: 'PUT',
@@ -63,7 +71,6 @@ export async function atualizarUsuario(id, dados) {
   }
   return res.json();
 }
-
 export async function deletarUsuario(id) {
   const res = await fetch(`${API_USUARIOS}/${id}`, {
     method: 'DELETE',
@@ -74,5 +81,3 @@ export async function deletarUsuario(id) {
   }
   return res.json();
 }
-
-

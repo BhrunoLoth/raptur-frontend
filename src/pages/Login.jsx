@@ -20,7 +20,6 @@ const Login = () => {
       setErro('Preencha todos os campos.');
       return;
     }
-
     if (!/\S+@\S+\.\S+/.test(email)) {
       setErro('Digite um e-mail válido.');
       return;
@@ -30,29 +29,12 @@ const Login = () => {
       setLoading(true);
       const { token, usuario } = await login(email, senha);
 
-      // Garantir que todo passageiro tenha perfil "passageiro"
-      let perfil = usuario.perfil;
-      let subtipo = usuario.subtipo_passageiro || usuario.tipo || '';
-      if (perfil !== 'admin' && perfil !== 'motorista') {
-        perfil = 'passageiro';
-      }
-
-      localStorage.setItem('token', token);
-      localStorage.setItem(
-        'usuario',
-        JSON.stringify({
-          ...usuario,
-          perfil, // sempre correto
-          subtipo_passageiro: subtipo
-        })
-      );
-      localStorage.setItem('perfil', perfil);
-
+      // AQUI O userService já garante padronização de perfil/subtipo!
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
       }
 
-      switch (perfil) {
+      switch (usuario.perfil) {
         case 'admin':
           return navigate('/dashboard');
         case 'motorista':
@@ -63,7 +45,6 @@ const Login = () => {
           setErro('Perfil não reconhecido. Contate o administrador.');
       }
     } catch (err) {
-      console.error('[Login] erro no login:', err);
       setErro(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
@@ -82,7 +63,6 @@ const Login = () => {
           <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 text-green-800">
             Acessar Painel
           </h2>
-
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1 text-gray-700">Email</label>
@@ -97,7 +77,6 @@ const Login = () => {
                 autoFocus
               />
             </div>
-
             <div>
               <label htmlFor="senha" className="block text-sm font-medium mb-1 text-gray-700">Senha</label>
               <input
@@ -109,9 +88,7 @@ const Login = () => {
                 onChange={(e) => setSenha(e.target.value)}
               />
             </div>
-
             {erro && <div className="text-red-600 text-sm text-center">{erro}</div>}
-
             <button
               type="submit"
               className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800 transition"
@@ -120,7 +97,6 @@ const Login = () => {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
           <p className="mt-4 text-center text-sm text-gray-600">
             Ainda não tem conta?{' '}
             <a href="/cadastro" className="text-green-700 font-medium hover:underline">Cadastre-se</a>
@@ -132,8 +108,6 @@ const Login = () => {
 };
 
 export default Login;
-
-
 
 
 
