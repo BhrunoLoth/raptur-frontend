@@ -23,9 +23,14 @@ const Embarques = () => {
     const fetchEmbarques = async () => {
       try {
         const lista = await buscarEmbarques();
-        setEmbarques(lista);
+        // Debug opcional para ver o que o backend retorna:
+        // console.log("LISTA DE EMBARQUES:", lista);
+
+        // Garante que sempre será array!
+        setEmbarques(Array.isArray(lista) ? lista : []);
       } catch (err) {
         setErro("Erro ao carregar embarques");
+        setEmbarques([]); // Segurança extra: evita erro no map!
       }
     };
     fetchEmbarques();
@@ -146,14 +151,14 @@ const Embarques = () => {
               </tr>
             </thead>
             <tbody>
-              {embarques.length === 0 ? (
+              {Array.isArray(embarques) && embarques.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center p-4 text-gray-500">
                     Nenhum embarque cadastrado
                   </td>
                 </tr>
               ) : (
-                embarques.map((e) => (
+                Array.isArray(embarques) && embarques.map((e) => (
                   <tr key={e.id} className="border-t">
                     <td className="p-3">{e.id}</td>
                     <td className="p-3">{e.viagemId}</td>
@@ -221,4 +226,3 @@ const Embarques = () => {
 };
 
 export default Embarques;
-

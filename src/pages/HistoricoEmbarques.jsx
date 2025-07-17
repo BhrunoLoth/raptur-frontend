@@ -27,9 +27,10 @@ export default function HistoricoEmbarques() {
         }
 
         const data = await res.json();
-        setEmbarques(data);
+        setEmbarques(Array.isArray(data) ? data : []); // ← robustez aqui!
       } catch (err) {
         setErro(err.message);
+        setEmbarques([]); // Segurança extra!
       }
     };
 
@@ -46,32 +47,27 @@ export default function HistoricoEmbarques() {
         <p className="text-red-600 text-sm mb-4 text-center">{erro}</p>
       )}
 
-      {embarques.length === 0 ? (
+      {Array.isArray(embarques) && embarques.length === 0 ? (
         <p className="text-gray-600 text-center">Nenhum embarque encontrado.</p>
       ) : (
-        <ul className="space-y-3">
-          {embarques.map((e, idx) => (
-            <li
-              key={idx}
-              className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
-            >
-              <div className="mb-1">
-                <strong>Data:</strong>{' '}
-                {new Date(e.data_hora || e.data).toLocaleString()}
-              </div>
-              <div className="mb-1">
-                <strong>Ônibus:</strong> {e.onibus?.placa || '---'}
-              </div>
-              <div>
-                <strong>Tipo:</strong> {e.tipo || '---'}
-              </div>
-            </li>
-          ))}
-        </ul>
+        Array.isArray(embarques) && embarques.map((e, idx) => (
+          <li
+            key={idx}
+            className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
+          >
+            <div className="mb-1">
+              <strong>Data:</strong>{' '}
+              {new Date(e.data_hora || e.data).toLocaleString()}
+            </div>
+            <div className="mb-1">
+              <strong>Ônibus:</strong> {e.onibus?.placa || '---'}
+            </div>
+            <div>
+              <strong>Tipo:</strong> {e.tipo || '---'}
+            </div>
+          </li>
+        ))
       )}
     </div>
   );
 }
-
-
-
