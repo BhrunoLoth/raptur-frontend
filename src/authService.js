@@ -1,6 +1,6 @@
 // src/services/authService.js
 
-const API = "http://localhost:3000/api/auth/login";
+const API = `${import.meta.env.VITE_API_URL}/auth/login`;
 
 // 🔐 Realiza login e armazena token + usuário
 export async function login(email, senha) {
@@ -41,4 +41,3 @@ export function getUsuario() {
     return null;
   }
 }
-
