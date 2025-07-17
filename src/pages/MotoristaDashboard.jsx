@@ -14,9 +14,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 function exportarCSV(corridas) {
   const header = ["ID", "Passageiro", "Data"];
   const rows = corridas.map((c) => [c.id, c.passageiro, c.data]);
-  const csv = "data:text/csv;charset=utf-8," +
-    header.join(",") + "\n" +
-    rows.map(r => r.join(",")).join("\n");
+  const csv =
+    "data:text/csv;charset=utf-8," +
+    header.join(",") +
+    "\n" +
+    rows.map((r) => r.join(",")).join("\n");
   const link = document.createElement("a");
   link.setAttribute("href", encodeURI(csv));
   link.setAttribute("download", "embarques.csv");
@@ -31,7 +33,7 @@ function exportarPDF(corridas) {
   doc.autoTable({
     startY: 22,
     head: [["ID", "Passageiro", "Data"]],
-    body: corridas.map((c) => [c.id, c.passageiro, c.data]),
+    body: corridas.map((c) => [c.id, c.passageiro, c.data])
   });
   doc.save("embarques.pdf");
 }
@@ -49,10 +51,13 @@ export default function MotoristaDashboard() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_URL}/motorista/embarques`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const usuario = JSON.parse(localStorage.getItem("usuario"));
+        const motoristaId = usuario?.id;
+        if (!motoristaId) throw new Error("Motorista não autenticado.");
+
+        // Corrigido: rota de embarques para motorista
+        const res = await axios.get(`${API_URL}/passageiros/${motoristaId}/embarques`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         setCorridas(res.data);
       } catch (err) {
@@ -139,7 +144,9 @@ export default function MotoristaDashboard() {
                     <tr key={i}>
                       <td className="px-4 py-2 text-sm text-gray-800">{c.id}</td>
                       <td className="px-4 py-2 text-sm text-gray-800">{c.passageiro}</td>
-                      <td className="px-4 py-2 text-sm text-gray-800">{c.data}</td>
+                      <td className="px-4 py-2 text-sm text-gray-800">
+                        {new Date(c.data).toLocaleString()}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -151,4 +158,3 @@ export default function MotoristaDashboard() {
     </Layout>
   );
 }
-
