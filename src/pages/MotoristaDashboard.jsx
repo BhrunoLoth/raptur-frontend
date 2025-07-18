@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
+import MotoristaLayout from "../components/MotoristaLayout";
 import ScannerQRCode from "./ScannerQRCode";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -14,11 +14,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 function exportarCSV(corridas) {
   const header = ["ID", "Passageiro", "Data"];
   const rows = corridas.map((c) => [c.id, c.passageiro, c.data]);
-  const csv =
-    "data:text/csv;charset=utf-8," +
-    header.join(",") +
-    "\n" +
-    rows.map((r) => r.join(",")).join("\n");
+  const csv = "data:text/csv;charset=utf-8," +
+    header.join(",") + "\n" +
+    rows.map(r => r.join(",")).join("\n");
   const link = document.createElement("a");
   link.setAttribute("href", encodeURI(csv));
   link.setAttribute("download", "embarques.csv");
@@ -33,7 +31,7 @@ function exportarPDF(corridas) {
   doc.autoTable({
     startY: 22,
     head: [["ID", "Passageiro", "Data"]],
-    body: corridas.map((c) => [c.id, c.passageiro, c.data])
+    body: corridas.map((c) => [c.id, c.passageiro, c.data]),
   });
   doc.save("embarques.pdf");
 }
@@ -51,13 +49,10 @@ export default function MotoristaDashboard() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const usuario = JSON.parse(localStorage.getItem("usuario"));
-        const motoristaId = usuario?.id;
-        if (!motoristaId) throw new Error("Motorista não autenticado.");
-
-        // Corrigido: rota de embarques para motorista
-        const res = await axios.get(`${API_URL}/passageiros/${motoristaId}/embarques`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await axios.get(`${API_URL}/motorista/embarques`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         setCorridas(res.data);
       } catch (err) {
@@ -85,11 +80,17 @@ export default function MotoristaDashboard() {
     setMensagem(msg);
   };
 
+  // Função de logout simples
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    window.location.href = "/motorista/login";
+  };
+
   return (
-    <Layout>
+    <MotoristaLayout onLogout={handleLogout}>
       <div className="p-4 max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold mb-4">🧑‍✈️ Painel do Motorista</h2>
-
         <div className="bg-white p-4 rounded shadow mb-4">
           <p className="text-sm">
             <strong>Status:</strong>{" "}
@@ -144,9 +145,7 @@ export default function MotoristaDashboard() {
                     <tr key={i}>
                       <td className="px-4 py-2 text-sm text-gray-800">{c.id}</td>
                       <td className="px-4 py-2 text-sm text-gray-800">{c.passageiro}</td>
-                      <td className="px-4 py-2 text-sm text-gray-800">
-                        {new Date(c.data).toLocaleString()}
-                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-800">{c.data}</td>
                     </tr>
                   ))
                 )}
@@ -155,6 +154,6 @@ export default function MotoristaDashboard() {
           </div>
         </div>
       </div>
-    </Layout>
+    </MotoristaLayout>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import MotoristaLayout from '../components/MotoristaLayout';
 
 export default function HistoricoEmbarques() {
   const [embarques, setEmbarques] = useState([]);
@@ -9,16 +10,11 @@ export default function HistoricoEmbarques() {
       try {
         const token = localStorage.getItem('token');
         const usuario = JSON.parse(localStorage.getItem('usuario'));
-
-        if (!token || !usuario?.id) {
-          throw new Error('Usuário não autenticado.');
-        }
+        if (!token || !usuario?.id) throw new Error('Usuário não autenticado.');
 
         const API_URL = import.meta.env.VITE_API_URL;
-        const res = await fetch(`${API_URL}/passageiros/${usuario.id}/embarques`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`${API_URL}/motoristas/${usuario.id}/embarques`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) {
@@ -27,10 +23,10 @@ export default function HistoricoEmbarques() {
         }
 
         const data = await res.json();
-        setEmbarques(Array.isArray(data) ? data : []); // ← robustez aqui!
+        setEmbarques(Array.isArray(data) ? data : []);
       } catch (err) {
         setErro(err.message);
-        setEmbarques([]); // Segurança extra!
+        setEmbarques([]);
       }
     };
 
@@ -38,36 +34,34 @@ export default function HistoricoEmbarques() {
   }, []);
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-xl shadow-md max-w-3xl mx-auto mt-8">
-      <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">
-        Histórico de Embarques
-      </h2>
+    <MotoristaLayout>
+      <div className="bg-white p-6 md:p-8 rounded-xl shadow-md max-w-3xl mx-auto mt-8">
+        <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">
+          Histórico de Embarques de Hoje
+        </h2>
 
-      {erro && (
-        <p className="text-red-600 text-sm mb-4 text-center">{erro}</p>
-      )}
+        {erro && (
+          <p className="text-red-600 text-sm mb-4 text-center">{erro}</p>
+        )}
 
-      {Array.isArray(embarques) && embarques.length === 0 ? (
-        <p className="text-gray-600 text-center">Nenhum embarque encontrado.</p>
-      ) : (
-        Array.isArray(embarques) && embarques.map((e, idx) => (
-          <li
-            key={idx}
-            className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
-          >
-            <div className="mb-1">
-              <strong>Data:</strong>{' '}
-              {new Date(e.data_hora || e.data).toLocaleString()}
-            </div>
-            <div className="mb-1">
-              <strong>Ônibus:</strong> {e.onibus?.placa || '---'}
-            </div>
-            <div>
-              <strong>Tipo:</strong> {e.tipo || '---'}
-            </div>
-          </li>
-        ))
-      )}
-    </div>
+        {embarques.length === 0 ? (
+          <p className="text-gray-600 text-center">Nenhum embarque registrado hoje.</p>
+        ) : (
+          <ul className="space-y-3">
+            {embarques.map((e) => (
+              <li
+                key={e.id}
+                className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
+              >
+                <div><strong>Passageiro:</strong> {e.usuario?.nome || '---'}</div>
+                <div><strong>Ônibus:</strong> {e.veiculo?.placa || '---'}</div>
+                <div><strong>Data/Hora:</strong> {new Date(e.data).toLocaleString()}</div>
+                <div><strong>Status:</strong> {e.status}</div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </MotoristaLayout>
   );
 }
