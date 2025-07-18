@@ -4,9 +4,11 @@ import MotoristaLayout from '../components/MotoristaLayout';
 export default function HistoricoEmbarques() {
   const [embarques, setEmbarques] = useState([]);
   const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     const fetchHistorico = async () => {
+      setCarregando(true);
       try {
         const token = localStorage.getItem('token');
         const usuario = JSON.parse(localStorage.getItem('usuario'));
@@ -17,9 +19,16 @@ export default function HistoricoEmbarques() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        if (res.status === 401) {
+          setErro('Sessão expirada. Faça login novamente.');
+          setEmbarques([]);
+          setCarregando(false);
+          return;
+        }
+
         if (!res.ok) {
-          const erro = await res.json().catch(() => ({}));
-          throw new Error(erro.erro || 'Erro ao buscar histórico.');
+          const erroApi = await res.json().catch(() => ({}));
+          throw new Error(erroApi.erro || 'Erro ao buscar histórico.');
         }
 
         const data = await res.json();
@@ -27,6 +36,8 @@ export default function HistoricoEmbarques() {
       } catch (err) {
         setErro(err.message);
         setEmbarques([]);
+      } finally {
+        setCarregando(false);
       }
     };
 
@@ -40,13 +51,19 @@ export default function HistoricoEmbarques() {
           Histórico de Embarques de Hoje
         </h2>
 
+        {carregando && (
+          <p className="text-gray-600 text-center">Carregando...</p>
+        )}
+
         {erro && (
           <p className="text-red-600 text-sm mb-4 text-center">{erro}</p>
         )}
 
-        {embarques.length === 0 ? (
+        {!carregando && !erro && embarques.length === 0 && (
           <p className="text-gray-600 text-center">Nenhum embarque registrado hoje.</p>
-        ) : (
+        )}
+
+        {!carregando && !erro && embarques.length > 0 && (
           <ul className="space-y-3">
             {embarques.map((e) => (
               <li
