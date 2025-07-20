@@ -42,13 +42,20 @@ export default function MotoristaLogin() {
         return;
       }
 
-      const isMotorista = data.usuario?.role === "motorista" || data.usuario?.perfil === "motorista";
+      const isMotorista =
+        data.usuario?.role === "motorista" ||
+        data.usuario?.perfil === "motorista";
 
       if (data.token && isMotorista) {
+        // Salva tudo dentro de usuario!
+        const usuarioObj = {
+          ...data.usuario,
+          perfil: data.usuario.perfil || "motorista",
+          nome: data.usuario.nome || "Motorista",
+          onibusId,
+        };
         localStorage.setItem("token", data.token);
-        localStorage.setItem("onibusId", onibusId);
-        localStorage.setItem("nome", data.usuario.nome || "Motorista");
-        localStorage.setItem("perfil", data.usuario.perfil);
+        localStorage.setItem("usuario", JSON.stringify(usuarioObj));
 
         await sincronizarPassageiros(data.token);
         navigate("/motorista/dashboard");
@@ -141,4 +148,3 @@ export default function MotoristaLogin() {
     </Layout>
   );
 }
-
