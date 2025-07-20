@@ -19,7 +19,6 @@ const QRCodeSimulator = () => {
       return;
     }
 
-    // Simula validação
     setTimeout(() => {
       setSucesso(`✅ Código validado com sucesso: ${codigo}`);
       setCodigo("");
@@ -30,12 +29,7 @@ const QRCodeSimulator = () => {
   return (
     <ProtectedLayout>
       <div className="max-w-sm mx-auto bg-white p-6 rounded shadow mt-10">
-        <img
-          src={logo}
-          alt="Logo Raptur"
-          className="mx-auto mb-4"
-          width={100}
-        />
+        <img src={logo} alt="Logo Raptur" className="mx-auto mb-4" width={100} />
         <h2 className="text-xl font-bold text-center mb-4">
           Simulador de QR Code ✏️
         </h2>
@@ -54,12 +48,8 @@ const QRCodeSimulator = () => {
               aria-label="Código do QR"
               autoFocus
             />
-            {erro && (
-              <div className="text-red-600 text-sm mt-1">{erro}</div>
-            )}
-            {sucesso && (
-              <div className="text-green-600 text-sm mt-2">{sucesso}</div>
-            )}
+            {erro && <div className="text-red-600 text-sm mt-1">{erro}</div>}
+            {sucesso && <div className="text-green-600 text-sm mt-2">{sucesso}</div>}
           </div>
           <button
             type="submit"
