@@ -24,7 +24,7 @@ export async function login(email, senha) {
 
   const data = await res.json();
   if (data.token) {
-    // Garante que passageiro tem os campos padronizados no localStorage
+    // Padroniza os campos do usuário
     let usuario = { ...data.usuario };
     let perfil = usuario.perfil;
     let subtipo = usuario.subtipo_passageiro || usuario.tipo || '';
@@ -35,18 +35,18 @@ export async function login(email, senha) {
 
     localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(usuario));
-    localStorage.setItem('perfil', perfil);
-    data.usuario = usuario; // Atualiza retorno também para o login.jsx
+    // NUNCA mais salve localStorage.setItem('perfil', perfil);
+    data.usuario = usuario; // Atualiza retorno para uso no Login.jsx, etc.
   }
   return data;
 }
 
-// RESTANTE MANTÉM IGUAL, já está correto:
 export async function listarUsuarios() {
   const res = await fetch(API_USUARIOS, { headers: getAuthHeader() });
   if (!res.ok) throw new Error(`Erro ao listar usuários (${res.status})`);
   return res.json();
 }
+
 export async function criarUsuario(dados) {
   const res = await fetch(API_USUARIOS, {
     method: 'POST',
@@ -59,6 +59,7 @@ export async function criarUsuario(dados) {
   }
   return res.json();
 }
+
 export async function atualizarUsuario(id, dados) {
   const res = await fetch(`${API_USUARIOS}/${id}`, {
     method: 'PUT',
@@ -71,6 +72,7 @@ export async function atualizarUsuario(id, dados) {
   }
   return res.json();
 }
+
 export async function deletarUsuario(id) {
   const res = await fetch(`${API_USUARIOS}/${id}`, {
     method: 'DELETE',
