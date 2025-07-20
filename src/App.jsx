@@ -140,6 +140,12 @@ function App() {
               <MainLayout><EmbarqueManual /></MainLayout>
             </ProtectedRouteByPerfil>
           } />
+          {/* 🔥 NOVA ROTA Corrigida! */}
+          <Route path="/motorista/embarques" element={
+            <ProtectedRouteByPerfil permitido={['motorista']}>
+              <MainLayout><HistoricoEmbarques /></MainLayout>
+            </ProtectedRouteByPerfil>
+          } />
 
           {/* 👤 Passageiro */}
           <Route path="/passageiro/dashboard" element={
@@ -167,9 +173,6 @@ function App() {
 }
 
 export default App;
-
-
-
 
 
 
