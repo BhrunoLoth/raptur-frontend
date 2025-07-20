@@ -1,31 +1,16 @@
+// components/Sidebar.jsx
 import {
-  LayoutDashboard,
-  Users,
-  Truck,
-  Bus,
-  CreditCard,
-  CheckSquare,
-  BarChart2,
-  Settings,
-  Route,
-  LogOut
+  LayoutDashboard, Users, Truck, Bus, CreditCard,
+  CheckSquare, BarChart2, Settings, Route, LogOut
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Box,
-  Typography,
-  Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  IconButton,
-  Drawer
+  Box, Typography, Button, List, ListItem,
+  ListItemIcon, ListItemText, IconButton, Drawer
 } from '@mui/material';
 import { useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 
-// Menus para cada perfil
 const menuAdmin = [
   { icon: <LayoutDashboard size={20} />, label: 'Dashboard', to: '/dashboard' },
   { icon: <Users size={20} />, label: 'Usuários', to: '/usuarios' },
@@ -38,35 +23,10 @@ const menuAdmin = [
   { icon: <BarChart2 size={20} />, label: 'Painel Visual', to: '/painel-visual' },
   { icon: <Settings size={20} />, label: 'Configurações', to: '/configuracoes' }
 ];
-const menuMotorista = [
-  { icon: <LayoutDashboard size={20} />, label: 'Painel do Motorista', to: '/motorista/dashboard' },
-  { icon: <CheckSquare size={20} />, label: 'Embarques', to: '/motorista/embarques' },
-  // adicione outros itens se quiser
-];
-const menuPassageiro = [
-  { icon: <LayoutDashboard size={20} />, label: 'Painel do Usuário', to: '/dashboard-passageiro' },
-  { icon: <CheckSquare size={20} />, label: 'Meus Embarques', to: '/meus-embarques' },
-  // adicione outros itens se quiser
-];
 
 export default function Sidebar({ onLogout }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // Recupera perfil do usuário
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
-  const perfil = usuario?.perfil;
-
-  // Escolhe menu conforme perfil
-  let menuItems = menuAdmin;
-  let titulo = 'Raptur Admin';
-  if (perfil === 'motorista') {
-    menuItems = menuMotorista;
-    titulo = 'Painel Motorista';
-  } else if (perfil === 'passageiro' || perfil === 'usuario') {
-    menuItems = menuPassageiro;
-    titulo = 'Painel Usuário';
-  }
 
   const drawerContent = (
     <Box
@@ -83,10 +43,10 @@ export default function Sidebar({ onLogout }) {
     >
       <Box>
         <Typography variant="h6" fontWeight="bold" textAlign="center" mb={4}>
-          {titulo}
+          Administrador Raptur
         </Typography>
         <List>
-          {menuItems.map(({ icon, label, to }) => (
+          {menuAdmin.map(({ icon, label, to }) => (
             <ListItem
               key={label}
               component={Link}
@@ -153,11 +113,9 @@ export default function Sidebar({ onLogout }) {
           <MenuIcon />
         </IconButton>
         <Typography variant="h6" ml={2}>
-          {titulo}
+          Administrador Raptur
         </Typography>
       </Box>
-
-      {/* Drawer para mobile */}
       <Drawer
         anchor="left"
         open={mobileOpen}
@@ -170,8 +128,6 @@ export default function Sidebar({ onLogout }) {
       >
         {drawerContent}
       </Drawer>
-
-      {/* Sidebar fixo para desktop */}
       <Box
         sx={{
           width: 240,
