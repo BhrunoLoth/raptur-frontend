@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import ProtectedLayout from "../components/ProtectedLayout"; // Corrigido!
+import ProtectedLayout from "../components/ProtectedLayout";
 import logo from "../assets/logo-raptur.png";
 
 const QRCodeSimulator = () => {
