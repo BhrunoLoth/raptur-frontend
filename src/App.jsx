@@ -28,12 +28,13 @@ import TrocarSenha from './pages/TrocarSenha'; // 🔐 Novo import
 // 🧱 Layouts e Contextos
 import Sidebar from './components/Sidebar';
 import SidebarPassageiro from './components/SidebarPassageiro';
+import LayoutMotorista from './components/LayoutMotorista';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
 import './styles/RapturStyle.css';
 
-// Layout Admin/Motorista
+// Layout Admin
 function MainLayout({ children }) {
   return (
     <div className="flex">
@@ -119,31 +120,35 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* 🔐 Motorista */}
+          {/* 🔐 Motorista (usando LayoutMotorista!) */}
           <Route path="/motorista/dashboard" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <MainLayout><MotoristaDashboard /></MainLayout>
+              <LayoutMotorista><MotoristaDashboard /></LayoutMotorista>
+            </ProtectedRouteByPerfil>
+          } />
+          <Route path="/motorista/embarques" element={
+            <ProtectedRouteByPerfil permitido={['motorista']}>
+              <LayoutMotorista><Embarques /></LayoutMotorista>
+            </ProtectedRouteByPerfil>
+          } />
+          <Route path="/motorista/historico-embarques" element={
+            <ProtectedRouteByPerfil permitido={['motorista']}>
+              <LayoutMotorista><HistoricoEmbarques /></LayoutMotorista>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/qrcodesimulator" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <MainLayout><QRCodeSimulator /></MainLayout>
+              <LayoutMotorista><QRCodeSimulator /></LayoutMotorista>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/scannerqrcode" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <MainLayout><ScannerQRCode /></MainLayout>
+              <LayoutMotorista><ScannerQRCode /></LayoutMotorista>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/embarque-manual" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <MainLayout><EmbarqueManual /></MainLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          {/* 🔥 NOVA ROTA Corrigida! */}
-          <Route path="/motorista/embarques" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <MainLayout><HistoricoEmbarques /></MainLayout>
+              <LayoutMotorista><EmbarqueManual /></LayoutMotorista>
             </ProtectedRouteByPerfil>
           } />
 
@@ -173,9 +178,5 @@ function App() {
 }
 
 export default App;
-
-
-
-
 
 
