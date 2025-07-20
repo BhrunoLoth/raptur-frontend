@@ -35,7 +35,7 @@ export async function login(email, senha) {
 
     localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(usuario));
-    // NUNCA mais salve localStorage.setItem('perfil', perfil);
+    // Nunca mais salve: localStorage.setItem('perfil', perfil);
     data.usuario = usuario; // Atualiza retorno para uso no Login.jsx, etc.
   }
   return data;

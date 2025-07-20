@@ -29,17 +29,12 @@ const Login = () => {
       setLoading(true);
       const { token, usuario } = await login(email, senha);
 
-      // Salva usuário e token corretamente (incluindo perfil dentro do objeto)
+      // Salva usuário e token corretamente (perfil sempre dentro do objeto)
       localStorage.setItem('token', token);
-      // Garante que perfil está dentro do objeto usuario (se vier separado)
-      if (!usuario.perfil && localStorage.getItem('perfil')) {
-        usuario.perfil = localStorage.getItem('perfil');
-      }
       localStorage.setItem('usuario', JSON.stringify(usuario));
-      // Remova qualquer chave "perfil" avulsa (evita bugs futuros)
+      // Garante que nunca exista chave "perfil" solta
       localStorage.removeItem('perfil');
 
-      // Redirecionamento conforme perfil
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
       }
