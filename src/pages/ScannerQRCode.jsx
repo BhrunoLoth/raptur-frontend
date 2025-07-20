@@ -11,7 +11,12 @@ const ScannerQRCode = () => {
 
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader();
-    return () => codeReaderRef.current?.reset();
+    return () => {
+      // CORREÇÃO AQUI: só chama reset se existir e for função
+      if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
+        codeReaderRef.current.reset();
+      }
+    };
   }, []);
 
   const startScan = async () => {
@@ -115,9 +120,7 @@ const ScannerQRCode = () => {
       <Typography variant="h5" gutterBottom>
         📷 Validação por QR Code
       </Typography>
-
       <video ref={videoRef} style={{ width: "100%", maxWidth: "500px" }} />
-
       <Box mt={2} display="flex" gap={2}>
         <Button
           variant="contained"
@@ -131,7 +134,9 @@ const ScannerQRCode = () => {
           variant="outlined"
           color="error"
           onClick={() => {
-            codeReaderRef.current?.reset();
+            if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
+              codeReaderRef.current.reset();
+            }
             setScanning(false);
             setMensagem(null);
           }}
@@ -140,7 +145,6 @@ const ScannerQRCode = () => {
           ⏹️ Parar
         </Button>
       </Box>
-
       {mensagem && (
         <Box mt={2}>
           <Alert
