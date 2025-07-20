@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// 📄 Páginas
+// Páginas
 import Login from './pages/Login';
 import CadastroPassageiro from './pages/CadastroPassageiro';
 import UserManagement from './pages/UserManagement';
@@ -24,10 +24,10 @@ import RecargaPix from './pages/RecargaPix';
 import HistoricoEmbarques from './pages/HistoricoEmbarques';
 import TrocarSenha from './pages/TrocarSenha';
 
-// 🧱 Layouts e Contextos
+// Layouts e Contextos
 import Sidebar from './components/Sidebar';
 import SidebarPassageiro from './components/SidebarPassageiro';
-import LayoutMotorista from './components/LayoutMotorista'; // <- Importante!
+import LayoutMotorista from './components/LayoutMotorista';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
@@ -58,16 +58,16 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
-          {/* 🔓 Públicas */}
+          {/* Públicas */}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<CadastroPassageiro />} />
           <Route path="/motorista/login" element={<MotoristaLogin />} />
 
-          {/* 🔐 Alteração obrigatória de senha */}
+          {/* Alteração de senha */}
           <Route path="/trocar-senha" element={<TrocarSenha />} />
 
-          {/* 🔐 Admin */}
+          {/* Admin */}
           <Route path="/dashboard" element={
             <ProtectedRouteByPerfil permitido={['admin']}>
               <MainLayout><AdminDashboard /></MainLayout>
@@ -119,7 +119,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* 🔐 Motorista */}
+          {/* Motorista */}
           <Route path="/motorista/dashboard" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
               <LayoutMotorista><MotoristaDashboard /></LayoutMotorista>
@@ -151,7 +151,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* 👤 Passageiro */}
+          {/* Passageiro */}
           <Route path="/passageiro/dashboard" element={
             <ProtectedRouteByPerfil permitido={['passageiro']}>
               <PassageiroLayout><PassageiroDashboard /></PassageiroLayout>
@@ -168,7 +168,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* 🧭 Fallback */}
+          {/* Fallback */}
           <Route path="*" element={<Login />} />
         </Routes>
       </Router>
@@ -177,4 +177,3 @@ function App() {
 }
 
 export default App;
-
