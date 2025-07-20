@@ -12,9 +12,14 @@ const ScannerQRCode = () => {
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader();
     return () => {
-      // CORREÇÃO AQUI: só chama reset se existir e for função
-      if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
-        codeReaderRef.current.reset();
+      // LOG DE DEBUG ANTES DO RESET
+      if (codeReaderRef.current) {
+        console.log('Unmount: Antes do reset, o objeto é:', codeReaderRef.current);
+        if (typeof codeReaderRef.current.reset === "function") {
+          codeReaderRef.current.reset();
+        } else {
+          console.warn("Unmount: reset não é uma função nesse objeto:", codeReaderRef.current);
+        }
       }
     };
   }, []);
@@ -134,8 +139,14 @@ const ScannerQRCode = () => {
           variant="outlined"
           color="error"
           onClick={() => {
-            if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
-              codeReaderRef.current.reset();
+            // LOG DE DEBUG ANTES DO RESET
+            if (codeReaderRef.current) {
+              console.log('Button Parar: Antes do reset, o objeto é:', codeReaderRef.current);
+              if (typeof codeReaderRef.current.reset === "function") {
+                codeReaderRef.current.reset();
+              } else {
+                console.warn("Button Parar: reset não é uma função nesse objeto:", codeReaderRef.current);
+              }
             }
             setScanning(false);
             setMensagem(null);
