@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -23,12 +22,12 @@ import AdminDashboard from './pages/AdminDashboard';
 import PassageiroDashboard from './pages/PassageiroDashboard';
 import RecargaPix from './pages/RecargaPix';
 import HistoricoEmbarques from './pages/HistoricoEmbarques';
-import TrocarSenha from './pages/TrocarSenha'; // 🔐 Novo import
+import TrocarSenha from './pages/TrocarSenha';
 
 // 🧱 Layouts e Contextos
 import Sidebar from './components/Sidebar';
 import SidebarPassageiro from './components/SidebarPassageiro';
-import LayoutMotorista from './components/LayoutMotorista';
+import LayoutMotorista from './components/LayoutMotorista'; // <- Importante!
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
@@ -120,7 +119,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* 🔐 Motorista (usando LayoutMotorista!) */}
+          {/* 🔐 Motorista */}
           <Route path="/motorista/dashboard" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
               <LayoutMotorista><MotoristaDashboard /></LayoutMotorista>
@@ -178,5 +177,4 @@ function App() {
 }
 
 export default App;
-
 
