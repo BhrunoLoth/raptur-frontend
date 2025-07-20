@@ -3,7 +3,7 @@ import { Box, IconButton, useTheme } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useThemeContext } from '../contexts/ThemeContext';
 
-const RapturLayout = ({ children }) => {
+const PublicLayout = ({ children }) => {
   const theme = useTheme();
   const { toggleTheme } = useThemeContext();
 
@@ -51,4 +51,4 @@ const RapturLayout = ({ children }) => {
   );
 };
 
-export default RapturLayout;
+export default PublicLayout;

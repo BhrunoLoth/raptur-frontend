@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/Layout';
+import PublicLayout from '../components/PublicLayout'; // <-- ALTERADO AQUI!
 import logo from '../assets/logo-raptur.png';
 import { login } from '../services/userService';
 
@@ -29,7 +29,7 @@ const Login = () => {
       setLoading(true);
       const { token, usuario } = await login(email, senha);
 
-      // AQUI O userService já garante padronização de perfil/subtipo!
+      // Garante padronização de perfil/subtipo!
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
       }
@@ -52,7 +52,7 @@ const Login = () => {
   };
 
   return (
-    <Layout>
+    <PublicLayout>
       <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-orange-100 p-4">
         <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md">
           <img
@@ -103,11 +103,8 @@ const Login = () => {
           </p>
         </div>
       </div>
-    </Layout>
+    </PublicLayout>
   );
 };
 
 export default Login;
-
-
-

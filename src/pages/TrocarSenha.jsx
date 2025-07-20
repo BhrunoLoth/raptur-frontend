@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PublicLayout from '../components/PublicLayout'; // <-- ALTERADO AQUI!
 
 export default function TrocarSenha() {
   const navigate = useNavigate();
@@ -56,40 +57,42 @@ export default function TrocarSenha() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 bg-white p-6 md:p-8 rounded-xl shadow">
-      <h2 className="text-xl md:text-2xl font-bold mb-6 text-center text-green-800">
-        🔐 Trocar Senha
-      </h2>
+    <PublicLayout>
+      <div className="max-w-md mx-auto mt-12 bg-white p-6 md:p-8 rounded-xl shadow">
+        <h2 className="text-xl md:text-2xl font-bold mb-6 text-center text-green-800">
+          🔐 Trocar Senha
+        </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="password"
-          placeholder="Nova senha"
-          value={novaSenha}
-          onChange={(e) => setNovaSenha(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            placeholder="Nova senha"
+            value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Confirmar nova senha"
-          value={confirmarNovaSenha}
-          onChange={(e) => setConfirmarNovaSenha(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
+          <input
+            type="password"
+            placeholder="Confirmar nova senha"
+            value={confirmarNovaSenha}
+            onChange={(e) => setConfirmarNovaSenha(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
 
-        {erro && <p className="text-red-600 text-sm text-center">{erro}</p>}
-        {sucesso && <p className="text-green-600 text-sm text-center">{sucesso}</p>}
+          {erro && <p className="text-red-600 text-sm text-center">{erro}</p>}
+          {sucesso && <p className="text-green-600 text-sm text-center">{sucesso}</p>}
 
-        <button
-          type="submit"
-          className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded font-medium transition"
-        >
-          Salvar nova senha
-        </button>
-      </form>
-    </div>
+          <button
+            type="submit"
+            className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded font-medium transition"
+          >
+            Salvar nova senha
+          </button>
+        </form>
+      </div>
+    </PublicLayout>
   );
 }
