@@ -12,7 +12,7 @@ const ScannerQRCode = () => {
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader();
     return () => {
-      // CORREÇÃO AQUI: só chama reset se existir e for função
+      // Proteção: só chama reset se for função!
       if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
         codeReaderRef.current.reset();
       }
