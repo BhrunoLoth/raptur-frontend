@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '../components/PublicLayout'; // <-- ALTERADO AQUI!
+import PublicLayout from '../components/PublicLayout';
 import logo from '../assets/logo-raptur.png';
 import { login } from '../services/userService';
 
@@ -29,7 +29,17 @@ const Login = () => {
       setLoading(true);
       const { token, usuario } = await login(email, senha);
 
-      // Garante padronização de perfil/subtipo!
+      // Salva usuário e token corretamente (incluindo perfil dentro do objeto)
+      localStorage.setItem('token', token);
+      // Garante que perfil está dentro do objeto usuario (se vier separado)
+      if (!usuario.perfil && localStorage.getItem('perfil')) {
+        usuario.perfil = localStorage.getItem('perfil');
+      }
+      localStorage.setItem('usuario', JSON.stringify(usuario));
+      // Remova qualquer chave "perfil" avulsa (evita bugs futuros)
+      localStorage.removeItem('perfil');
+
+      // Redirecionamento conforme perfil
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
       }
