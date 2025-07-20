@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import MotoristaLayout from "../components/MotoristaLayout"; // TROQUEI O LAYOUT!
+import ProtectedLayout from "../components/ProtectedLayout"; // Corrigido!
 import logo from "../assets/logo-raptur.png";
 
 const QRCodeSimulator = () => {
@@ -28,7 +28,7 @@ const QRCodeSimulator = () => {
   };
 
   return (
-    <MotoristaLayout>
+    <ProtectedLayout>
       <div className="max-w-sm mx-auto bg-white p-6 rounded shadow mt-10">
         <img
           src={logo}
@@ -69,7 +69,7 @@ const QRCodeSimulator = () => {
           </button>
         </form>
       </div>
-    </MotoristaLayout>
+    </ProtectedLayout>
   );
 };
 

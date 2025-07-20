@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import MotoristaLayout from "../components/MotoristaLayout";
 import ScannerQRCode from "./ScannerQRCode";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -8,33 +7,11 @@ import {
   sincronizarEmbarques,
   iniciarSincronizacaoAutomatica
 } from "../services/syncService";
+import ProtectedLayout from "../components/ProtectedLayout"; // <- USE ESSE!
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function exportarCSV(corridas) {
-  const header = ["ID", "Passageiro", "Data"];
-  const rows = corridas.map((c) => [c.id, c.passageiro, c.data]);
-  const csv = "data:text/csv;charset=utf-8," +
-    header.join(",") + "\n" +
-    rows.map(r => r.join(",")).join("\n");
-  const link = document.createElement("a");
-  link.setAttribute("href", encodeURI(csv));
-  link.setAttribute("download", "embarques.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-function exportarPDF(corridas) {
-  const doc = new jsPDF();
-  doc.text("Embarques Recentes", 14, 16);
-  doc.autoTable({
-    startY: 22,
-    head: [["ID", "Passageiro", "Data"]],
-    body: corridas.map((c) => [c.id, c.passageiro, c.data]),
-  });
-  doc.save("embarques.pdf");
-}
+// ... exportarCSV, exportarPDF ficam iguais
 
 export default function MotoristaDashboard() {
   const [corridas, setCorridas] = useState([]);
@@ -80,7 +57,6 @@ export default function MotoristaDashboard() {
     setMensagem(msg);
   };
 
-  // Função de logout simples
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
@@ -88,7 +64,7 @@ export default function MotoristaDashboard() {
   };
 
   return (
-    <MotoristaLayout onLogout={handleLogout}>
+    <ProtectedLayout>
       <div className="p-4 max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold mb-4">🧑‍✈️ Painel do Motorista</h2>
         <div className="bg-white p-4 rounded shadow mb-4">
@@ -154,6 +130,8 @@ export default function MotoristaDashboard() {
           </div>
         </div>
       </div>
-    </MotoristaLayout>
+    </ProtectedLayout>
   );
 }
+
+// Adicione exportarCSV, exportarPDF acima ou importe se já estiver em outro arquivo.

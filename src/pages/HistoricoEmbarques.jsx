@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import MotoristaLayout from '../components/MotoristaLayout';
+import ProtectedLayout from '../components/ProtectedLayout'; // Corrigido!
 
 export default function HistoricoEmbarques() {
   const [embarques, setEmbarques] = useState([]);
@@ -45,7 +45,7 @@ export default function HistoricoEmbarques() {
   }, []);
 
   return (
-    <MotoristaLayout>
+    <ProtectedLayout>
       <div className="bg-white p-6 md:p-8 rounded-xl shadow-md max-w-3xl mx-auto mt-8">
         <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">
           Histórico de Embarques de Hoje
@@ -79,6 +79,6 @@ export default function HistoricoEmbarques() {
           </ul>
         )}
       </div>
-    </MotoristaLayout>
+    </ProtectedLayout>
   );
 }
