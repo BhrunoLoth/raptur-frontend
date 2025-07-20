@@ -27,7 +27,7 @@ import TrocarSenha from './pages/TrocarSenha';
 // Layouts e Contextos
 import Sidebar from './components/Sidebar';
 import SidebarPassageiro from './components/SidebarPassageiro';
-import LayoutMotorista from './components/LayoutMotorista';
+import MotoristaLayout from './components/MotoristaLayout';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
@@ -122,32 +122,32 @@ function App() {
           {/* Motorista */}
           <Route path="/motorista/dashboard" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <LayoutMotorista><MotoristaDashboard /></LayoutMotorista>
+              <MotoristaLayout><MotoristaDashboard /></MotoristaLayout>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/motorista/embarques" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <LayoutMotorista><Embarques /></LayoutMotorista>
+              <MotoristaLayout><Embarques /></MotoristaLayout>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/motorista/historico-embarques" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <LayoutMotorista><HistoricoEmbarques /></LayoutMotorista>
+              <MotoristaLayout><HistoricoEmbarques /></MotoristaLayout>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/qrcodesimulator" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <LayoutMotorista><QRCodeSimulator /></LayoutMotorista>
+              <MotoristaLayout><QRCodeSimulator /></MotoristaLayout>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/scannerqrcode" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <LayoutMotorista><ScannerQRCode /></LayoutMotorista>
+              <MotoristaLayout><ScannerQRCode /></MotoristaLayout>
             </ProtectedRouteByPerfil>
           } />
           <Route path="/embarque-manual" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
-              <LayoutMotorista><EmbarqueManual /></LayoutMotorista>
+              <MotoristaLayout><EmbarqueManual /></MotoristaLayout>
             </ProtectedRouteByPerfil>
           } />
 

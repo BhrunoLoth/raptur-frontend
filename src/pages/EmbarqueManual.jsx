@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Layout from "../components/Layout";
+import MotoristaLayout from "../components/MotoristaLayout"; // Corrigido aqui!
 
 const EmbarqueManual = () => {
   const [usuarioId, setUsuarioId] = useState("");
@@ -47,7 +47,7 @@ const EmbarqueManual = () => {
   };
 
   return (
-    <Layout>
+    <MotoristaLayout>
       <div className="dashboard-main-card max-w-lg mx-auto p-6 bg-white rounded shadow">
         <h2 className="text-2xl font-bold mb-4">🚌 Registrar Embarque Manual</h2>
         <form onSubmit={handleSubmit} className="grid gap-4">
@@ -102,11 +102,9 @@ const EmbarqueManual = () => {
           <div className="text-red-600 mt-4 bg-red-50 p-3 rounded">{erro}</div>
         )}
       </div>
-    </Layout>
+    </MotoristaLayout>
   );
 };
 
 export default EmbarqueManual;
-
-
 
