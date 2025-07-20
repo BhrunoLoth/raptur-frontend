@@ -1,26 +1,40 @@
 import React, { useEffect, useState } from "react";
-import ScannerQRCode from "./ScannerQRCode";
+import ProtectedLayout from "../components/ProtectedLayout";
+import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import axios from "axios";
-import {
-  sincronizarEmbarques,
-  iniciarSincronizacaoAutomatica
-} from "../services/syncService";
-import ProtectedLayout from "../components/ProtectedLayout"; // <- USE ESSE!
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// ... exportarCSV, exportarPDF ficam iguais
+function exportarCSV(corridas) {
+  const header = ["ID", "Passageiro", "Data"];
+  const rows = corridas.map((c) => [c.id, c.passageiro, c.data]);
+  const csv = "data:text/csv;charset=utf-8," +
+    header.join(",") + "\n" +
+    rows.map(r => r.join(",")).join("\n");
+  const link = document.createElement("a");
+  link.setAttribute("href", encodeURI(csv));
+  link.setAttribute("download", "embarques.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function exportarPDF(corridas) {
+  const doc = new jsPDF();
+  doc.text("Embarques Recentes", 14, 16);
+  doc.autoTable({
+    startY: 22,
+    head: [["ID", "Passageiro", "Data"]],
+    body: corridas.map((c) => [c.id, c.passageiro, c.data]),
+  });
+  doc.save("embarques.pdf");
+}
 
 export default function MotoristaDashboard() {
   const [corridas, setCorridas] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [mensagem, setMensagem] = useState("");
-
-  useEffect(() => {
-    iniciarSincronizacaoAutomatica();
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,11 +66,7 @@ export default function MotoristaDashboard() {
     };
   }, []);
 
-  const handleSync = async () => {
-    const msg = await sincronizarEmbarques();
-    setMensagem(msg);
-  };
-
+  // Função de logout simples
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
@@ -74,17 +84,7 @@ export default function MotoristaDashboard() {
               {isOnline ? "Online 🌐" : "Offline 🛰️"}
             </span>
           </p>
-          <button
-            onClick={handleSync}
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            🔄 Sincronizar Embarques
-          </button>
           {mensagem && <p className="mt-2 text-sm text-gray-700">{mensagem}</p>}
-        </div>
-
-        <div className="bg-white p-4 rounded shadow mb-4">
-          <ScannerQRCode />
         </div>
 
         <div className="bg-white p-4 rounded shadow">
@@ -133,5 +133,3 @@ export default function MotoristaDashboard() {
     </ProtectedLayout>
   );
 }
-
-// Adicione exportarCSV, exportarPDF acima ou importe se já estiver em outro arquivo.
