@@ -17,8 +17,8 @@ export default function ViagemManagement() {
   const [statusFiltro, setStatusFiltro] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [statusEdit, setStatusEdit] = useState({});
   const token = localStorage.getItem('token');
-
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchViagens = async () => {
@@ -31,8 +31,9 @@ export default function ViagemManagement() {
           dataFim
         }
       });
-      setViagens(res.data);
+      setViagens(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
+      setViagens([]);
       console.error('Erro ao buscar viagens:', err);
     }
   };
@@ -40,8 +41,9 @@ export default function ViagemManagement() {
   const fetchMotoristas = async () => {
     try {
       const res = await axios.get('/api/motoristas', { headers });
-      setMotoristas(res.data);
+      setMotoristas(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
+      setMotoristas([]);
       console.error('Erro ao carregar motoristas:', err);
     }
   };
@@ -49,8 +51,9 @@ export default function ViagemManagement() {
   const fetchOnibus = async () => {
     try {
       const res = await axios.get('/api/onibus', { headers });
-      setOnibus(res.data);
+      setOnibus(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
+      setOnibus([]);
       console.error('Erro ao carregar ônibus:', err);
     }
   };
@@ -89,10 +92,25 @@ export default function ViagemManagement() {
     }
   };
 
+  const handleStatusChange = (id, value) => {
+    setStatusEdit({ ...statusEdit, [id]: value });
+  };
+
+  const salvarStatus = async (id) => {
+    try {
+      await axios.patch(`/api/admin/viagens/${id}`, { status: statusEdit[id] }, { headers });
+      setStatusEdit({ ...statusEdit, [id]: undefined });
+      fetchViagens();
+    } catch (err) {
+      console.error('Erro ao atualizar status:', err);
+    }
+  };
+
   useEffect(() => {
     fetchViagens();
     fetchMotoristas();
     fetchOnibus();
+    // eslint-disable-next-line
   }, []);
 
   return (
@@ -166,14 +184,14 @@ export default function ViagemManagement() {
           label="Data Início"
           type="date"
           value={dataInicio}
-          onChange={(e) => setDataInicio(e.target.value)}
+          onChange={e => setDataInicio(e.target.value)}
           InputLabelProps={{ shrink: true }}
         />
         <TextField
           label="Data Fim"
           type="date"
           value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
+          onChange={e => setDataFim(e.target.value)}
           InputLabelProps={{ shrink: true }}
         />
         <Button variant="outlined" onClick={fetchViagens}>
@@ -203,11 +221,44 @@ export default function ViagemManagement() {
             ) : (
               viagens.map(v => (
                 <TableRow key={v.id}>
-                  <TableCell>{v.destino}</TableCell>
-                  <TableCell>{new Date(v.data_hora).toLocaleString()}</TableCell>
-                  <TableCell>{v.onibus?.placa || v.onibus_id}</TableCell>
-                  <TableCell>{v.motorista?.nome || v.motorista_id}</TableCell>
-                  <TableCell>{v.status}</TableCell>
+                  <TableCell>{v.destino || <em>—</em>}</TableCell>
+                  <TableCell>{v.data_hora ? new Date(v.data_hora).toLocaleString() : <em>—</em>}</TableCell>
+                  <TableCell>{v.onibus?.placa || v.onibus_id || <em>—</em>}</TableCell>
+                  <TableCell>{v.motorista?.nome || v.motorista_id || <em>—</em>}</TableCell>
+                  <TableCell>
+                    {statusEdit[v.id] !== undefined ? (
+                      <>
+                        <Select
+                          size="small"
+                          value={statusEdit[v.id]}
+                          onChange={e => handleStatusChange(v.id, e.target.value)}
+                        >
+                          <MenuItem value="pendente">Pendente</MenuItem>
+                          <MenuItem value="em andamento">Em Andamento</MenuItem>
+                          <MenuItem value="concluída">Concluída</MenuItem>
+                          <MenuItem value="cancelada">Cancelada</MenuItem>
+                        </Select>
+                        <Button
+                          color="success"
+                          size="small"
+                          sx={{ ml: 1 }}
+                          onClick={() => salvarStatus(v.id)}
+                        >Salvar</Button>
+                        <Button
+                          color="inherit"
+                          size="small"
+                          onClick={() => setStatusEdit({ ...statusEdit, [v.id]: undefined })}
+                        >Cancelar</Button>
+                      </>
+                    ) : (
+                      <span>
+                        <b>{v.status}</b>{" "}
+                        <Button size="small" onClick={() => setStatusEdit({ ...statusEdit, [v.id]: v.status })}>
+                          Editar
+                        </Button>
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Button
                       color="error"

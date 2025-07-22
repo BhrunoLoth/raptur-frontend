@@ -8,6 +8,7 @@ import {
   Paper,
   Alert
 } from '@mui/material';
+import ProtectedLayout from "../components/ProtectedLayout";
 
 const Configuracoes = () => {
   const [nome, setNome] = useState('');
@@ -19,6 +20,17 @@ const Configuracoes = () => {
   const criarAdministrador = async () => {
     setMensagem(null);
     setErro(null);
+
+    if (!nome.trim() || !email.trim() || !senha.trim()) {
+      setErro("Preencha todos os campos.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErro("Digite um e-mail válido.");
+      return;
+    }
+
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/configuracoes/admin`, {
         nome,
@@ -31,50 +43,59 @@ const Configuracoes = () => {
       setSenha('');
     } catch (error) {
       console.error('Erro ao criar administrador:', error);
-      setErro('Erro ao criar administrador. Verifique os dados e tente novamente.');
+      setErro(
+        error.response?.data?.erro ||
+        'Erro ao criar administrador. Verifique os dados e tente novamente.'
+      );
     }
   };
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 4 } }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Configurações
-      </Typography>
-      <Typography variant="h6" gutterBottom>
-        Criar Novo Administrador
-      </Typography>
+    <ProtectedLayout>
+      <Box sx={{ p: { xs: 2, sm: 4 } }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          Configurações
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          Criar Novo Administrador
+        </Typography>
 
-      <Paper sx={{ p: 3, maxWidth: 500 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {mensagem && <Alert severity="success">{mensagem}</Alert>}
-          {erro && <Alert severity="error">{erro}</Alert>}
+        <Paper sx={{ p: 3, maxWidth: 500 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {mensagem && <Alert severity="success">{mensagem}</Alert>}
+            {erro && <Alert severity="error">{erro}</Alert>}
 
-          <TextField
-            label="Nome"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="E-mail"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Senha"
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            fullWidth
-          />
-          <Button variant="contained" onClick={criarAdministrador}>
-            Criar Administrador
-          </Button>
-        </Box>
-      </Paper>
-    </Box>
+            <TextField
+              label="Nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="E-mail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Senha"
+              type="password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              fullWidth
+            />
+            <Button
+              variant="contained"
+              onClick={criarAdministrador}
+              sx={{ fontWeight: "bold", mt: 2 }}
+            >
+              Criar Administrador
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
+    </ProtectedLayout>
   );
 };
 

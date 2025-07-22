@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '../components/PublicLayout'; // <-- ALTERADO AQUI!
+import PublicLayout from '../components/PublicLayout';
 
 const apiBase = import.meta.env.VITE_API_URL;
 
@@ -15,9 +15,31 @@ export default function CadastroPassageiro() {
   const [sucesso, setSucesso] = useState(false);
   const navigate = useNavigate();
 
+  // Validação básica
+  const validaCPF = (v) => v.replace(/\D/g, '').length === 11;
+  const validaEmail = (v) => /\S+@\S+\.\S+/.test(v);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
+
+    // Validações extras
+    if (!nome.trim() || !email.trim() || !senha.trim() || !cpf.trim() || !rg.trim()) {
+      setErro('Preencha todos os campos obrigatórios.');
+      return;
+    }
+    if (!validaEmail(email)) {
+      setErro('Digite um e-mail válido.');
+      return;
+    }
+    if (!validaCPF(cpf)) {
+      setErro('CPF deve conter 11 dígitos numéricos.');
+      return;
+    }
+    if (senha.length < 6) {
+      setErro('Senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
 
     try {
       const resposta = await fetch(`${apiBase}/usuarios`, {
@@ -27,8 +49,9 @@ export default function CadastroPassageiro() {
           nome,
           email,
           senha,
+          perfil: 'passageiro',              // <-- Força o perfil correto!
           subtipo_passageiro: subtipo,
-          cpf,
+          cpf: cpf.replace(/\D/g, ''),       // Só números
           rg,
         }),
       });
@@ -53,12 +76,10 @@ export default function CadastroPassageiro() {
             Cadastro de Passageiro
           </h2>
           <p className="text-center text-sm text-red-500 mb-2">
-            Nome, e-mail, senha, perfil, CPF e RG são obrigatórios.
+            Nome, e-mail, senha, subtipo, CPF e RG são obrigatórios.
           </p>
           {erro && (
-            <p className="text-red-600 text-sm mb-2 text-center">
-              {erro}
-            </p>
+            <p className="text-red-600 text-sm mb-2 text-center">{erro}</p>
           )}
           {sucesso && (
             <p className="text-green-600 text-sm mb-2 text-center">
@@ -74,6 +95,7 @@ export default function CadastroPassageiro() {
               onChange={(e) => setNome(e.target.value)}
               className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
               required
+              autoComplete="off"
             />
             <input
               type="email"
@@ -82,14 +104,16 @@ export default function CadastroPassageiro() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
               required
+              autoComplete="off"
             />
             <input
               type="password"
-              placeholder="Senha"
+              placeholder="Senha (mínimo 6 caracteres)"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
               required
+              minLength={6}
             />
             <select
               value={subtipo}
@@ -104,12 +128,15 @@ export default function CadastroPassageiro() {
             </select>
             <input
               type="text"
-              placeholder="CPF"
+              placeholder="CPF (apenas números)"
               value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
+              onChange={(e) => setCpf(e.target.value.replace(/\D/g, ''))}
               className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
               required
-              maxLength={14}
+              maxLength={11}
+              inputMode="numeric"
+              pattern="[0-9]{11}"
+              autoComplete="off"
             />
             <input
               type="text"
@@ -119,6 +146,7 @@ export default function CadastroPassageiro() {
               className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
               required
               maxLength={12}
+              autoComplete="off"
             />
             <button
               type="submit"

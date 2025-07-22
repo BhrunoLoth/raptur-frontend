@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
+import ProtectedLayout from "../components/ProtectedLayout";
 import {
   buscarEmbarques,
   criarEmbarque,
@@ -23,14 +23,10 @@ const Embarques = () => {
     const fetchEmbarques = async () => {
       try {
         const lista = await buscarEmbarques();
-        // Debug opcional para ver o que o backend retorna:
-        // console.log("LISTA DE EMBARQUES:", lista);
-
-        // Garante que sempre será array!
         setEmbarques(Array.isArray(lista) ? lista : []);
       } catch (err) {
         setErro("Erro ao carregar embarques");
-        setEmbarques([]); // Segurança extra: evita erro no map!
+        setEmbarques([]);
       }
     };
     fetchEmbarques();
@@ -84,7 +80,7 @@ const Embarques = () => {
   };
 
   return (
-    <Layout>
+    <ProtectedLayout>
       <div className="dashboard-main-card px-4 py-6 max-w-full">
         <h2 className="text-2xl font-bold mb-4">📦 Gestão de Embarques</h2>
 
@@ -94,6 +90,7 @@ const Embarques = () => {
           </div>
         )}
 
+        {/* FORMULÁRIO DE CRIAÇÃO */}
         <form onSubmit={handleCriar} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <input
             name="viagemId"
@@ -138,6 +135,7 @@ const Embarques = () => {
           </button>
         </form>
 
+        {/* LISTAGEM DE EMBARQUES */}
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm text-left border border-gray-200 rounded shadow">
             <thead className="bg-green-900 text-white">
@@ -151,14 +149,14 @@ const Embarques = () => {
               </tr>
             </thead>
             <tbody>
-              {Array.isArray(embarques) && embarques.length === 0 ? (
+              {embarques.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center p-4 text-gray-500">
                     Nenhum embarque cadastrado
                   </td>
                 </tr>
               ) : (
-                Array.isArray(embarques) && embarques.map((e) => (
+                embarques.map((e) => (
                   <tr key={e.id} className="border-t">
                     <td className="p-3">{e.id}</td>
                     <td className="p-3">{e.viagemId}</td>
@@ -179,18 +177,20 @@ const Embarques = () => {
                       )}
                     </td>
                     <td className="p-3">
-                      {new Date(e.dataHora).toLocaleString()}
+                      {e.dataHora ? new Date(e.dataHora).toLocaleString() : "--"}
                     </td>
                     <td className="p-3 flex gap-2 flex-wrap">
                       {editandoId === e.id ? (
                         <>
                           <button
+                            type="button"
                             onClick={() => salvarEdicao(e.id)}
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
                           >
                             Salvar
                           </button>
                           <button
+                            type="button"
                             onClick={() => setEditandoId(null)}
                             className="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded"
                           >
@@ -200,12 +200,14 @@ const Embarques = () => {
                       ) : (
                         <>
                           <button
+                            type="button"
                             onClick={() => iniciarEdicao(e.id, e.status)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
                           >
                             Editar
                           </button>
                           <button
+                            type="button"
                             onClick={() => removerEmbarque(e.id)}
                             className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                           >
@@ -221,7 +223,7 @@ const Embarques = () => {
           </table>
         </div>
       </div>
-    </Layout>
+    </ProtectedLayout>
   );
 };
 

@@ -18,22 +18,30 @@ const Login = () => {
 
     if (!email.trim() || !senha.trim()) {
       setErro('Preencha todos os campos.');
+      emailRef.current?.focus();
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
       setErro('Digite um e-mail válido.');
+      emailRef.current?.focus();
       return;
     }
 
     try {
       setLoading(true);
-      const { token, usuario } = await login(email, senha);
+      // Limpa usuário/token antigos antes do login (robustez)
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('perfil');
 
-      // Salva usuário e token corretamente (perfil sempre dentro do objeto)
+      const res = await login(email, senha);
+
+      // O userService.login deve lançar erro se falhar!
+      const { token, usuario } = res;
+
       localStorage.setItem('token', token);
       localStorage.setItem('usuario', JSON.stringify(usuario));
-      // Garante que nunca exista chave "perfil" solta
-      localStorage.removeItem('perfil');
+      localStorage.removeItem('perfil'); // Nunca armazene 'perfil' fora do objeto!
 
       if (usuario.precisaTrocarSenha) {
         return navigate('/trocar-senha');
@@ -50,10 +58,19 @@ const Login = () => {
           setErro('Perfil não reconhecido. Contate o administrador.');
       }
     } catch (err) {
-      setErro(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      if (typeof err === "string") setErro(err);
+      else if (err?.message) setErro(err.message);
+      else setErro('Erro ao fazer login. Verifique suas credenciais.');
+      emailRef.current?.focus();
     } finally {
       setLoading(false);
     }
+  };
+
+  // Limpa erro ao digitar novamente
+  const handleChange = (setter) => (e) => {
+    setter(e.target.value);
+    if (erro) setErro('');
   };
 
   return (
@@ -77,9 +94,10 @@ const Login = () => {
                 placeholder="Digite seu e-mail"
                 className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleChange(setEmail)}
                 ref={emailRef}
                 autoFocus
+                autoComplete="username"
               />
             </div>
             <div>
@@ -90,7 +108,8 @@ const Login = () => {
                 placeholder="Digite sua senha"
                 className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                 value={senha}
-                onChange={(e) => setSenha(e.target.value)}
+                onChange={handleChange(setSenha)}
+                autoComplete="current-password"
               />
             </div>
             {erro && <div className="text-red-600 text-sm text-center">{erro}</div>}
@@ -106,6 +125,10 @@ const Login = () => {
             Ainda não tem conta?{' '}
             <a href="/cadastro" className="text-green-700 font-medium hover:underline">Cadastre-se</a>
           </p>
+          {/* Se quiser adicionar recuperação de senha */}
+          {/* <p className="mt-2 text-center text-xs">
+            <a href="/esqueci-senha" className="text-green-600 hover:underline">Esqueceu a senha?</a>
+          </p> */}
         </div>
       </div>
     </PublicLayout>

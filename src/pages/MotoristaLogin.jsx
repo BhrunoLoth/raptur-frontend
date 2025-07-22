@@ -11,8 +11,16 @@ export default function MotoristaLogin() {
   const [senha, setSenha] = useState("");
   const [onibusId, setOnibusId] = useState("");
   const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
   const navigate = useNavigate();
   const emailRef = useRef(null);
+
+  // Limpa localStorage de tokens/usuario antigos ao montar (opcional)
+  // useEffect(() => {
+  //   localStorage.removeItem("token");
+  //   localStorage.removeItem("usuario");
+  //   localStorage.removeItem("onibusId");
+  // }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,7 +36,19 @@ export default function MotoristaLogin() {
       return;
     }
 
+    if (onibusId.trim().length < 2) {
+      setErro("Digite o ID do ônibus corretamente.");
+      return;
+    }
+
+    setCarregando(true);
+
     try {
+      // Remove dados antigos do motorista (evita confusão offline)
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      localStorage.removeItem("onibusId");
+
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,6 +59,7 @@ export default function MotoristaLogin() {
 
       if (!res.ok) {
         setErro(data?.erro || "Erro no login.");
+        setCarregando(false);
         return;
       }
 
@@ -53,21 +74,27 @@ export default function MotoristaLogin() {
           ...data.usuario,
           perfil: "motorista", // força a garantir!
           nome: data.usuario.nome || "Motorista",
-          onibusId,
         };
         localStorage.setItem("token", data.token);
         localStorage.setItem("usuario", JSON.stringify(usuarioObj));
+        localStorage.setItem("onibusId", onibusId);
 
         await sincronizarPassageiros(data.token);
+        setCarregando(false);
         navigate("/motorista/dashboard");
       } else {
         setErro("Acesso negado: apenas motoristas.");
+        setCarregando(false);
       }
     } catch (err) {
       console.error("Erro no login:", err);
-      setErro("Erro ao fazer login.");
+      setErro("Erro ao fazer login. Tente novamente.");
+      setCarregando(false);
     }
   };
+
+  // Limpa mensagem de erro ao digitar novamente
+  const clearError = () => erro && setErro("");
 
   const sincronizarPassageiros = async (token) => {
     try {
@@ -85,7 +112,7 @@ export default function MotoristaLogin() {
       );
 
       localStorage.setItem("passageirosQR", JSON.stringify(passageiros));
-      console.log(`🧠 ${passageiros.length} passageiros sincronizados localmente.`);
+      // console.log(`🧠 ${passageiros.length} passageiros sincronizados localmente.`);
     } catch (err) {
       console.error("❌ Erro ao sincronizar passageiros:", err);
     }
@@ -110,11 +137,12 @@ export default function MotoristaLogin() {
             className="user-input"
             placeholder="Digite seu e-mail"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => { setEmail(e.target.value); clearError(); }}
             ref={emailRef}
             autoFocus
             aria-label="Email"
             type="email"
+            autoComplete="username"
           />
 
           <label htmlFor="senha" className="user-label">Senha</label>
@@ -123,9 +151,10 @@ export default function MotoristaLogin() {
             className="user-input"
             placeholder="Digite sua senha"
             value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            onChange={e => { setSenha(e.target.value); clearError(); }}
             aria-label="Senha"
             type="password"
+            autoComplete="current-password"
           />
 
           <label htmlFor="onibusId" className="user-label">ID do Ônibus</label>
@@ -134,15 +163,19 @@ export default function MotoristaLogin() {
             className="user-input"
             placeholder="Digite o ID do ônibus"
             value={onibusId}
-            onChange={(e) => setOnibusId(e.target.value)}
+            onChange={e => { setOnibusId(e.target.value); clearError(); }}
             aria-label="Ônibus"
             type="text"
           />
 
           {erro && <div className="user-error">{erro}</div>}
 
-          <button type="submit" className="action-btn login-btn">
-            Entrar
+          <button
+            type="submit"
+            className="action-btn login-btn"
+            disabled={carregando}
+          >
+            {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
       </div>

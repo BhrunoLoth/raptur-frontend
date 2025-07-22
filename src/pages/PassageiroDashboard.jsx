@@ -30,8 +30,11 @@ export default function PassageiroDashboard() {
         }
 
         const dadosAtualizados = await resp.json();
-        localStorage.setItem('usuario', JSON.stringify(dadosAtualizados));
-        setUsuario(dadosAtualizados);
+
+        // Atualize apenas os campos do usuário, não sobrescreva todo objeto.
+        const novoUsuario = { ...usuarioStorage, ...dadosAtualizados };
+        localStorage.setItem('usuario', JSON.stringify(novoUsuario));
+        setUsuario(novoUsuario);
         setErro('');
       } catch (error) {
         setErro(error.message || 'Erro ao carregar dados.');
@@ -64,8 +67,9 @@ export default function PassageiroDashboard() {
   if (!usuario)
     return <p className="text-center text-red-600">Erro ao carregar dados.</p>;
 
-  const isQrUrl = usuario.qrCode && usuario.qrCode.startsWith('http');
-  const isQrBase64 = usuario.qrCode && usuario.qrCode.startsWith('data:image/');
+  const qr = usuario.qrCode;
+  const isQrUrl = qr && qr.startsWith('http');
+  const isQrBase64 = qr && qr.startsWith('data:image/');
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
@@ -74,40 +78,44 @@ export default function PassageiroDashboard() {
       </h2>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Tipo de passageiro:</strong> {usuario.tipo || usuario.subtipo_passageiro || '---'}
+        <strong>Tipo de passageiro:</strong>{" "}
+        {usuario.tipo || usuario.subtipo_passageiro || '---'}
       </div>
 
       <div className="mb-4 text-sm md:text-base">
-        <strong>Saldo:</strong> R$ {Number(usuario.saldo_credito ?? usuario.saldo ?? 0).toFixed(2)}
+        <strong>Saldo:</strong>{" "}
+        R$ {Number(usuario.saldo_credito ?? usuario.saldo ?? 0).toFixed(2)}
       </div>
 
       <div className="text-sm md:text-base text-center mt-4">
         <strong>QR Code para embarque:</strong><br />
-        {usuario.qrCode ? (
+        {qr ? (
           <>
             {isQrUrl || isQrBase64 ? (
               <img
                 id="qrcode-img"
-                src={usuario.qrCode}
+                src={qr}
                 alt="QR Code"
                 className="mt-4 mx-auto w-40 h-40 md:w-48 md:h-48"
               />
             ) : (
               <QRCodeCanvas
                 id="qrcode-canvas"
-                value={usuario.qrCode}
+                value={qr}
                 size={180}
                 level="H"
                 includeMargin={true}
                 style={{ margin: '16px auto', display: 'block' }}
               />
             )}
-            <button
-              onClick={baixarQRCode}
-              className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Baixar QR Code
-            </button>
+            {!isQrUrl && !isQrBase64 && (
+              <button
+                onClick={baixarQRCode}
+                className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Baixar QR Code
+              </button>
+            )}
           </>
         ) : (
           <p className="text-red-500 mt-2">QR Code indisponível.</p>

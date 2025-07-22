@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
+import ProtectedLayout from "../components/ProtectedLayout";
 import {
   buscarPagamentos,
   deletarPagamento,
@@ -55,7 +55,7 @@ const Pagamentos = () => {
   };
 
   return (
-    <Layout>
+    <ProtectedLayout>
       <div className="dashboard-main-card px-4 py-6 max-w-full overflow-x-auto">
         <h2 className="text-2xl font-bold mb-4">💳 Gestão de Pagamentos</h2>
 
@@ -148,7 +148,7 @@ const Pagamentos = () => {
           </table>
         </div>
       </div>
-    </Layout>
+    </ProtectedLayout>
   );
 };
 

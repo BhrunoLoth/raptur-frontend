@@ -19,6 +19,7 @@ const QRCodeSimulator = () => {
       return;
     }
 
+    // Simula validação de QR Code
     setTimeout(() => {
       setSucesso(`✅ Código validado com sucesso: ${codigo}`);
       setCodigo("");

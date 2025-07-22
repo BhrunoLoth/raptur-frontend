@@ -3,22 +3,29 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Typography, Button, Box, Alert } from "@mui/material";
 import axios from "axios";
 
+// Use sempre o env para API! (Vercel production)
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ScannerQRCode = () => {
   const videoRef = useRef(null);
   const codeReaderRef = useRef(null);
   const [scanning, setScanning] = useState(false);
   const [mensagem, setMensagem] = useState(null);
 
+  // Sempre limpe a câmera ao desmontar!
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader();
     return () => {
-      // Proteção: só chama reset se for função!
-      if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
+      if (
+        codeReaderRef.current &&
+        typeof codeReaderRef.current.reset === "function"
+      ) {
         codeReaderRef.current.reset();
       }
     };
   }, []);
 
+  // Iniciar scanner
   const startScan = async () => {
     setMensagem(null);
     setScanning(true);
@@ -38,7 +45,6 @@ const ScannerQRCode = () => {
             setScanning(false);
             await validarQRCode(texto);
           }
-
           if (error && error.name !== "NotFoundException") {
             console.warn("Erro de leitura:", error);
           }
@@ -51,24 +57,36 @@ const ScannerQRCode = () => {
     }
   };
 
+  // Validação QR no backend ou fallback local
   const validarQRCode = async (qrCode) => {
     try {
       const token = localStorage.getItem("token");
-      const onibusId = localStorage.getItem("onibusId");
+      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      // Pode estar como onibusId em localStorage OU no usuário logado
+      const onibusId =
+        localStorage.getItem("onibusId") ||
+        usuario?.onibusId ||
+        usuario?.onibus_id;
 
+      if (!token || !onibusId)
+        throw new Error("Sessão inválida (token ou ônibus não definido).");
+
+      // Sempre use API_URL real aqui!
       const { data } = await axios.post(
-        "/api/validacao",
+        `${API_URL}/motorista/validarqr`,
         { qrCode, onibusId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMensagem(`✅ ${data.mensagem}`);
+      setMensagem(`✅ ${data.mensagem || "QR validado com sucesso!"}`);
     } catch (err) {
+      // Fallback offline/local
       console.warn("🔌 Falha online, fallback local:", err.message);
       fallbackOffline(qrCode);
     }
   };
 
+  // Validação offline, só funciona se passageiros estão no localStorage!
   const fallbackOffline = (qrCode) => {
     try {
       const passageiros = JSON.parse(localStorage.getItem("passageirosQR")) || [];
@@ -94,13 +112,14 @@ const ScannerQRCode = () => {
         return;
       }
 
+      const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
       const novoEmbarque = {
         usuario_id: passageiro.id,
         nome: passageiro.nome,
         data: new Date().toISOString(),
-        veiculo_id: localStorage.getItem("onibusId") || null,
+        veiculo_id: usuario.onibusId || usuario.onibus_id || null,
         status: "pendente",
-        offline: true
+        offline: true,
       };
 
       localStorage.setItem(
@@ -134,7 +153,10 @@ const ScannerQRCode = () => {
           variant="outlined"
           color="error"
           onClick={() => {
-            if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
+            if (
+              codeReaderRef.current &&
+              typeof codeReaderRef.current.reset === "function"
+            ) {
               codeReaderRef.current.reset();
             }
             setScanning(false);

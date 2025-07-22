@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function RecargaPix() {
   const [valor, setValor] = useState('');
@@ -7,15 +7,31 @@ export default function RecargaPix() {
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [verificando, setVerificando] = useState(false);
+  const [pagamentoOK, setPagamentoOK] = useState(false);
 
+  const intervaloRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL;
   const passageiro = JSON.parse(localStorage.getItem('usuario'));
   const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    // Limpa o intervalo quando desmontar para evitar vazamento de memória
+    return () => {
+      if (intervaloRef.current) clearInterval(intervaloRef.current);
+    };
+  }, []);
 
   const handleRecarga = async () => {
     setMensagem('');
     setQrCode(null);
     setCopiaCola('');
+    setPagamentoOK(false);
+
+    if (!valor || isNaN(Number(valor)) || Number(valor) <= 0) {
+      setMensagem('Digite um valor de recarga válido (maior que zero).');
+      return;
+    }
+
     setCarregando(true);
 
     try {
@@ -48,9 +64,10 @@ export default function RecargaPix() {
     }
   };
 
-  const verificarPagamento = async (transacaoId) => {
+  const verificarPagamento = (transacaoId) => {
     setVerificando(true);
-    const intervalo = setInterval(async () => {
+    if (intervaloRef.current) clearInterval(intervaloRef.current);
+    intervaloRef.current = setInterval(async () => {
       try {
         const resp = await fetch(`${API_URL}/pix/status/${transacaoId}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -59,19 +76,20 @@ export default function RecargaPix() {
         if (resp.ok) {
           const { pago } = await resp.json();
           if (pago) {
-            clearInterval(intervalo);
+            clearInterval(intervaloRef.current);
             setMensagem('✅ Pagamento confirmado! Atualizando saldo...');
-            await atualizarDadosPassageiro();
+            setPagamentoOK(true);
+            setVerificando(false);
             setValor('');
             setQrCode(null);
             setCopiaCola('');
-            setVerificando(false);
+            await atualizarDadosPassageiro();
           }
         }
       } catch (e) {
-        console.error('Erro ao verificar pagamento:', e);
+        // Polling silencioso, não exibe erro ao usuário
       }
-    }, 5000);
+    }, 4000);
   };
 
   const atualizarDadosPassageiro = async () => {
@@ -85,34 +103,47 @@ export default function RecargaPix() {
         localStorage.setItem('usuario', JSON.stringify(dadosAtualizados));
       }
     } catch (e) {
-      console.error('Erro ao atualizar saldo:', e);
+      setMensagem('⚠️ Pagamento confirmado, mas erro ao atualizar saldo local.');
     }
+  };
+
+  const limparTudo = () => {
+    setQrCode(null);
+    setCopiaCola('');
+    setMensagem('');
+    setPagamentoOK(false);
+    setValor('');
   };
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
       <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">Recarga via Pix</h2>
 
-      <input
-        type="number"
-        min={1}
-        step={1}
-        value={valor}
-        onChange={(e) => setValor(e.target.value)}
-        placeholder="Digite o valor da recarga (ex: 10.00)"
-        className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
-      />
+      {!pagamentoOK && (
+        <>
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="Digite o valor da recarga (ex: 10.00)"
+            className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+            disabled={carregando || verificando}
+          />
 
-      <button
-        onClick={handleRecarga}
-        className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded-md font-medium"
-        disabled={carregando || !valor}
-      >
-        {carregando ? 'Gerando Pix...' : 'Gerar QR Code'}
-      </button>
+          <button
+            onClick={handleRecarga}
+            className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded-md font-medium"
+            disabled={carregando || verificando || !valor}
+          >
+            {carregando ? 'Gerando Pix...' : 'Gerar QR Code'}
+          </button>
+        </>
+      )}
 
       {mensagem && (
-        <p className="mt-4 text-sm text-center text-green-700">{mensagem}</p>
+        <p className={`mt-4 text-sm text-center ${pagamentoOK ? "text-green-700" : "text-gray-700"}`}>{mensagem}</p>
       )}
 
       {qrCode && (
@@ -135,6 +166,15 @@ export default function RecargaPix() {
         <p className="mt-4 text-xs text-center text-gray-500">
           ⏳ Verificando pagamento automaticamente...
         </p>
+      )}
+
+      {pagamentoOK && (
+        <button
+          className="w-full mt-6 bg-green-700 text-white py-2 rounded hover:bg-green-800"
+          onClick={limparTudo}
+        >
+          Nova recarga
+        </button>
       )}
     </div>
   );

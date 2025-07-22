@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
+import ProtectedLayout from "../components/ProtectedLayout"; // Use Layout se for público!
 import logo from "../assets/logo-raptur.png";
 
 const Simulador = () => {
@@ -11,7 +11,6 @@ const Simulador = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const valor = codigo.trim();
 
     if (!valor || valor.length < 6) {
@@ -25,7 +24,7 @@ const Simulador = () => {
   };
 
   return (
-    <Layout>
+    <ProtectedLayout>
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-green-100 to-orange-100 px-4">
         <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md">
           <img
@@ -65,7 +64,7 @@ const Simulador = () => {
           </form>
         </div>
       </div>
-    </Layout>
+    </ProtectedLayout>
   );
 };
 

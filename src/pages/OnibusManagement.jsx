@@ -24,30 +24,40 @@ const OnibusManagement = () => {
   const fetchOnibus = async () => {
     try {
       const res = await axios.get(`${API_URL}/onibus`, { headers });
-      setOnibus(res.data);
+      setOnibus(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
+      setErro("Erro ao carregar ônibus.");
       console.error("Erro ao carregar ônibus:", error);
     }
   };
 
   const handleCreate = async () => {
     setErro('');
-    if (!placa || !modelo || !capacidade) {
-      setErro("Preencha todos os campos.");
+    // Validação básica
+    if (!placa.trim() || placa.length < 6) {
+      setErro("Digite uma placa válida (mínimo 6 caracteres).");
+      return;
+    }
+    if (!modelo.trim()) {
+      setErro("Informe o modelo do ônibus.");
+      return;
+    }
+    if (!capacidade || isNaN(capacidade) || parseInt(capacidade) < 1) {
+      setErro("Capacidade deve ser um número inteiro positivo.");
       return;
     }
 
     try {
       setCriando(true);
       await axios.post(`${API_URL}/onibus`, {
-        placa,
-        modelo,
+        placa: placa.trim().toUpperCase(),
+        modelo: modelo.trim(),
         capacidade: parseInt(capacidade)
       }, { headers });
       setPlaca('');
       setModelo('');
       setCapacidade('');
-      fetchOnibus();
+      await fetchOnibus();
     } catch (error) {
       setErro("Erro ao criar ônibus. Placa pode já estar cadastrada.");
     } finally {
@@ -56,9 +66,10 @@ const OnibusManagement = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Tem certeza que deseja remover este ônibus?")) return;
     try {
       await axios.delete(`${API_URL}/onibus/${id}`, { headers });
-      fetchOnibus();
+      await fetchOnibus();
     } catch (error) {
       setErro("Erro ao deletar ônibus.");
     }
@@ -79,15 +90,19 @@ const OnibusManagement = () => {
     const header = ["Placa", "Modelo", "Capacidade"];
     const rows = onibus.map((o) => [o.placa, o.modelo, o.capacidade]);
     const csv = [header, ...rows].map(r => r.join(",")).join("\n");
+    // BOM para Excel
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "onibus.csv";
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
     fetchOnibus();
+    // eslint-disable-next-line
   }, []);
 
   return (
@@ -107,6 +122,7 @@ const OnibusManagement = () => {
               value={placa}
               onChange={(e) => setPlaca(e.target.value)}
               fullWidth
+              inputProps={{ maxLength: 8 }}
             />
             <TextField
               label="Modelo"
@@ -120,6 +136,7 @@ const OnibusManagement = () => {
               value={capacidade}
               onChange={(e) => setCapacidade(e.target.value)}
               fullWidth
+              inputProps={{ min: 1 }}
             />
             <Button
               variant="contained"
@@ -186,4 +203,3 @@ const OnibusManagement = () => {
 };
 
 export default OnibusManagement;
-

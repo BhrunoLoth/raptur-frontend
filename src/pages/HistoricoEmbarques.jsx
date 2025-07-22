@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ProtectedLayout from '../components/ProtectedLayout'; // Corrigido!
+import ProtectedLayout from '../components/ProtectedLayout';
 
 export default function HistoricoEmbarques() {
   const [embarques, setEmbarques] = useState([]);
@@ -15,6 +15,7 @@ export default function HistoricoEmbarques() {
         if (!token || !usuario?.id) throw new Error('Usuário não autenticado.');
 
         const API_URL = import.meta.env.VITE_API_URL;
+        // Ajuste aqui se seu backend usa "motoristas" ou "motorista" no endpoint!
         const res = await fetch(`${API_URL}/motoristas/${usuario.id}/embarques`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -34,7 +35,7 @@ export default function HistoricoEmbarques() {
         const data = await res.json();
         setEmbarques(Array.isArray(data) ? data : []);
       } catch (err) {
-        setErro(err.message);
+        setErro(err.message || 'Erro ao buscar histórico.');
         setEmbarques([]);
       } finally {
         setCarregando(false);
@@ -43,6 +44,15 @@ export default function HistoricoEmbarques() {
 
     fetchHistorico();
   }, []);
+
+  const formatarDataHora = (dt) => {
+    try {
+      if (!dt) return "---";
+      return new Date(dt).toLocaleString('pt-BR', { hour12: false });
+    } catch {
+      return String(dt);
+    }
+  };
 
   return (
     <ProtectedLayout>
@@ -72,8 +82,8 @@ export default function HistoricoEmbarques() {
               >
                 <div><strong>Passageiro:</strong> {e.usuario?.nome || '---'}</div>
                 <div><strong>Ônibus:</strong> {e.veiculo?.placa || '---'}</div>
-                <div><strong>Data/Hora:</strong> {new Date(e.data).toLocaleString()}</div>
-                <div><strong>Status:</strong> {e.status}</div>
+                <div><strong>Data/Hora:</strong> {formatarDataHora(e.data || e.dataHora)}</div>
+                <div><strong>Status:</strong> {e.status || "---"}</div>
               </li>
             ))}
           </ul>
