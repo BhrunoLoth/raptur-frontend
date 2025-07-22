@@ -42,6 +42,7 @@ export default function MotoristaLogin() {
         return;
       }
 
+      // Garante que seja perfil motorista!
       const isMotorista =
         data.usuario?.role === "motorista" ||
         data.usuario?.perfil === "motorista";
@@ -50,7 +51,7 @@ export default function MotoristaLogin() {
         // Salva tudo dentro de usuario!
         const usuarioObj = {
           ...data.usuario,
-          perfil: data.usuario.perfil || "motorista",
+          perfil: "motorista", // força a garantir!
           nome: data.usuario.nome || "Motorista",
           onibusId,
         };
