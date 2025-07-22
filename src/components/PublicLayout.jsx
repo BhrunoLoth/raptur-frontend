@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, IconButton, useTheme } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
-import { useThemeContext } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 
 const PublicLayout = ({ children }) => {
-  const theme = useTheme();
-  const { toggleTheme } = useThemeContext();
+  const theme = useTheme(); // MUI theme
+  const { toggleTheme } = useCustomTheme(); // Seu contexto customizado
 
   return (
     <Box
