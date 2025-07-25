@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 
 // Páginas
 import Login from './pages/Login';
@@ -37,7 +37,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
-          {/* ROTAS PÚBLICAS: SEMPRE DENTRO DE PublicLayout */}
+          {/* ROTAS PÚBLICAS */}
           <Route path="/" element={
             <PublicLayout>
               <Login />
@@ -64,146 +64,43 @@ function App() {
             </PublicLayout>
           } />
 
-          {/* ROTAS ADMIN (Protegidas): SEMPRE DENTRO DE ProtectedLayout */}
-          <Route path="/dashboard" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <AdminDashboard />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/usuarios" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <UserManagement />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/motoristas" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <MotoristaManagement />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/onibus" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <OnibusManagement />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/viagens" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <Simulador />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/pagamentos" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <Pagamentos />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/embarques" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <Embarques />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/relatorios" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <Relatorios />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/painel-visual" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <DashboardVisual />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/configuracoes" element={
-            <ProtectedRouteByPerfil permitido={['admin']}>
-              <ProtectedLayout>
-                <Configuracoes />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
+          {/* ROTAS PROTEGIDAS (apenas UM ProtectedLayout aqui) */}
+          <Route
+            element={
+              <ProtectedRouteByPerfil permitido={['admin', 'motorista', 'passageiro']}>
+                <ProtectedLayout>
+                  <Outlet />
+                </ProtectedLayout>
+              </ProtectedRouteByPerfil>
+            }
+          >
+            {/* Rotas ADMIN */}
+            <Route path="/dashboard" element={<AdminDashboard />} />
+            <Route path="/usuarios" element={<UserManagement />} />
+            <Route path="/motoristas" element={<MotoristaManagement />} />
+            <Route path="/onibus" element={<OnibusManagement />} />
+            <Route path="/viagens" element={<Simulador />} />
+            <Route path="/pagamentos" element={<Pagamentos />} />
+            <Route path="/embarques" element={<Embarques />} />
+            <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/painel-visual" element={<DashboardVisual />} />
+            <Route path="/configuracoes" element={<Configuracoes />} />
 
-          {/* ROTAS MOTORISTA */}
-          <Route path="/motorista/dashboard" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <ProtectedLayout>
-                <MotoristaDashboard />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/motorista/embarques" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <ProtectedLayout>
-                <Embarques />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/motorista/historico-embarques" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <ProtectedLayout>
-                <HistoricoEmbarques />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/qrcodesimulator" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <ProtectedLayout>
-                <QRCodeSimulator />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/scannerqrcode" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <ProtectedLayout>
-                <ScannerQRCode />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/embarque-manual" element={
-            <ProtectedRouteByPerfil permitido={['motorista']}>
-              <ProtectedLayout>
-                <EmbarqueManual />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
+            {/* Rotas MOTORISTA */}
+            <Route path="/motorista/dashboard" element={<MotoristaDashboard />} />
+            <Route path="/motorista/embarques" element={<Embarques />} />
+            <Route path="/motorista/historico-embarques" element={<HistoricoEmbarques />} />
+            <Route path="/qrcodesimulator" element={<QRCodeSimulator />} />
+            <Route path="/scannerqrcode" element={<ScannerQRCode />} />
+            <Route path="/embarque-manual" element={<EmbarqueManual />} />
 
-          {/* ROTAS PASSAGEIRO */}
-          <Route path="/passageiro/dashboard" element={
-            <ProtectedRouteByPerfil permitido={['passageiro']}>
-              <ProtectedLayout>
-                <PassageiroDashboard />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/passageiro/recarga" element={
-            <ProtectedRouteByPerfil permitido={['passageiro']}>
-              <ProtectedLayout>
-                <RecargaPix />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
-          <Route path="/passageiro/historico" element={
-            <ProtectedRouteByPerfil permitido={['passageiro']}>
-              <ProtectedLayout>
-                <HistoricoEmbarques />
-              </ProtectedLayout>
-            </ProtectedRouteByPerfil>
-          } />
+            {/* Rotas PASSAGEIRO */}
+            <Route path="/passageiro/dashboard" element={<PassageiroDashboard />} />
+            <Route path="/passageiro/recarga" element={<RecargaPix />} />
+            <Route path="/passageiro/historico" element={<HistoricoEmbarques />} />
+          </Route>
 
-          {/* Fallback: tudo que não for reconhecido */}
+          {/* Fallback para rotas desconhecidas */}
           <Route path="*" element={
             <PublicLayout>
               <Login />
