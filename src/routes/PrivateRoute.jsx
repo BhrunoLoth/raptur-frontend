@@ -1,5 +1,3 @@
-// src/routes/PrivateRoute.jsx
-
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
@@ -10,7 +8,6 @@ import { Navigate, Outlet } from 'react-router-dom';
  * Verifica a existência de um token JWT no localStorage.
  *
  * Uso (React Router v6):
- *
  * // Rota isolada:
  * <Route
  *   path="/dashboard"
@@ -20,7 +17,6 @@ import { Navigate, Outlet } from 'react-router-dom';
  *     </PrivateRoute>
  *   }
  * />
- *
  * // Layout com rotas aninhadas:
  * <Route element={<PrivateRoute />}>
  *   <Route path="/dashboard" element={<Dashboard />} />

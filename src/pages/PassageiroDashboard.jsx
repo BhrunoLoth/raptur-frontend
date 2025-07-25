@@ -30,8 +30,6 @@ export default function PassageiroDashboard() {
         }
 
         const dadosAtualizados = await resp.json();
-
-        // Atualize apenas os campos do usuário, não sobrescreva todo objeto.
         const novoUsuario = { ...usuarioStorage, ...dadosAtualizados };
         localStorage.setItem('usuario', JSON.stringify(novoUsuario));
         setUsuario(novoUsuario);
@@ -51,7 +49,6 @@ export default function PassageiroDashboard() {
   const baixarQRCode = () => {
     const canvas = document.getElementById('qrcode-canvas');
     if (!canvas) return;
-
     const link = document.createElement('a');
     link.download = 'qrcode-raptur.png';
     link.href = canvas.toDataURL('image/png');

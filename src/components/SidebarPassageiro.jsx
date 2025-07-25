@@ -1,23 +1,18 @@
+// components/SidebarPassageiro.jsx
 import React, { useState } from 'react';
 import { Box, Typography, Button, Stack, IconButton, Drawer } from '@mui/material';
 import { LogOut, CreditCard, Clock3, Menu, Home, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function SidebarPassageiro() {
+export default function SidebarPassageiro({ onLogout }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
 
   const handleNavigate = (path) => {
     setMobileOpen(false);
     navigate(path);
   };
 
-  // ✅ ESTILO padrão de botões
   const btnStyle = {
     borderColor: 'rgba(255,255,255,0.4)',
     color: 'white',
@@ -44,7 +39,6 @@ export default function SidebarPassageiro() {
         <Typography variant="h6" fontWeight="bold" textAlign="center" mb={4}>
           Painel Passageiro
         </Typography>
-
         <Stack spacing={2}>
           <Button
             variant="outlined"
@@ -55,7 +49,6 @@ export default function SidebarPassageiro() {
           >
             Início
           </Button>
-
           <Button
             variant="outlined"
             startIcon={<CreditCard />}
@@ -65,7 +58,6 @@ export default function SidebarPassageiro() {
           >
             Recarga Pix
           </Button>
-
           <Button
             variant="outlined"
             startIcon={<Clock3 />}
@@ -75,8 +67,6 @@ export default function SidebarPassageiro() {
           >
             Histórico
           </Button>
-
-          {/* ✅ Nova opção de Trocar Senha */}
           <Button
             variant="outlined"
             startIcon={<KeyRound />}
@@ -88,13 +78,15 @@ export default function SidebarPassageiro() {
           </Button>
         </Stack>
       </Box>
-
       <Box textAlign="center">
         <Button
           variant="outlined"
           color="error"
           startIcon={<LogOut />}
-          onClick={handleLogout}
+          onClick={() => {
+            localStorage.clear();
+            navigate('/login');
+          }}
           fullWidth
           sx={{
             mt: 4,
@@ -131,7 +123,6 @@ export default function SidebarPassageiro() {
           Passageiro
         </Typography>
       </Box>
-
       {/* Drawer mobile */}
       <Drawer
         anchor="left"
@@ -145,7 +136,6 @@ export default function SidebarPassageiro() {
       >
         {drawerContent}
       </Drawer>
-
       {/* Sidebar desktop */}
       <Box
         sx={{

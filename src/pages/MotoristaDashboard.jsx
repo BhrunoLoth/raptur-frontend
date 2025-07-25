@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import ProtectedLayout from "../components/ProtectedLayout";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -74,62 +73,60 @@ export default function MotoristaDashboard() {
   };
 
   return (
-    <ProtectedLayout>
-      <div className="p-4 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-4">🧑‍✈️ Painel do Motorista</h2>
-        <div className="bg-white p-4 rounded shadow mb-4">
-          <p className="text-sm">
-            <strong>Status:</strong>{" "}
-            <span className={isOnline ? "text-green-600" : "text-yellow-600"}>
-              {isOnline ? "Online 🌐" : "Offline 🛰️"}
-            </span>
-          </p>
-          {mensagem && <p className="mt-2 text-sm text-gray-700">{mensagem}</p>}
+    <div className="p-4 max-w-7xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">🧑‍✈️ Painel do Motorista</h2>
+      <div className="bg-white p-4 rounded shadow mb-4">
+        <p className="text-sm">
+          <strong>Status:</strong>{" "}
+          <span className={isOnline ? "text-green-600" : "text-yellow-600"}>
+            {isOnline ? "Online 🌐" : "Offline 🛰️"}
+          </span>
+        </p>
+        {mensagem && <p className="mt-2 text-sm text-gray-700">{mensagem}</p>}
+      </div>
+
+      <div className="bg-white p-4 rounded shadow">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+          <span className="text-lg font-semibold">Embarques Recentes</span>
+          <div className="flex gap-2">
+            <button className="export-btn" onClick={() => exportarPDF(corridas)}>
+              📄 PDF
+            </button>
+            <button className="export-btn" onClick={() => exportarCSV(corridas)}>
+              📑 CSV
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white p-4 rounded shadow">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
-            <span className="text-lg font-semibold">Embarques Recentes</span>
-            <div className="flex gap-2">
-              <button className="export-btn" onClick={() => exportarPDF(corridas)}>
-                📄 PDF
-              </button>
-              <button className="export-btn" onClick={() => exportarCSV(corridas)}>
-                📑 CSV
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Passageiro</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {corridas.length === 0 ? (
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Passageiro</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
+                  <td colSpan={3} className="text-center py-4 text-gray-500">
+                    Nenhum embarque encontrado
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {corridas.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="text-center py-4 text-gray-500">
-                      Nenhum embarque encontrado
-                    </td>
+              ) : (
+                corridas.map((c, i) => (
+                  <tr key={i}>
+                    <td className="px-4 py-2 text-sm text-gray-800">{c.id}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">{c.passageiro}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">{c.data}</td>
                   </tr>
-                ) : (
-                  corridas.map((c, i) => (
-                    <tr key={i}>
-                      <td className="px-4 py-2 text-sm text-gray-800">{c.id}</td>
-                      <td className="px-4 py-2 text-sm text-gray-800">{c.passageiro}</td>
-                      <td className="px-4 py-2 text-sm text-gray-800">{c.data}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-    </ProtectedLayout>
+    </div>
   );
 }

@@ -1,6 +1,11 @@
+// components/SidebarMotorista.jsx
 import { Route, CheckSquare, LogOut, Clock } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { Box, Typography, List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/material';
+import {
+  Box, Typography, List, ListItem, ListItemIcon, ListItemText, Button, IconButton, Drawer
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { useState } from 'react';
 
 const motoristaMenu = [
   { icon: <CheckSquare size={20} />, label: 'Painel do Motorista', to: '/motorista/dashboard' },
@@ -10,18 +15,19 @@ const motoristaMenu = [
 
 export default function SidebarMotorista({ onLogout }) {
   const location = useLocation();
-  return (
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const drawerContent = (
     <Box
       sx={{
         width: 240,
-        height: '100vh',
+        height: '100%',
         bgcolor: '#1b5e20',
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        p: 2,
-        boxShadow: 3,
+        p: 2
       }}
     >
       <Box>
@@ -31,10 +37,10 @@ export default function SidebarMotorista({ onLogout }) {
         <List>
           {motoristaMenu.map(({ icon, label, to }) => (
             <ListItem
-              button
               key={label}
               component={Link}
               to={to}
+              onClick={() => setMobileOpen(false)}
               sx={{
                 mb: 1,
                 borderRadius: 2,
@@ -66,5 +72,56 @@ export default function SidebarMotorista({ onLogout }) {
         </Button>
       </Box>
     </Box>
+  );
+
+  return (
+    <>
+      {/* Topbar mobile */}
+      <Box
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          p: 1,
+          bgcolor: '#1b5e20',
+          color: 'white',
+          alignItems: 'center'
+        }}
+      >
+        <IconButton onClick={() => setMobileOpen(true)} sx={{ color: 'white' }}>
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" ml={2}>
+          Painel Motorista
+        </Typography>
+      </Box>
+      {/* Drawer mobile */}
+      <Drawer
+        anchor="left"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { width: 240, bgcolor: '#1b5e20' }
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+      {/* Sidebar desktop */}
+      <Box
+        sx={{
+          width: 240,
+          height: '100vh',
+          bgcolor: '#1b5e20',
+          color: 'white',
+          display: { xs: 'none', md: 'flex' },
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          p: 2,
+          boxShadow: 3,
+        }}
+      >
+        {drawerContent}
+      </Box>
+    </>
   );
 }

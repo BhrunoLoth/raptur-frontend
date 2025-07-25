@@ -26,7 +26,7 @@ import TrocarSenha from './pages/TrocarSenha';
 
 // Layouts e Contextos
 import PublicLayout from './components/PublicLayout';
-import ProtectedLayout from './components/ProtectedLayout'; // <-- NOVO LAYOUT UNIVERSAL!
+import ProtectedLayout from './components/ProtectedLayout';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
@@ -37,7 +37,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
-          {/* ----- ROTAS PÚBLICAS ----- */}
+          {/* ROTAS PÚBLICAS: SEMPRE DENTRO DE PublicLayout */}
           <Route path="/" element={
             <PublicLayout>
               <Login />
@@ -64,7 +64,7 @@ function App() {
             </PublicLayout>
           } />
 
-          {/* ----- ROTAS ADMIN (PROTEGIDAS) ----- */}
+          {/* ROTAS ADMIN (Protegidas): SEMPRE DENTRO DE ProtectedLayout */}
           <Route path="/dashboard" element={
             <ProtectedRouteByPerfil permitido={['admin']}>
               <ProtectedLayout>
@@ -136,7 +136,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* ----- ROTAS MOTORISTA (PROTEGIDAS) ----- */}
+          {/* ROTAS MOTORISTA */}
           <Route path="/motorista/dashboard" element={
             <ProtectedRouteByPerfil permitido={['motorista']}>
               <ProtectedLayout>
@@ -180,7 +180,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* ----- ROTAS PASSAGEIRO (PROTEGIDAS) ----- */}
+          {/* ROTAS PASSAGEIRO */}
           <Route path="/passageiro/dashboard" element={
             <ProtectedRouteByPerfil permitido={['passageiro']}>
               <ProtectedLayout>
@@ -203,7 +203,7 @@ function App() {
             </ProtectedRouteByPerfil>
           } />
 
-          {/* Fallback */}
+          {/* Fallback: tudo que não for reconhecido */}
           <Route path="*" element={
             <PublicLayout>
               <Login />
@@ -216,4 +216,3 @@ function App() {
 }
 
 export default App;
-

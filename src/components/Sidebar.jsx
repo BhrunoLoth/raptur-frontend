@@ -100,13 +100,14 @@ export default function Sidebar({ onLogout }) {
 
   return (
     <>
-      {/* Ícone de menu mobile */}
+      {/* Topbar para mobile */}
       <Box
         sx={{
           display: { xs: 'flex', md: 'none' },
           p: 1,
           bgcolor: '#004225',
-          color: 'white'
+          color: 'white',
+          alignItems: 'center'
         }}
       >
         <IconButton onClick={() => setMobileOpen(true)} sx={{ color: 'white' }}>
@@ -116,6 +117,7 @@ export default function Sidebar({ onLogout }) {
           Administrador Raptur
         </Typography>
       </Box>
+      {/* Drawer mobile */}
       <Drawer
         anchor="left"
         open={mobileOpen}
@@ -128,6 +130,7 @@ export default function Sidebar({ onLogout }) {
       >
         {drawerContent}
       </Drawer>
+      {/* Sidebar desktop */}
       <Box
         sx={{
           width: 240,

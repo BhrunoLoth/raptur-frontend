@@ -4,8 +4,8 @@ import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 
 const PublicLayout = ({ children }) => {
-  const theme = useTheme(); // MUI theme
-  const { toggleTheme } = useCustomTheme(); // Seu contexto customizado
+  const theme = useTheme();
+  const { toggleTheme } = useCustomTheme();
 
   return (
     <Box
@@ -34,7 +34,6 @@ const PublicLayout = ({ children }) => {
       >
         {theme.palette.mode === 'light' ? <Brightness4 /> : <Brightness7 />}
       </IconButton>
-
       <Box
         sx={{
           width: '100%',
