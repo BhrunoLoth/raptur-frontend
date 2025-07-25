@@ -7,7 +7,6 @@ import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import api from '../services/apiService';
-import ProtectedLayout from "../components/ProtectedLayout"; // Importante para evitar duplicidade/layout
 
 export default function Relatorios() {
   const [aba, setAba] = useState(0);
@@ -150,95 +149,93 @@ export default function Relatorios() {
   };
 
   return (
-    <ProtectedLayout>
-      <Box p={2} maxWidth="100%">
-        <Typography variant="h5" gutterBottom>📈 Relatórios Avançados</Typography>
+    <Box p={2} maxWidth="100%">
+      <Typography variant="h5" gutterBottom>📈 Relatórios Avançados</Typography>
 
-        <Tabs
-          value={aba}
-          onChange={(_, v) => setAba(v)}
-          sx={{ mb: 2 }}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="Pagamentos" />
-          <Tab label="Embarques" />
-          <Tab label="Viagens" />
-          <Tab label="Viagens por Passageiro" />
-        </Tabs>
+      <Tabs
+        value={aba}
+        onChange={(_, v) => setAba(v)}
+        sx={{ mb: 2 }}
+        variant="scrollable"
+        scrollButtons="auto"
+      >
+        <Tab label="Pagamentos" />
+        <Tab label="Embarques" />
+        <Tab label="Viagens" />
+        <Tab label="Viagens por Passageiro" />
+      </Tabs>
 
-        <Box display="flex" flexWrap="wrap" gap={2} mb={2}>
-          {(aba === 0 || aba === 3) && (
+      <Box display="flex" flexWrap="wrap" gap={2} mb={2}>
+        {(aba === 0 || aba === 3) && (
+          <TextField
+            select label="Passageiro" value={filtros.usuario_id}
+            onChange={e => setFiltros({ ...filtros, usuario_id: e.target.value })}
+            sx={{ minWidth: 200, flexGrow: 1 }}
+          >
+            {usuarios.map(u => (
+              <MenuItem key={u.id} value={u.id}>{u.nome}</MenuItem>
+            ))}
+          </TextField>
+        )}
+        {aba === 1 && (
+          <>
             <TextField
-              select label="Passageiro" value={filtros.usuario_id}
-              onChange={e => setFiltros({ ...filtros, usuario_id: e.target.value })}
+              select label="Motorista" value={filtros.motorista_id}
+              onChange={e => setFiltros({ ...filtros, motorista_id: e.target.value })}
               sx={{ minWidth: 200, flexGrow: 1 }}
             >
-              {usuarios.map(u => (
-                <MenuItem key={u.id} value={u.id}>{u.nome}</MenuItem>
+              {motoristas.map(m => (
+                <MenuItem key={m.id} value={m.id}>{m.nome}</MenuItem>
               ))}
             </TextField>
-          )}
-          {aba === 1 && (
-            <>
-              <TextField
-                select label="Motorista" value={filtros.motorista_id}
-                onChange={e => setFiltros({ ...filtros, motorista_id: e.target.value })}
-                sx={{ minWidth: 200, flexGrow: 1 }}
-              >
-                {motoristas.map(m => (
-                  <MenuItem key={m.id} value={m.id}>{m.nome}</MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select label="Ônibus" value={filtros.onibus_id}
-                onChange={e => setFiltros({ ...filtros, onibus_id: e.target.value })}
-                sx={{ minWidth: 200, flexGrow: 1 }}
-              >
-                {onibus.map(o => (
-                  <MenuItem key={o.id} value={o.id}>{o.placa}</MenuItem>
-                ))}
-              </TextField>
-            </>
-          )}
-          {aba === 2 && (
             <TextField
-              select label="Status" value={filtros.status}
-              onChange={e => setFiltros({ ...filtros, status: e.target.value })}
-              sx={{ minWidth: 150, flexGrow: 1 }}
+              select label="Ônibus" value={filtros.onibus_id}
+              onChange={e => setFiltros({ ...filtros, onibus_id: e.target.value })}
+              sx={{ minWidth: 200, flexGrow: 1 }}
             >
-              <MenuItem value="pendente">Pendente</MenuItem>
-              <MenuItem value="em andamento">Em Andamento</MenuItem>
-              <MenuItem value="concluída">Concluída</MenuItem>
-              <MenuItem value="cancelada">Cancelada</MenuItem>
+              {onibus.map(o => (
+                <MenuItem key={o.id} value={o.id}>{o.placa}</MenuItem>
+              ))}
             </TextField>
-          )}
+          </>
+        )}
+        {aba === 2 && (
           <TextField
-            type="date" label="Início"
-            value={filtros.dataInicio}
-            onChange={e => setFiltros({ ...filtros, dataInicio: e.target.value })}
-            InputLabelProps={{ shrink: true }}
-            sx={{ flexGrow: 1, minWidth: 150 }}
-          />
-          <TextField
-            type="date" label="Fim"
-            value={filtros.dataFim}
-            onChange={e => setFiltros({ ...filtros, dataFim: e.target.value })}
-            InputLabelProps={{ shrink: true }}
-            sx={{ flexGrow: 1, minWidth: 150 }}
-          />
-          <Button
-            onClick={handleBuscar}
-            variant="contained"
-            sx={{ height: 56, flexShrink: 0 }}
-            disabled={!filtros.dataInicio || !filtros.dataFim}
+            select label="Status" value={filtros.status}
+            onChange={e => setFiltros({ ...filtros, status: e.target.value })}
+            sx={{ minWidth: 150, flexGrow: 1 }}
           >
-            Buscar
-          </Button>
-        </Box>
-
-        {renderTabela()}
+            <MenuItem value="pendente">Pendente</MenuItem>
+            <MenuItem value="em andamento">Em Andamento</MenuItem>
+            <MenuItem value="concluída">Concluída</MenuItem>
+            <MenuItem value="cancelada">Cancelada</MenuItem>
+          </TextField>
+        )}
+        <TextField
+          type="date" label="Início"
+          value={filtros.dataInicio}
+          onChange={e => setFiltros({ ...filtros, dataInicio: e.target.value })}
+          InputLabelProps={{ shrink: true }}
+          sx={{ flexGrow: 1, minWidth: 150 }}
+        />
+        <TextField
+          type="date" label="Fim"
+          value={filtros.dataFim}
+          onChange={e => setFiltros({ ...filtros, dataFim: e.target.value })}
+          InputLabelProps={{ shrink: true }}
+          sx={{ flexGrow: 1, minWidth: 150 }}
+        />
+        <Button
+          onClick={handleBuscar}
+          variant="contained"
+          sx={{ height: 56, flexShrink: 0 }}
+          disabled={!filtros.dataInicio || !filtros.dataFim}
+        >
+          Buscar
+        </Button>
       </Box>
-    </ProtectedLayout>
+
+      {renderTabela()}
+    </Box>
   );
 }
