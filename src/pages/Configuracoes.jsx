@@ -8,7 +8,6 @@ import {
   Paper,
   Alert
 } from '@mui/material';
-import ProtectedLayout from "../components/ProtectedLayout";
 
 const Configuracoes = () => {
   const [nome, setNome] = useState('');
@@ -51,51 +50,49 @@ const Configuracoes = () => {
   };
 
   return (
-    <ProtectedLayout>
-      <Box sx={{ p: { xs: 2, sm: 4 } }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Configurações
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Criar Novo Administrador
-        </Typography>
+    <Box sx={{ p: { xs: 2, sm: 4 } }}>
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Configurações
+      </Typography>
+      <Typography variant="h6" gutterBottom>
+        Criar Novo Administrador
+      </Typography>
 
-        <Paper sx={{ p: 3, maxWidth: 500 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {mensagem && <Alert severity="success">{mensagem}</Alert>}
-            {erro && <Alert severity="error">{erro}</Alert>}
+      <Paper sx={{ p: 3, maxWidth: 500 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {mensagem && <Alert severity="success">{mensagem}</Alert>}
+          {erro && <Alert severity="error">{erro}</Alert>}
 
-            <TextField
-              label="Nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              fullWidth
-            />
-            <TextField
-              label="E-mail"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              fullWidth
-            />
-            <TextField
-              label="Senha"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              fullWidth
-            />
-            <Button
-              variant="contained"
-              onClick={criarAdministrador}
-              sx={{ fontWeight: "bold", mt: 2 }}
-            >
-              Criar Administrador
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
-    </ProtectedLayout>
+          <TextField
+            label="Nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            fullWidth
+          />
+          <TextField
+            label="E-mail"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+          />
+          <TextField
+            label="Senha"
+            type="password"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            fullWidth
+          />
+          <Button
+            variant="contained"
+            onClick={criarAdministrador}
+            sx={{ fontWeight: "bold", mt: 2 }}
+          >
+            Criar Administrador
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

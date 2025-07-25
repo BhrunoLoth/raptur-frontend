@@ -3,12 +3,11 @@ import {
   Box, Tabs, Tab, Typography, CircularProgress, TextField, Button, MenuItem, Table, TableHead,
   TableBody, TableCell, TableRow, Paper, TableContainer
 } from '@mui/material';
-import axios from 'axios';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import ProtectedLayout from "../components/ProtectedLayout";
 import api from '../services/apiService';
+import ProtectedLayout from "../components/ProtectedLayout"; // Importante para evitar duplicidade/layout
 
 export default function Relatorios() {
   const [aba, setAba] = useState(0);

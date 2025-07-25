@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '../components/PublicLayout'; // <-- ALTERADO AQUI!
+import PublicLayout from '../components/PublicLayout';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function TrocarSenha() {
   const navigate = useNavigate();
@@ -17,7 +19,6 @@ export default function TrocarSenha() {
     if (!novaSenha || novaSenha.length < 6) {
       return setErro('A nova senha deve ter pelo menos 6 caracteres.');
     }
-
     if (novaSenha !== confirmarNovaSenha) {
       return setErro('As novas senhas não coincidem.');
     }
@@ -26,7 +27,9 @@ export default function TrocarSenha() {
       const token = localStorage.getItem('token');
       const usuario = JSON.parse(localStorage.getItem('usuario'));
 
-      const res = await fetch('/api/usuarios/trocar-senha', {
+      if (!token || !usuario?.id) throw new Error("Sessão inválida.");
+
+      const res = await fetch(`${API_URL}/usuarios/trocar-senha`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +55,7 @@ export default function TrocarSenha() {
         else navigate('/');
       }, 2000);
     } catch (err) {
-      setErro(err.message);
+      setErro(err.message || "Erro ao trocar senha.");
     }
   };
 
@@ -71,6 +74,7 @@ export default function TrocarSenha() {
             onChange={(e) => setNovaSenha(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             required
+            minLength={6}
           />
 
           <input
@@ -80,6 +84,7 @@ export default function TrocarSenha() {
             onChange={(e) => setConfirmarNovaSenha(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             required
+            minLength={6}
           />
 
           {erro && <p className="text-red-600 text-sm text-center">{erro}</p>}

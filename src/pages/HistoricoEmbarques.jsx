@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import ProtectedLayout from '../components/ProtectedLayout';
 
 export default function HistoricoEmbarques() {
   const [embarques, setEmbarques] = useState([]);
@@ -55,40 +54,38 @@ export default function HistoricoEmbarques() {
   };
 
   return (
-    <ProtectedLayout>
-      <div className="bg-white p-6 md:p-8 rounded-xl shadow-md max-w-3xl mx-auto mt-8">
-        <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">
-          Histórico de Embarques de Hoje
-        </h2>
+    <div className="bg-white p-6 md:p-8 rounded-xl shadow-md max-w-3xl mx-auto mt-8">
+      <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">
+        Histórico de Embarques de Hoje
+      </h2>
 
-        {carregando && (
-          <p className="text-gray-600 text-center">Carregando...</p>
-        )}
+      {carregando && (
+        <p className="text-gray-600 text-center">Carregando...</p>
+      )}
 
-        {erro && (
-          <p className="text-red-600 text-sm mb-4 text-center">{erro}</p>
-        )}
+      {erro && (
+        <p className="text-red-600 text-sm mb-4 text-center">{erro}</p>
+      )}
 
-        {!carregando && !erro && embarques.length === 0 && (
-          <p className="text-gray-600 text-center">Nenhum embarque registrado hoje.</p>
-        )}
+      {!carregando && !erro && embarques.length === 0 && (
+        <p className="text-gray-600 text-center">Nenhum embarque registrado hoje.</p>
+      )}
 
-        {!carregando && !erro && embarques.length > 0 && (
-          <ul className="space-y-3">
-            {embarques.map((e) => (
-              <li
-                key={e.id}
-                className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
-              >
-                <div><strong>Passageiro:</strong> {e.usuario?.nome || '---'}</div>
-                <div><strong>Ônibus:</strong> {e.veiculo?.placa || '---'}</div>
-                <div><strong>Data/Hora:</strong> {formatarDataHora(e.data || e.dataHora)}</div>
-                <div><strong>Status:</strong> {e.status || "---"}</div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </ProtectedLayout>
+      {!carregando && !erro && embarques.length > 0 && (
+        <ul className="space-y-3">
+          {embarques.map((e) => (
+            <li
+              key={e.id}
+              className="border border-gray-200 p-4 rounded-lg shadow-sm text-sm md:text-base"
+            >
+              <div><strong>Passageiro:</strong> {e.usuario?.nome || '---'}</div>
+              <div><strong>Ônibus:</strong> {e.veiculo?.placa || '---'}</div>
+              <div><strong>Data/Hora:</strong> {formatarDataHora(e.data || e.dataHora)}</div>
+              <div><strong>Status:</strong> {e.status || "---"}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

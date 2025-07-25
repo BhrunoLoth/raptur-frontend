@@ -3,7 +3,6 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Typography, Button, Box, Alert } from "@mui/material";
 import axios from "axios";
 
-// Use sempre o env para API! (Vercel production)
 const API_URL = import.meta.env.VITE_API_URL;
 
 const ScannerQRCode = () => {
@@ -12,20 +11,15 @@ const ScannerQRCode = () => {
   const [scanning, setScanning] = useState(false);
   const [mensagem, setMensagem] = useState(null);
 
-  // Sempre limpe a câmera ao desmontar!
   useEffect(() => {
     codeReaderRef.current = new BrowserMultiFormatReader();
     return () => {
-      if (
-        codeReaderRef.current &&
-        typeof codeReaderRef.current.reset === "function"
-      ) {
+      if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
         codeReaderRef.current.reset();
       }
     };
   }, []);
 
-  // Iniciar scanner
   const startScan = async () => {
     setMensagem(null);
     setScanning(true);
@@ -57,12 +51,10 @@ const ScannerQRCode = () => {
     }
   };
 
-  // Validação QR no backend ou fallback local
   const validarQRCode = async (qrCode) => {
     try {
       const token = localStorage.getItem("token");
       const usuario = JSON.parse(localStorage.getItem("usuario"));
-      // Pode estar como onibusId em localStorage OU no usuário logado
       const onibusId =
         localStorage.getItem("onibusId") ||
         usuario?.onibusId ||
@@ -71,7 +63,6 @@ const ScannerQRCode = () => {
       if (!token || !onibusId)
         throw new Error("Sessão inválida (token ou ônibus não definido).");
 
-      // Sempre use API_URL real aqui!
       const { data } = await axios.post(
         `${API_URL}/motorista/validarqr`,
         { qrCode, onibusId },
@@ -80,13 +71,10 @@ const ScannerQRCode = () => {
 
       setMensagem(`✅ ${data.mensagem || "QR validado com sucesso!"}`);
     } catch (err) {
-      // Fallback offline/local
-      console.warn("🔌 Falha online, fallback local:", err.message);
       fallbackOffline(qrCode);
     }
   };
 
-  // Validação offline, só funciona se passageiros estão no localStorage!
   const fallbackOffline = (qrCode) => {
     try {
       const passageiros = JSON.parse(localStorage.getItem("passageirosQR")) || [];
@@ -153,10 +141,7 @@ const ScannerQRCode = () => {
           variant="outlined"
           color="error"
           onClick={() => {
-            if (
-              codeReaderRef.current &&
-              typeof codeReaderRef.current.reset === "function"
-            ) {
+            if (codeReaderRef.current && typeof codeReaderRef.current.reset === "function") {
               codeReaderRef.current.reset();
             }
             setScanning(false);

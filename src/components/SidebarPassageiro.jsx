@@ -1,25 +1,25 @@
-// components/SidebarPassageiro.jsx
 import React, { useState } from 'react';
-import { Box, Typography, Button, Stack, IconButton, Drawer } from '@mui/material';
+import {
+  Box, Typography, Button, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText
+} from '@mui/material';
 import { LogOut, CreditCard, Clock3, Menu, Home, KeyRound } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+const menuPassageiro = [
+  { icon: <Home size={20} />, label: 'Início', to: '/passageiro/dashboard' },
+  { icon: <CreditCard size={20} />, label: 'Recarga Pix', to: '/passageiro/recarga' },
+  { icon: <Clock3 size={20} />, label: 'Histórico', to: '/passageiro/historico' },
+  { icon: <KeyRound size={20} />, label: 'Trocar Senha', to: '/trocar-senha' },
+];
 
 export default function SidebarPassageiro({ onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleNavigate = (path) => {
+  const handleNavigate = (to) => {
     setMobileOpen(false);
-    navigate(path);
-  };
-
-  const btnStyle = {
-    borderColor: 'rgba(255,255,255,0.4)',
-    color: 'white',
-    '&:hover': {
-      borderColor: 'white',
-      backgroundColor: 'rgba(255,255,255,0.1)',
-    }
+    navigate(to);
   };
 
   const drawerContent = (
@@ -34,49 +34,36 @@ export default function SidebarPassageiro({ onLogout }) {
         justifyContent: 'space-between',
         p: 2
       }}
+      role="navigation"
+      aria-label="Navegação Passageiro"
     >
       <Box>
         <Typography variant="h6" fontWeight="bold" textAlign="center" mb={4}>
           Painel Passageiro
         </Typography>
-        <Stack spacing={2}>
-          <Button
-            variant="outlined"
-            startIcon={<Home />}
-            onClick={() => handleNavigate('/passageiro/dashboard')}
-            fullWidth
-            sx={btnStyle}
-          >
-            Início
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<CreditCard />}
-            onClick={() => handleNavigate('/passageiro/recarga')}
-            fullWidth
-            sx={btnStyle}
-          >
-            Recarga Pix
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Clock3 />}
-            onClick={() => handleNavigate('/passageiro/historico')}
-            fullWidth
-            sx={btnStyle}
-          >
-            Histórico
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<KeyRound />}
-            onClick={() => handleNavigate('/trocar-senha')}
-            fullWidth
-            sx={btnStyle}
-          >
-            Trocar Senha
-          </Button>
-        </Stack>
+        <List>
+          {menuPassageiro.map(({ icon, label, to }) => (
+            <ListItem
+              button
+              key={label}
+              selected={location.pathname === to}
+              onClick={() => handleNavigate(to)}
+              sx={{
+                mb: 1,
+                borderRadius: 2,
+                backgroundColor:
+                  location.pathname === to
+                    ? 'rgba(255,255,255,0.14)'
+                    : 'transparent',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.09)' },
+                minHeight: 44,
+              }}
+            >
+              <ListItemIcon sx={{ color: 'white', minWidth: 36 }}>{icon}</ListItemIcon>
+              <ListItemText primary={label} primaryTypographyProps={{ fontSize: 15, fontWeight: 500 }} />
+            </ListItem>
+          ))}
+        </List>
       </Box>
       <Box textAlign="center">
         <Button
@@ -85,6 +72,7 @@ export default function SidebarPassageiro({ onLogout }) {
           startIcon={<LogOut />}
           onClick={() => {
             localStorage.clear();
+            if (onLogout) onLogout();
             navigate('/login');
           }}
           fullWidth
@@ -92,11 +80,13 @@ export default function SidebarPassageiro({ onLogout }) {
             mt: 4,
             borderColor: 'rgba(255,255,255,0.4)',
             color: 'white',
+            fontWeight: 'bold',
             '&:hover': {
               borderColor: 'white',
               backgroundColor: 'rgba(255,255,255,0.1)'
             }
           }}
+          aria-label="Sair do sistema"
         >
           Sair
         </Button>
@@ -110,16 +100,16 @@ export default function SidebarPassageiro({ onLogout }) {
       <Box
         sx={{
           display: { xs: 'flex', md: 'none' },
-          p: 1,
+          p: 1.5,
           bgcolor: '#004225',
           color: 'white',
           alignItems: 'center'
         }}
       >
-        <IconButton onClick={() => setMobileOpen(true)} sx={{ color: 'white' }}>
+        <IconButton onClick={() => setMobileOpen(true)} sx={{ color: 'white' }} aria-label="Abrir menu">
           <Menu />
         </IconButton>
-        <Typography variant="h6" ml={2}>
+        <Typography variant="h6" ml={2} fontWeight={600} fontSize={18}>
           Passageiro
         </Typography>
       </Box>

@@ -23,13 +23,15 @@ const PublicLayout = ({ children }) => {
     >
       <IconButton
         onClick={toggleTheme}
+        aria-label="Alternar tema"
         sx={{
           position: 'absolute',
           top: 16,
           right: 16,
           color: theme.palette.mode === 'light' ? '#ff9800' : '#fff',
           backgroundColor: theme.palette.background.paper,
-          boxShadow: 3
+          boxShadow: 3,
+          zIndex: 10
         }}
       >
         {theme.palette.mode === 'light' ? <Brightness4 /> : <Brightness7 />}
@@ -41,7 +43,7 @@ const PublicLayout = ({ children }) => {
           backgroundColor: theme.palette.background.paper,
           borderRadius: 4,
           boxShadow: 6,
-          p: 4
+          p: { xs: 2, md: 4 }
         }}
       >
         {children}

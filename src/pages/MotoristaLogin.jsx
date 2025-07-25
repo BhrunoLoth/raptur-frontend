@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
+import PublicLayout from "../components/PublicLayout";
 import logo from "../assets/logo-raptur.png";
 import "../styles/RapturStyle.css";
 
@@ -14,13 +14,6 @@ export default function MotoristaLogin() {
   const [carregando, setCarregando] = useState(false);
   const navigate = useNavigate();
   const emailRef = useRef(null);
-
-  // Limpa localStorage de tokens/usuario antigos ao montar (opcional)
-  // useEffect(() => {
-  //   localStorage.removeItem("token");
-  //   localStorage.removeItem("usuario");
-  //   localStorage.removeItem("onibusId");
-  // }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -44,7 +37,6 @@ export default function MotoristaLogin() {
     setCarregando(true);
 
     try {
-      // Remove dados antigos do motorista (evita confusão offline)
       localStorage.removeItem("token");
       localStorage.removeItem("usuario");
       localStorage.removeItem("onibusId");
@@ -63,16 +55,14 @@ export default function MotoristaLogin() {
         return;
       }
 
-      // Garante que seja perfil motorista!
       const isMotorista =
         data.usuario?.role === "motorista" ||
         data.usuario?.perfil === "motorista";
 
       if (data.token && isMotorista) {
-        // Salva tudo dentro de usuario!
         const usuarioObj = {
           ...data.usuario,
-          perfil: "motorista", // força a garantir!
+          perfil: "motorista",
           nome: data.usuario.nome || "Motorista",
         };
         localStorage.setItem("token", data.token);
@@ -93,7 +83,6 @@ export default function MotoristaLogin() {
     }
   };
 
-  // Limpa mensagem de erro ao digitar novamente
   const clearError = () => erro && setErro("");
 
   const sincronizarPassageiros = async (token) => {
@@ -112,14 +101,13 @@ export default function MotoristaLogin() {
       );
 
       localStorage.setItem("passageirosQR", JSON.stringify(passageiros));
-      // console.log(`🧠 ${passageiros.length} passageiros sincronizados localmente.`);
     } catch (err) {
       console.error("❌ Erro ao sincronizar passageiros:", err);
     }
   };
 
   return (
-    <Layout>
+    <PublicLayout>
       <div className="dashboard-main-card login-card">
         <img
           src={logo}
@@ -179,6 +167,6 @@ export default function MotoristaLogin() {
           </button>
         </form>
       </div>
-    </Layout>
+    </PublicLayout>
   );
 }

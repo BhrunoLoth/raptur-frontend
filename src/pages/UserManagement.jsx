@@ -7,6 +7,7 @@ import {
   deletarUsuario
 } from "../services/userService";
 
+// Função para exportar CSV
 function exportarCSV(usuarios) {
   const header = ["Nome", "Email", "CPF", "RG", "Perfil"];
   const rows = usuarios.map((u) => [u.nome, u.email, u.cpf, u.rg, u.perfil]);
@@ -23,6 +24,7 @@ function exportarCSV(usuarios) {
   document.body.removeChild(link);
 }
 
+// Função para exportar PDF
 function exportarPDF(usuarios) {
   const doc = new jsPDF();
   doc.text("Usuários Cadastrados", 14, 16);
@@ -58,6 +60,9 @@ const UserManagement = () => {
     carregar();
   }, []);
 
+  // Validação forte de CPF
+  const cpfValido = (v) => /^\d{11}$/.test(v.replace(/\D/g, ''));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro("");
@@ -70,15 +75,23 @@ const UserManagement = () => {
     if (!emailValido) {
       return setErro("Digite um e-mail válido.");
     }
-    if (cpf.length < 8 || rg.length < 5) {
-      return setErro("Digite um CPF e RG válidos.");
+    if (!cpfValido(cpf)) {
+      return setErro("CPF deve ter 11 dígitos numéricos.");
+    }
+    if (rg.length < 5) {
+      return setErro("Digite um RG válido (mínimo 5 caracteres).");
+    }
+
+    // Prevenção de duplicidade (apenas front, backend é autoridade)
+    if (usuarios.some(u => u.cpf === cpf)) {
+      return setErro("Já existe um usuário cadastrado com esse CPF.");
     }
 
     try {
       const formData = {
         nome,
         email,
-        cpf,
+        cpf: cpf.replace(/\D/g, ''),
         rg,
         senha: "123456", // senha padrão inicial
         perfil,
@@ -88,6 +101,9 @@ const UserManagement = () => {
       if (perfil === "passageiro") {
         formData.subtipo_passageiro = subtipo_passageiro;
         formData.saldo_credito = 0;
+        if (!subtipo_passageiro) {
+          return setErro("Escolha o subtipo do passageiro.");
+        }
       }
 
       const novo = await criarUsuario(formData);
@@ -154,10 +170,13 @@ const UserManagement = () => {
         <input
           id="cpf"
           className="border p-2 rounded"
-          placeholder="CPF"
+          placeholder="CPF (somente números)"
           value={cpf}
-          onChange={(e) => setCpf(e.target.value)}
+          onChange={(e) => setCpf(e.target.value.replace(/\D/g, ""))}
           required
+          maxLength={11}
+          inputMode="numeric"
+          pattern="[0-9]{11}"
         />
 
         <input
@@ -265,4 +284,3 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
-

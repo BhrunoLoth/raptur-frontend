@@ -6,6 +6,8 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ViagemManagement() {
   const [viagens, setViagens] = useState([]);
   const [destino, setDestino] = useState('');
@@ -21,9 +23,12 @@ export default function ViagemManagement() {
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
 
+  // Função centralizada para url correta
+  const endpoint = (path) => `${API_URL}${path}`;
+
   const fetchViagens = async () => {
     try {
-      const res = await axios.get('/api/admin/viagens', {
+      const res = await axios.get(endpoint('/admin/viagens'), {
         headers,
         params: {
           status: statusFiltro,
@@ -40,7 +45,7 @@ export default function ViagemManagement() {
 
   const fetchMotoristas = async () => {
     try {
-      const res = await axios.get('/api/motoristas', { headers });
+      const res = await axios.get(endpoint('/motoristas'), { headers });
       setMotoristas(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setMotoristas([]);
@@ -50,7 +55,7 @@ export default function ViagemManagement() {
 
   const fetchOnibus = async () => {
     try {
-      const res = await axios.get('/api/onibus', { headers });
+      const res = await axios.get(endpoint('/onibus'), { headers });
       setOnibus(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setOnibus([]);
@@ -65,7 +70,7 @@ export default function ViagemManagement() {
     }
 
     try {
-      await axios.post('/api/admin/viagens', {
+      await axios.post(endpoint('/admin/viagens'), {
         destino,
         data_hora: dataHora,
         onibus_id: onibusId,
@@ -78,6 +83,7 @@ export default function ViagemManagement() {
       setMotoristaId('');
       fetchViagens();
     } catch (err) {
+      alert('Erro ao criar viagem. Verifique os dados e tente novamente.');
       console.error('Erro ao criar viagem:', err);
     }
   };
@@ -85,9 +91,10 @@ export default function ViagemManagement() {
   const handleDelete = async (id) => {
     if (!window.confirm('Deseja realmente remover esta viagem?')) return;
     try {
-      await axios.delete(`/api/admin/viagens/${id}`, { headers });
+      await axios.delete(endpoint(`/admin/viagens/${id}`), { headers });
       fetchViagens();
     } catch (err) {
+      alert('Erro ao deletar viagem.');
       console.error('Erro ao deletar viagem:', err);
     }
   };
@@ -98,10 +105,11 @@ export default function ViagemManagement() {
 
   const salvarStatus = async (id) => {
     try {
-      await axios.patch(`/api/admin/viagens/${id}`, { status: statusEdit[id] }, { headers });
+      await axios.patch(endpoint(`/admin/viagens/${id}`), { status: statusEdit[id] }, { headers });
       setStatusEdit({ ...statusEdit, [id]: undefined });
       fetchViagens();
     } catch (err) {
+      alert('Erro ao atualizar status.');
       console.error('Erro ao atualizar status:', err);
     }
   };
@@ -176,7 +184,7 @@ export default function ViagemManagement() {
             <MenuItem value="">Todos</MenuItem>
             <MenuItem value="pendente">Pendente</MenuItem>
             <MenuItem value="em andamento">Em Andamento</MenuItem>
-            <MenuItem value="concluída">Concluída</MenuItem>
+            <MenuItem value="concluida">Concluída</MenuItem>
             <MenuItem value="cancelada">Cancelada</MenuItem>
           </Select>
         </FormControl>
@@ -235,7 +243,7 @@ export default function ViagemManagement() {
                         >
                           <MenuItem value="pendente">Pendente</MenuItem>
                           <MenuItem value="em andamento">Em Andamento</MenuItem>
-                          <MenuItem value="concluída">Concluída</MenuItem>
+                          <MenuItem value="concluida">Concluída</MenuItem>
                           <MenuItem value="cancelada">Cancelada</MenuItem>
                         </Select>
                         <Button
