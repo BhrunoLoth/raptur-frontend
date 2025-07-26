@@ -53,18 +53,26 @@ export default function AdminDashboard() {
       try {
         const token = localStorage.getItem('token');
         const headers = {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         };
 
+        const fetchJSON = async (url) => {
+          const res = await fetch(url, { headers });
+          if (!res.ok) throw new Error(`Erro ao buscar ${url}`);
+          return res.json();
+        };
+
         const [rResumo, rNotifs, rStats] = await Promise.all([
-          fetch(`${apiBase}/admin/dashboard/resumo`, { headers }).then(res => res.json()),
-          fetch(`${apiBase}/admin/dashboard/notificacoes`, { headers }).then(res => res.json()),
-          fetch(`${apiBase}/admin/dashboard/estatisticas`, { headers }).then(res => res.json()),
+          fetchJSON(`${apiBase}/admin/dashboard/resumo`),
+          fetchJSON(`${apiBase}/admin/dashboard/notificacoes`),
+          fetchJSON(`${apiBase}/admin/dashboard/estatisticas`)
         ]);
 
         setResumo(rResumo && !rResumo.erro ? rResumo : null);
         setNotificacoes(Array.isArray(rNotifs) ? rNotifs : []);
         setEstatisticas(rStats && !rStats.erro ? rStats : null);
+
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
