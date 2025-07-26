@@ -1,36 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Alert,
-  CircularProgress
+  Box, Typography, Grid, Card, CardContent, Alert, CircularProgress
 } from '@mui/material';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
+import api from '../services/api'; // ✅ Usa o axios com token
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-const apiBase = import.meta.env.VITE_API_URL;
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 export default function AdminDashboard() {
   const [resumo, setResumo] = useState(null);
@@ -51,28 +27,15 @@ export default function AdminDashboard() {
 
     const fetchDashboard = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        };
-
-        const fetchJSON = async (url) => {
-          const res = await fetch(url, { headers });
-          if (!res.ok) throw new Error(`Erro ao buscar ${url}`);
-          return res.json();
-        };
-
         const [rResumo, rNotifs, rStats] = await Promise.all([
-          fetchJSON(`${apiBase}/admin/dashboard/resumo`),
-          fetchJSON(`${apiBase}/admin/dashboard/notificacoes`),
-          fetchJSON(`${apiBase}/admin/dashboard/estatisticas`)
+          api.get('/admin/dashboard/resumo').then(res => res.data),
+          api.get('/admin/dashboard/notificacoes').then(res => res.data),
+          api.get('/admin/dashboard/estatisticas').then(res => res.data),
         ]);
 
         setResumo(rResumo && !rResumo.erro ? rResumo : null);
         setNotificacoes(Array.isArray(rNotifs) ? rNotifs : []);
         setEstatisticas(rStats && !rStats.erro ? rStats : null);
-
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
       } finally {
@@ -96,8 +59,6 @@ export default function AdminDashboard() {
       <Box sx={{ p: 4 }}>
         <Alert severity="error">
           ⚠️ Dados incompletos ou não carregados. Verifique a API.
-          {resumo?.erro && <div>{resumo.erro}</div>}
-          {estatisticas?.erro && <div>{estatisticas.erro}</div>}
         </Alert>
       </Box>
     );
@@ -151,6 +112,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={12} sm={4}>
           <Card sx={{ bgcolor: '#1565c0', color: 'white', borderRadius: 3 }}>
             <CardContent>
@@ -163,6 +125,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={12} sm={4}>
           <Card sx={{ bgcolor: '#4a148c', color: 'white', borderRadius: 3 }}>
             <CardContent>
@@ -188,6 +151,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Grid>
+
         <Grid item xs={12} sm={6}>
           <Card sx={{ bgcolor: '#880e4f', color: 'white', borderRadius: 3 }}>
             <CardContent>
@@ -209,6 +173,7 @@ export default function AdminDashboard() {
             <Bar data={barData} />
           </Card>
         </Grid>
+
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2, borderRadius: 4 }}>
             <Typography variant="h6" mb={2}>
