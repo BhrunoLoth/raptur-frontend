@@ -1,85 +1,51 @@
-const API_BASE     = import.meta.env.VITE_API_URL;
-const API_USUARIOS = `${API_BASE}/usuarios`;
-const API_LOGIN    = `${API_BASE}/auth/login`;
+// src/services/userService.js
+import api from './api';
 
-function getAuthHeader() {
-  const token = localStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  };
-}
-
-export async function login(email, senha) {
-  const res = await fetch(API_LOGIN, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, senha })
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.erro || err.message || 'Credenciais inválidas.');
-  }
-
-  const data = await res.json();
-  if (data.token) {
-    // Padroniza os campos do usuário
-    let usuario = { ...data.usuario };
-    let perfil = usuario.perfil;
-    let subtipo = usuario.subtipo_passageiro || usuario.tipo || '';
-    if (perfil !== 'admin' && perfil !== 'motorista') perfil = 'passageiro';
-
-    usuario.perfil = perfil;
-    usuario.subtipo_passageiro = subtipo;
-
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-    // Nunca mais salve: localStorage.setItem('perfil', perfil);
-    data.usuario = usuario; // Atualiza retorno para uso no Login.jsx, etc.
-  }
-  return data;
-}
-
+/**
+ * 🔍 Lista todos os usuários cadastrados.
+ * @returns {Promise<Array>} Lista de usuários
+ */
 export async function listarUsuarios() {
-  const res = await fetch(API_USUARIOS, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error(`Erro ao listar usuários (${res.status})`);
-  return res.json();
+  const res = await api.get('/usuarios');
+  return res.data;
 }
 
+/**
+ * ➕ Cria um novo usuário.
+ * @param {Object} dados - Dados do novo usuário
+ * @returns {Promise<Object>} Usuário criado
+ */
 export async function criarUsuario(dados) {
-  const res = await fetch(API_USUARIOS, {
-    method: 'POST',
-    headers: getAuthHeader(),
-    body: JSON.stringify(dados)
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.erro || 'Erro ao criar usuário.');
-  }
-  return res.json();
+  const res = await api.post('/usuarios', dados);
+  return res.data;
 }
 
-export async function atualizarUsuario(id, dados) {
-  const res = await fetch(`${API_USUARIOS}/${id}`, {
-    method: 'PUT',
-    headers: getAuthHeader(),
-    body: JSON.stringify(dados)
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.erro || 'Erro ao atualizar usuário.');
-  }
-  return res.json();
-}
-
+/**
+ * ❌ Remove um usuário pelo ID.
+ * @param {number|string} id - ID do usuário
+ * @returns {Promise<void>}
+ */
 export async function deletarUsuario(id) {
-  const res = await fetch(`${API_USUARIOS}/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeader()
-  });
-  if (!res.ok) {
-    throw new Error(`Erro ao deletar usuário (${res.status})`);
-  }
-  return res.json();
+  await api.delete(`/usuarios/${id}`);
+}
+
+/**
+ * ✏️ Atualiza dados de um usuário.
+ * @param {number|string} id - ID do usuário
+ * @param {Object} dados - Dados atualizados
+ * @returns {Promise<Object>} Usuário atualizado
+ */
+export async function atualizarUsuario(id, dados) {
+  const res = await api.put(`/usuarios/${id}`, dados);
+  return res.data;
+}
+
+/**
+ * 🔍 Busca um usuário específico por ID
+ * @param {number|string} id 
+ * @returns {Promise<Object>} Usuário
+ */
+export async function obterUsuario(id) {
+  const res = await api.get(`/usuarios/${id}`);
+  return res.data;
 }
