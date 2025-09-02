@@ -1,5 +1,5 @@
 import React, { forwardRef, useMemo } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 /**
  * Preview 1:1 da carteirinha no navegador (para conferir antes de salvar).
@@ -92,7 +92,7 @@ const Carteirinha = forwardRef(({ idoso, fotoPreview }, ref) => {
             <div style={{
               borderRadius: '2mm', background: '#f5f5f5', border: '0.4mm solid #ddd', padding: '1.2mm'
             }}>
-              <QRCode value={qrValue} size={130} level="M" includeMargin={false} />
+              <QRCodeCanvas value={qrValue} size={130} level="M" includeMargin={false} />
             </div>
           </div>
         </div>
