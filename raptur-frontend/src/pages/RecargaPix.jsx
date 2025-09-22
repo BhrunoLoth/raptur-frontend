@@ -1,4 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
+// src/pages/RecargaPix.jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Box, 
+  Card, 
+  CardContent, 
+  Typography, 
+  TextField, 
+  Button, 
+  Alert, 
+  CircularProgress,
+  Divider,
+  Chip,
+  Grid,
+  Paper
+} from '@mui/material';
+import { 
+  QrCode2, 
+  ContentCopy, 
+  CheckCircle, 
+  Error,
+  Refresh,
+  AccountBalanceWallet
+} from '@mui/icons-material';
+import { 
+  processarRecargaPix, 
+  monitorarPagamentoPix, 
+  formatarValor,
+  formatarStatusPagamento 
+} from '../services/pagamentoService';
+import { getCurrentUser } from '../services/api';
 
 export default function RecargaPix() {
   const [valor, setValor] = useState('');
@@ -7,175 +37,369 @@ export default function RecargaPix() {
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [verificando, setVerificando] = useState(false);
-  const [pagamentoOK, setPagamentoOK] = useState(false);
+  const [pagamento, setPagamento] = useState(null);
+  const [statusPagamento, setStatusPagamento] = useState(null);
+  const [tempoRestante, setTempoRestante] = useState(null);
 
-  const intervaloRef = useRef(null);
-  const API_URL = import.meta.env.VITE_API_URL;
-  const passageiro = JSON.parse(localStorage.getItem('usuario'));
-  const token = localStorage.getItem('token');
+  const monitorRef = useRef(null);
+  const timerRef = useRef(null);
+  const usuario = getCurrentUser();
+
+  // Valores sugeridos para recarga
+  const valoresSugeridos = [10, 20, 50, 100];
 
   useEffect(() => {
-    // Limpa o intervalo quando desmontar para evitar vazamento de memória
     return () => {
-      if (intervaloRef.current) clearInterval(intervaloRef.current);
+      // Limpar monitoramento e timers ao desmontar
+      if (monitorRef.current) {
+        monitorRef.current();
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     };
   }, []);
+
+  // Calcular tempo restante para expiração
+  useEffect(() => {
+    if (pagamento?.expiration_date) {
+      const calcularTempo = () => {
+        const agora = new Date();
+        const expiracao = new Date(pagamento.expiration_date);
+        const diferenca = expiracao - agora;
+        
+        if (diferenca <= 0) {
+          setTempoRestante('Expirado');
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+          }
+          return;
+        }
+        
+        const minutos = Math.floor(diferenca / 60000);
+        const segundos = Math.floor((diferenca % 60000) / 1000);
+        setTempoRestante(`${minutos}:${segundos.toString().padStart(2, '0')}`);
+      };
+      
+      calcularTempo();
+      timerRef.current = setInterval(calcularTempo, 1000);
+      
+      return () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      };
+    }
+  }, [pagamento?.expiration_date]);
 
   const handleRecarga = async () => {
     setMensagem('');
     setQrCode(null);
     setCopiaCola('');
-    setPagamentoOK(false);
+    setPagamento(null);
+    setStatusPagamento(null);
 
-    if (!valor || isNaN(Number(valor)) || Number(valor) <= 0) {
+    const valorNumerico = parseFloat(valor.replace(',', '.'));
+    
+    if (!valorNumerico || valorNumerico <= 0) {
       setMensagem('Digite um valor de recarga válido (maior que zero).');
+      return;
+    }
+
+    if (valorNumerico > 1000) {
+      setMensagem('Valor máximo para recarga é R$ 1.000,00.');
       return;
     }
 
     setCarregando(true);
 
     try {
-      const resp = await fetch(`${API_URL}/pix/cobrar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          passageiroId: passageiro.id,
-          valor: parseFloat(valor)
-        })
-      });
+      const resultado = await processarRecargaPix(
+        valorNumerico, 
+        `Recarga de créditos - ${usuario?.nome || 'Usuário'}`
+      );
 
-      if (!resp.ok) {
-        const erro = await resp.json();
-        throw new Error(erro.erro || 'Erro ao gerar cobrança');
+      if (resultado.sucesso) {
+        setPagamento(resultado.pagamento);
+        setQrCode(resultado.qr_code_base64);
+        setCopiaCola(resultado.qr_code);
+        setMensagem('PIX gerado com sucesso! Escaneie o QR Code ou copie o código.');
+        
+        // Iniciar monitoramento do pagamento
+        iniciarMonitoramento(resultado.pagamento.id);
       }
-
-      const dados = await resp.json();
-      setQrCode(dados.qr_base64);
-      setCopiaCola(dados.qr_code);
-      setMensagem('Aguardando pagamento via Pix...');
-      verificarPagamento(dados.transacaoId);
-    } catch (err) {
-      setMensagem(err.message);
+    } catch (error) {
+      console.error('❌ Erro na recarga:', error);
+      setMensagem(`Erro ao gerar PIX: ${error.message}`);
     } finally {
       setCarregando(false);
     }
   };
 
-  const verificarPagamento = (transacaoId) => {
+  const iniciarMonitoramento = (pagamentoId) => {
     setVerificando(true);
-    if (intervaloRef.current) clearInterval(intervaloRef.current);
-    intervaloRef.current = setInterval(async () => {
-      try {
-        const resp = await fetch(`${API_URL}/pix/status/${transacaoId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (resp.ok) {
-          const { pago } = await resp.json();
-          if (pago) {
-            clearInterval(intervaloRef.current);
-            setMensagem('✅ Pagamento confirmado! Atualizando saldo...');
-            setPagamentoOK(true);
-            setVerificando(false);
-            setValor('');
-            setQrCode(null);
-            setCopiaCola('');
-            await atualizarDadosPassageiro();
-          }
+    
+    monitorRef.current = monitorarPagamentoPix(
+      pagamentoId,
+      (status) => {
+        if (status.erro) {
+          console.error('Erro no monitoramento:', status.erro);
+          return;
         }
-      } catch (e) {
-        // Polling silencioso, não exibe erro ao usuário
-      }
-    }, 4000);
+        
+        setStatusPagamento(status);
+        
+        const statusLocal = status.pagamento_local?.status;
+        if (statusLocal === 'pago') {
+          setMensagem('✅ Pagamento aprovado! Seu saldo foi creditado.');
+          setVerificando(false);
+          // Recarregar dados do usuário ou atualizar saldo
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else if (['falhou', 'cancelado', 'expirado'].includes(statusLocal)) {
+          setMensagem(`❌ Pagamento ${statusLocal}. Tente novamente.`);
+          setVerificando(false);
+        }
+      },
+      3000 // Verificar a cada 3 segundos
+    );
   };
 
-  const atualizarDadosPassageiro = async () => {
+  const copiarCodigoPixParaClipboard = async () => {
+    if (!copiaCola) return;
+    
     try {
-      const resp = await fetch(`${API_URL}/passageiros/${passageiro.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (resp.ok) {
-        const dadosAtualizados = await resp.json();
-        localStorage.setItem('usuario', JSON.stringify(dadosAtualizados));
-      }
-    } catch (e) {
-      setMensagem('⚠️ Pagamento confirmado, mas erro ao atualizar saldo local.');
+      await navigator.clipboard.writeText(copiaCola);
+      setMensagem('✅ Código PIX copiado para a área de transferência!');
+    } catch (error) {
+      console.error('Erro ao copiar:', error);
+      setMensagem('❌ Erro ao copiar código. Tente selecionar e copiar manualmente.');
     }
   };
 
-  const limparTudo = () => {
+  const selecionarValor = (valorSugerido) => {
+    setValor(valorSugerido.toString());
+  };
+
+  const resetarFormulario = () => {
+    setValor('');
     setQrCode(null);
     setCopiaCola('');
+    setPagamento(null);
+    setStatusPagamento(null);
     setMensagem('');
-    setPagamentoOK(false);
-    setValor('');
+    setVerificando(false);
+    
+    if (monitorRef.current) {
+      monitorRef.current();
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md mt-6">
-      <h2 className="text-xl md:text-2xl font-bold mb-4 text-green-800 text-center">Recarga via Pix</h2>
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <AccountBalanceWallet />
+        Recarga via PIX
+      </Typography>
 
-      {!pagamentoOK && (
-        <>
-          <input
-            type="number"
-            min={1}
-            step={1}
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            placeholder="Digite o valor da recarga (ex: 10.00)"
-            className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
-            disabled={carregando || verificando}
-          />
-
-          <button
-            onClick={handleRecarga}
-            className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded-md font-medium"
-            disabled={carregando || verificando || !valor}
-          >
-            {carregando ? 'Gerando Pix...' : 'Gerar QR Code'}
-          </button>
-        </>
+      {/* Saldo atual */}
+      {usuario?.saldo_credito !== undefined && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <strong>Saldo atual:</strong> {formatarValor(parseFloat(usuario.saldo_credito) || 0)}
+        </Alert>
       )}
 
-      {mensagem && (
-        <p className={`mt-4 text-sm text-center ${pagamentoOK ? "text-green-700" : "text-gray-700"}`}>{mensagem}</p>
-      )}
+      <Card>
+        <CardContent>
+          {/* Formulário de recarga */}
+          {!pagamento && (
+            <>
+              <Typography variant="h6" gutterBottom>
+                Valor da Recarga
+              </Typography>
+              
+              {/* Valores sugeridos */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Valores sugeridos:
+                </Typography>
+                <Grid container spacing={1}>
+                  {valoresSugeridos.map((valorSugerido) => (
+                    <Grid item key={valorSugerido}>
+                      <Chip
+                        label={formatarValor(valorSugerido)}
+                        onClick={() => selecionarValor(valorSugerido)}
+                        variant={valor === valorSugerido.toString() ? 'filled' : 'outlined'}
+                        color="primary"
+                        clickable
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
 
-      {qrCode && (
-        <div className="mt-6 text-center">
-          <img
-            src={`data:image/png;base64,${qrCode}`}
-            alt="QR Code Pix"
-            className="mx-auto w-40 h-40 md:w-48 md:h-48"
-          />
-          <p className="mt-3 text-sm text-gray-700">Código copia-e-cola:</p>
-          <textarea
-            value={copiaCola}
-            readOnly
-            className="w-full p-3 border border-gray-300 rounded-md text-sm mt-2"
-          />
-        </div>
-      )}
+              <TextField
+                fullWidth
+                label="Valor (R$)"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                type="number"
+                inputProps={{ min: 0.01, max: 1000, step: 0.01 }}
+                sx={{ mb: 2 }}
+                helperText="Valor mínimo: R$ 0,01 | Valor máximo: R$ 1.000,00"
+              />
 
-      {verificando && (
-        <p className="mt-4 text-xs text-center text-gray-500">
-          ⏳ Verificando pagamento automaticamente...
-        </p>
-      )}
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleRecarga}
+                disabled={carregando || !valor}
+                startIcon={carregando ? <CircularProgress size={20} /> : <QrCode2 />}
+                size="large"
+              >
+                {carregando ? 'Gerando PIX...' : 'Gerar PIX'}
+              </Button>
+            </>
+          )}
 
-      {pagamentoOK && (
-        <button
-          className="w-full mt-6 bg-green-700 text-white py-2 rounded hover:bg-green-800"
-          onClick={limparTudo}
-        >
-          Nova recarga
-        </button>
-      )}
-    </div>
+          {/* QR Code e informações do pagamento */}
+          {pagamento && (
+            <>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  PIX Gerado - {formatarValor(pagamento.valor)}
+                </Typography>
+                
+                {tempoRestante && (
+                  <Chip
+                    label={`Expira em: ${tempoRestante}`}
+                    color={tempoRestante === 'Expirado' ? 'error' : 'warning'}
+                    sx={{ mb: 2 }}
+                  />
+                )}
+              </Box>
+
+              {/* QR Code */}
+              {qrCode && (
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                  <Paper elevation={2} sx={{ p: 2, display: 'inline-block' }}>
+                    <img
+                      src={`data:image/png;base64,${qrCode}`}
+                      alt="QR Code PIX"
+                      style={{ maxWidth: '200px', width: '100%' }}
+                    />
+                  </Paper>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Escaneie com o app do seu banco
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Código copia e cola */}
+              {copiaCola && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body2" gutterBottom>
+                    Ou copie o código PIX:
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={copiaCola}
+                    InputProps={{
+                      readOnly: true,
+                      endAdornment: (
+                        <Button
+                          onClick={copiarCodigoPixParaClipboard}
+                          startIcon={<ContentCopy />}
+                          size="small"
+                        >
+                          Copiar
+                        </Button>
+                      )
+                    }}
+                    sx={{ mb: 1 }}
+                  />
+                </Box>
+              )}
+
+              {/* Status do pagamento */}
+              {verificando && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={16} />
+                    Aguardando pagamento...
+                  </Box>
+                </Alert>
+              )}
+
+              {statusPagamento && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" gutterBottom>
+                    Status do pagamento:
+                  </Typography>
+                  {(() => {
+                    const status = formatarStatusPagamento(statusPagamento.pagamento_local?.status);
+                    return (
+                      <Chip
+                        label={`${status.icone} ${status.texto}`}
+                        color={status.cor}
+                        variant="filled"
+                      />
+                    );
+                  })()}
+                </Box>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={resetarFormulario}
+                startIcon={<Refresh />}
+              >
+                Nova Recarga
+              </Button>
+            </>
+          )}
+
+          {/* Mensagens */}
+          {mensagem && (
+            <Alert 
+              severity={
+                mensagem.includes('✅') ? 'success' : 
+                mensagem.includes('❌') ? 'error' : 'info'
+              } 
+              sx={{ mt: 2 }}
+            >
+              {mensagem}
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Instruções */}
+      <Card sx={{ mt: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Como funciona?
+          </Typography>
+          <Typography variant="body2" component="div">
+            <ol>
+              <li>Digite o valor que deseja recarregar</li>
+              <li>Clique em "Gerar PIX" para criar o código de pagamento</li>
+              <li>Escaneie o QR Code com o app do seu banco ou copie o código PIX</li>
+              <li>Realize o pagamento no seu banco</li>
+              <li>O saldo será creditado automaticamente após a confirmação</li>
+            </ol>
+          </Typography>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }
