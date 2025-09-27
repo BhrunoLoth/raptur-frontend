@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, CircularProgress, Box, Alert } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -41,89 +41,39 @@ import './styles/RapturStyle.css';
 // Tema Material-UI personalizado
 const muiTheme = createTheme({
   palette: {
-    primary: {
-      main: '#61d179',
-      light: '#8ee99f',
-      dark: '#4fc66b',
-    },
-    secondary: {
-      main: '#e07828',
-      light: '#ff9800',
-      dark: '#d84315',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
+    primary: { main: '#61d179', light: '#8ee99f', dark: '#4fc66b' },
+    secondary: { main: '#e07828', light: '#ff9800', dark: '#d84315' },
+    background: { default: '#f5f5f5', paper: '#ffffff' },
   },
   typography: {
     fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-    h1: {
-      fontSize: '2rem',
-      fontWeight: 600,
-    },
-    h2: {
-      fontSize: '1.75rem',
-      fontWeight: 500,
-    },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.6,
-    },
+    h1: { fontSize: '2rem', fontWeight: 600 },
+    h2: { fontSize: '1.75rem', fontWeight: 500 },
+    body1: { fontSize: '1rem', lineHeight: 1.6 },
   },
-  shape: {
-    borderRadius: 12,
-  },
+  shape: { borderRadius: 12 },
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 8,
-          fontWeight: 500,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow: '0px 6px 25px rgba(0, 0, 0, 0.15)',
-        },
-      },
-    },
+    MuiButton: { styleOverrides: { root: { textTransform: 'none', borderRadius: 8, fontWeight: 500 } } },
+    MuiCard: { styleOverrides: { root: { borderRadius: 16, boxShadow: '0px 6px 25px rgba(0,0,0,.15)' } } },
   },
 });
 
-// Componente de loading
+// Loading
 const LoadingFallback = () => (
-  <Box
-    sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '50vh',
-      flexDirection: 'column',
-      gap: 2,
-    }}
-  >
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', flexDirection: 'column', gap: 2 }}>
     <CircularProgress size={40} />
-    <Box sx={{ textAlign: 'center' }}>
-      Carregando...
-    </Box>
+    <Box sx={{ textAlign: 'center' }}>Carregando...</Box>
   </Box>
 );
 
-// Componente de erro
+// Error Boundary
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
   <Box sx={{ p: 3, textAlign: 'center' }}>
     <Alert severity="error" sx={{ mb: 2 }}>
       <strong>Ops! Algo deu errado:</strong><br />
       {error.message}
     </Alert>
-    <button onClick={resetErrorBoundary}>
-      Tentar novamente
-    </button>
+    <button onClick={resetErrorBoundary}>Tentar novamente</button>
   </Box>
 );
 
@@ -131,9 +81,7 @@ function App() {
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
-      onError={(error, errorInfo) => {
-        console.error('Erro capturado pelo Error Boundary:', error, errorInfo);
-      }}
+      onError={(error, info) => console.error('Erro capturado pelo Error Boundary:', error, info)}
     >
       <ThemeProvider theme={muiTheme}>
         <CssBaseline />
@@ -141,246 +89,333 @@ function App() {
           <Router>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
+                {/* REDIRECT RAIZ */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+
                 {/* ROTAS PÚBLICAS */}
-                <Route path="/" element={
-                  <PublicLayout>
-                    <Login />
-                  </PublicLayout>
-                } />
-                
-                <Route path="/login" element={
-                  <PublicLayout>
-                    <Login />
-                  </PublicLayout>
-                } />
-                
-                <Route path="/motorista/login" element={
-                  <PublicLayout>
-                    <MotoristaLogin />
-                  </PublicLayout>
-                } />
-                
-                <Route path="/cadastro" element={
-                  <PublicLayout>
-                    <CadastroPassageiro />
-                  </PublicLayout>
-                } />
+                <Route
+                  path="/login"
+                  element={
+                    <PublicLayout>
+                      <Login />
+                    </PublicLayout>
+                  }
+                />
+
+                <Route
+                  path="/motorista/login"
+                  element={
+                    <PublicLayout>
+                      <MotoristaLogin />
+                    </PublicLayout>
+                  }
+                />
+
+                <Route
+                  path="/cadastro"
+                  element={
+                    <PublicLayout>
+                      <CadastroPassageiro />
+                    </PublicLayout>
+                  }
+                />
+
+                {/* ALIAS PARA DASHBOARD GENÉRICO */}
+                <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
 
                 {/* ROTAS PROTEGIDAS - ADMIN */}
-                <Route path="/admin" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <AdminDashboard />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/dashboard" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <AdminDashboard />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/usuarios" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <UserManagement />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/motoristas" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <MotoristaManagement />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/onibus" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <OnibusManagement />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/embarques" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <Embarques />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/pagamentos" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <Pagamentos />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/relatorios" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <Relatorios />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/configuracoes" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <Configuracoes />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/idosos" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <IdososList />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/idosos/novo" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <IdososForm />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/admin/idosos/:id" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <IdososView />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <AdminDashboard />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/dashboard"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <AdminDashboard />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/usuarios"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <UserManagement />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/motoristas"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <MotoristaManagement />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/onibus"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <OnibusManagement />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/embarques"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <Embarques />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/pagamentos"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <Pagamentos />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/relatorios"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <Relatorios />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/configuracoes"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <Configuracoes />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/idosos"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <IdososList />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/idosos/novo"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <IdososForm />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/admin/idosos/:id"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <IdososView />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
 
                 {/* ROTAS PROTEGIDAS - MOTORISTA */}
-                <Route path="/motorista" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
-                    <ProtectedLayout>
-                      <MotoristaDashboard />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/motorista/dashboard" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
-                    <ProtectedLayout>
-                      <MotoristaDashboard />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/motorista/scanner" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
-                    <ProtectedLayout>
-                      <ScannerQRCode />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/motorista/embarque-manual" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
-                    <ProtectedLayout>
-                      <EmbarqueManual />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/motorista/historico" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
-                    <ProtectedLayout>
-                      <HistoricoEmbarques />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
+                <Route
+                  path="/motorista"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
+                      <ProtectedLayout>
+                        <MotoristaDashboard />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/motorista/dashboard"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
+                      <ProtectedLayout>
+                        <MotoristaDashboard />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/motorista/scanner"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
+                      <ProtectedLayout>
+                        <ScannerQRCode />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/motorista/embarque-manual"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
+                      <ProtectedLayout>
+                        <EmbarqueManual />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/motorista/historico"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['motorista']}>
+                      <ProtectedLayout>
+                        <HistoricoEmbarques />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
 
                 {/* ROTAS PROTEGIDAS - PASSAGEIRO */}
-                <Route path="/passageiro" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
-                    <ProtectedLayout>
-                      <PassageiroDashboard />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/passageiro/dashboard" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
-                    <ProtectedLayout>
-                      <PassageiroDashboard />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/passageiro/qrcode" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
-                    <ProtectedLayout>
-                      <QRCodeSimulator />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/passageiro/recarga" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
-                    <ProtectedLayout>
-                      <RecargaPix />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/passageiro/historico" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
-                    <ProtectedLayout>
-                      <HistoricoEmbarques />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
+                <Route
+                  path="/passageiro"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
+                      <ProtectedLayout>
+                        <PassageiroDashboard />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/passageiro/dashboard"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
+                      <ProtectedLayout>
+                        <PassageiroDashboard />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/passageiro/qrcode"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
+                      <ProtectedLayout>
+                        <QRCodeSimulator />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/passageiro/recarga"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
+                      <ProtectedLayout>
+                        <RecargaPix />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/passageiro/historico"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['passageiro']}>
+                      <ProtectedLayout>
+                        <HistoricoEmbarques />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
 
                 {/* ROTAS COMPARTILHADAS */}
-                <Route path="/trocar-senha" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin', 'motorista', 'passageiro']}>
-                    <ProtectedLayout>
-                      <TrocarSenha />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/dashboard-visual" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin', 'motorista']}>
-                    <ProtectedLayout>
-                      <DashboardVisual />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
-                
-                <Route path="/simulador" element={
-                  <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
-                    <ProtectedLayout>
-                      <Simulador />
-                    </ProtectedLayout>
-                  </ProtectedRouteByPerfil>
-                } />
+                <Route
+                  path="/trocar-senha"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin', 'motorista', 'passageiro']}>
+                      <ProtectedLayout>
+                        <TrocarSenha />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
 
-                {/* ROTA 404 */}
-                <Route path="*" element={
-                  <PublicLayout>
-                    <Box sx={{ textAlign: 'center', p: 4 }}>
-                      <Alert severity="warning">
-                        <strong>Página não encontrada</strong><br />
-                        A página que você está procurando não existe.
-                      </Alert>
-                    </Box>
-                  </PublicLayout>
-                } />
+                <Route
+                  path="/dashboard-visual"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin', 'motorista']}>
+                      <ProtectedLayout>
+                        <DashboardVisual />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                <Route
+                  path="/simulador"
+                  element={
+                    <ProtectedRouteByPerfil perfisPermitidos={['admin']}>
+                      <ProtectedLayout>
+                        <Simulador />
+                      </ProtectedLayout>
+                    </ProtectedRouteByPerfil>
+                  }
+                />
+
+                {/* 404 */}
+                <Route
+                  path="*"
+                  element={
+                    <PublicLayout>
+                      <Box sx={{ textAlign: 'center', p: 4 }}>
+                        <Alert severity="warning">
+                          <strong>Página não encontrada</strong><br />
+                          A página que você está procurando não existe.
+                        </Alert>
+                      </Box>
+                    </PublicLayout>
+                  }
+                />
               </Routes>
             </Suspense>
           </Router>
