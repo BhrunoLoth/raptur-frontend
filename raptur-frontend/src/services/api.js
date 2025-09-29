@@ -1,25 +1,33 @@
 // src/services/api.js
 import axios from 'axios';
 
+/**
+ * Base URL da API:
+ * - Em produção, defina VITE_API_URL no Vercel como
+ *   https://raptur-system-production.up.railway.app/api  (com /api no final)
+ * - Em dev, cai no fallback http://localhost:3000/api
+ */
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
-  timeout: 10000, // 10 segundos
-  withCredentials: true,
+  timeout: 10000,
+  // Usamos Authorization: Bearer, então não precisamos enviar cookies
+  withCredentials: false,
 });
 
-// Interceptor para adicionar token de autorização
+/* ------------------------------ REQUEST ------------------------------ */
 api.interceptors.request.use(
   (config) => {
+    // Anexa o token (se existir)
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log para desenvolvimento
+
+    // Log opcional
     if (import.meta.env.VITE_DEBUG === 'true') {
-      console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     }
-    
+
     return config;
   },
   (error) => {
@@ -28,95 +36,80 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor para tratamento de respostas e erros
+/* ------------------------------ RESPONSE ----------------------------- */
 api.interceptors.response.use(
   (response) => {
-    // Log para desenvolvimento
     if (import.meta.env.VITE_DEBUG === 'true') {
       console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     }
-    
     return response;
   },
   (error) => {
     const { response, request, message } = error;
-    
-    // Erro de resposta do servidor
+
+    // Resposta recebida com erro HTTP
     if (response) {
       const { status, data } = response;
-      
-      // Token expirado ou inválido
+
+      // Não autenticado / token inválido/expirado
       if (status === 401) {
-        console.warn('🔒 Token expirado ou inválido. Redirecionando para login...');
+        console.warn('🔒 401 recebido — limpando sessão e redirecionando para /login');
         localStorage.removeItem('token');
         localStorage.removeItem('usuario');
-        
-        // Redirecionar para login apenas se não estiver já na página de login
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
       }
-      
-      // Acesso negado
-      if (status === 403) {
-        console.warn('🚫 Acesso negado');
-      }
-      
-      // Servidor indisponível
-      if (status >= 500) {
-        console.error('🔥 Erro interno do servidor');
-      }
-      
-      // Log do erro
-      console.error(`❌ API Error ${status}:`, data?.erro || data?.message || 'Erro desconhecido');
-      
-      // Retornar erro estruturado
-      const errorMessage = data?.erro || data?.message || `Erro HTTP ${status}`;
-      return Promise.reject(new Error(errorMessage));
+
+      if (status === 403) console.warn('🚫 403 Acesso negado');
+      if (status >= 500)  console.error('🔥 Erro interno do servidor');
+
+      const msg = data?.erro || data?.message || `Erro HTTP ${status}`;
+      return Promise.reject(new Error(msg));
     }
-    
-    // Erro de rede (sem resposta)
+
+    // Sem resposta (erro de rede / CORS / servidor offline)
     if (request) {
       console.error('🌐 Erro de rede - Servidor indisponível');
       return Promise.reject(new Error('Servidor indisponível. Verifique sua conexão.'));
     }
-    
+
     // Erro na configuração da requisição
     console.error('⚙️ Erro na configuração da requisição:', message);
     return Promise.reject(new Error('Erro na configuração da requisição'));
   }
 );
 
-// Função helper para verificar se a API está online
+/* ------------------------------ HELPERS ------------------------------ */
+
+/** Verifica se a API está online (/health). */
 export const checkApiHealth = async () => {
+  const backend = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/health`, {
-      timeout: 5000
-    });
-    return response.status === 200;
-  } catch (error) {
-    console.error('❌ API Health Check falhou:', error.message);
+    const res = await axios.get(`${backend}/health`, { timeout: 5000 });
+    return res.status === 200;
+  } catch (err) {
+    console.error('❌ API Health Check falhou:', err?.message || err);
     return false;
   }
 };
 
-// Função helper para obter informações do usuário logado
+/** Retorna o usuário logado salvo no localStorage (ou null). */
 export const getCurrentUser = () => {
   try {
-    const usuario = localStorage.getItem('usuario');
-    return usuario ? JSON.parse(usuario) : null;
-  } catch (error) {
-    console.error('❌ Erro ao obter usuário atual:', error);
+    const raw = localStorage.getItem('usuario');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
     localStorage.removeItem('usuario');
     return null;
   }
 };
 
-// Função helper para verificar se o usuário está logado
+/** Indica se há sessão válida (token + usuario). */
 export const isAuthenticated = () => {
   const token = localStorage.getItem('token');
   const usuario = getCurrentUser();
-  return !!(token && usuario);
+  return Boolean(token && usuario);
 };
 
 export default api;
