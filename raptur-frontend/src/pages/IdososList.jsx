@@ -1,73 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, Eye, UserCheck, UserX, Calendar, CreditCard, Printer } from 'lucide-react';
-import api from '../services/api';
+// src/pages/IdososList.jsx
+import { useEffect, useMemo, useState } from 'react';
+import {
+  listarIdosos,
+  criarIdoso,
+  atualizarIdoso,
+  removerIdoso,
+} from '../services/idosoService';
 
-const API = import.meta.env.VITE_API_URL;
-const API_BASE = API.replace('/api','');
+import {
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { Edit, Delete, Refresh } from 'lucide-react';
 
 export default function IdososList() {
-  const [idosos, setIdosos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [showInactive, setShowInactive] = useState(false);
-  const navigate = useNavigate();
+  const [itens, setItens] = useState([]);        // lista
+  const [total, setTotal] = useState(0);         // total para paginação
+  const [page, setPage] = useState(1);           // página atual (1-based)
+  const [limit] = useState(10);                  // por página
+  const [search, setSearch] = useState('');      // filtro
+  const [loading, setLoading] = useState(true);  // carregando
+  const [erro, setErro] = useState(null);        // erro
 
-  useEffect(() => { fetchIdosos(); }, [currentPage, search, showInactive]);
+  const params = useMemo(() => ({ page, limit, search, ativo: true }), [page, limit, search]);
 
-  const fetchIdosos = async () => {
+  async function carregar() {
     try {
       setLoading(true);
-      const { data } = await api.get('/idosos', {
-        params: { page: currentPage, limit: 10, search, ativo: showInactive ? undefined : true }
-      });
-      setIdosos(data.idosos); setTotalPages(data.totalPages); setError('');
-    } catch (err) {
-      setError('Erro ao carregar lista de idosos');
-      console.error(err);
-    } finally { setLoading(false); }
-  };
+      setErro(null);
+      const res = await listarIdosos(params);
+      // API pode retornar { rows, total } ou um array simples; normalizamos:
+      const rows = Array.isArray(res) ? res : (res.rows ?? []);
+      const totalCount = Array.isArray(res) ? rows.length : (res.total ?? rows.length);
+      setItens(rows);
+      setTotal(totalCount);
+    } catch (e) {
+      console.error('❌ Erro ao listar idosos:', e);
+      setErro(e?.message ?? 'Erro ao carregar lista de idosos');
+      setItens([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const handleDelete = async (id, nome) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a carteirinha de ${nome}?`)) return;
-    try { await api.delete(`/idosos/${id}`); fetchIdosos(); }
-    catch (err) { setError('Erro ao excluir idoso'); console.error(err); }
-  };
-
-  const toggleStatus = async (id, currentStatus) => {
-    try { await api.put(`/idosos/${id}`, { ativo: !currentStatus }); fetchIdosos(); }
-    catch (err) { setError('Erro ao alterar status do idoso'); console.error(err); }
-  };
-
-  const formatDate = (d) => new Date(d).toLocaleDateString('pt-BR');
-  const calculateAge = (birth) => {
-    const today = new Date(); const b = new Date(birth);
-    let age = today.getFullYear() - b.getFullYear();
-    const m = today.getMonth() - b.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
-    return age;
-  };
-  const isExpired = (valid) => new Date(valid) < new Date();
-
-  const openPdf = (idosoId) => {
-    window.open(`${API}/idosos/${idosoId}/carteirinha.pdf`, '_blank', 'noopener');
-  };
+  useEffect(() => {
+    carregar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, search]);
 
   return (
-    <div className="p-6">
-      {/* ... tabela igual ao seu original mas ajustado fotoUrl */}
-      {idosos.map((i) => (
-        <tr key={i.id}>
-          <td>
-            {i.fotoUrl ? (
-              <img src={i.fotoUrl.startsWith('http') ? i.fotoUrl : `${API_BASE}${i.fotoUrl}`} alt={i.nome}/>
-            ) : '👤'}
-          </td>
-        </tr>
-      ))}
-    </div>
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h5" sx={{ flex: 1, fontWeight: 700 }}>
+          Carteirinha Idoso
+        </Typography>
+
+        <TextField
+          size="small"
+          placeholder="Buscar por nome/CPF..."
+          value={search}
+          onChange={(e) => {
+            setPage(1);
+            setSearch(e.target.value);
+          }}
+        />
+
+        <IconButton aria-label="Recarregar" onClick={carregar}>
+          <Refresh size={18} />
+        </IconButton>
+      </Box>
+
+      <Paper elevation={1}>
+        {loading ? (
+          <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CircularProgress size={24} />
+            <Typography sx={{ ml: 2 }}>Carregando...</Typography>
+          </Box>
+        ) : erro ? (
+          <Box sx={{ p: 4 }}>
+            <Typography color="error" sx={{ mb: 2 }}>
+              {erro}
+            </Typography>
+            <Button variant="outlined" onClick={carregar}>
+              Tentar novamente
+            </Button>
+          </Box>
+        ) : itens.length === 0 ? (
+          <Box sx={{ p: 4 }}>
+            <Typography sx={{ opacity: 0.7 }}>
+              Nenhum idoso cadastrado.
+            </Typography>
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>CPF</TableCell>
+                  <TableCell>E-mail</TableCell>
+                  <TableCell>Data Nasc.</TableCell>
+                  <TableCell>Ativo</TableCell>
+                  <TableCell align="right">Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {itens.map((it) => (
+                  <TableRow key={it.id}>
+                    <TableCell>{it.nome ?? '-'}</TableCell>
+                    <TableCell>{it.cpf ?? '-'}</TableCell>
+                    <TableCell>{it.email ?? '-'}</TableCell>
+                    <TableCell>
+                      {it.data_nascimento
+                        ? new Date(it.data_nascimento).toLocaleDateString('pt-BR')
+                        : '-'}
+                    </TableCell>
+                    <TableCell>{it.ativo ? 'Sim' : 'Não'}</TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" aria-label="Editar" onClick={() => {/* abrir modal/rota */}}>
+                        <Edit size={16} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        aria-label="Remover"
+                        onClick={async () => {
+                          if (!confirm('Remover este idoso?')) return;
+                          try {
+                            await removerIdoso(it.id);
+                            await carregar();
+                          } catch (e) {
+                            alert(e?.message ?? 'Erro ao remover');
+                          }
+                        }}
+                      >
+                        <Delete size={16} />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+
+      {/* Paginação simples (se quiser evoluir depois para MUI TablePagination) */}
+      {total > limit && (
+        <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            size="small"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Anterior
+          </Button>
+          <Typography variant="body2">
+            Página {page} de {Math.ceil(total / limit)}
+          </Typography>
+          <Button
+            size="small"
+            disabled={page >= Math.ceil(total / limit)}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Próxima
+          </Button>
+        </Box>
+      )}
+    </Box>
   );
 }
