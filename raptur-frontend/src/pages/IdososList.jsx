@@ -22,7 +22,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Edit, Delete, Refresh } from 'lucide-react';
+
+// Correção: esses são os nomes válidos em lucide-react
+import { Pencil, Trash2, RefreshCw } from 'lucide-react';
 
 export default function IdososList() {
   const [itens, setItens] = useState([]);        // lista
@@ -33,16 +35,21 @@ export default function IdososList() {
   const [loading, setLoading] = useState(true);  // carregando
   const [erro, setErro] = useState(null);        // erro
 
-  const params = useMemo(() => ({ page, limit, search, ativo: true }), [page, limit, search]);
+  const params = useMemo(
+    () => ({ page, limit, search, ativo: true }),
+    [page, limit, search]
+  );
 
   async function carregar() {
     try {
       setLoading(true);
       setErro(null);
       const res = await listarIdosos(params);
+
       // API pode retornar { rows, total } ou um array simples; normalizamos:
       const rows = Array.isArray(res) ? res : (res.rows ?? []);
       const totalCount = Array.isArray(res) ? rows.length : (res.total ?? rows.length);
+
       setItens(rows);
       setTotal(totalCount);
     } catch (e) {
@@ -78,7 +85,7 @@ export default function IdososList() {
         />
 
         <IconButton aria-label="Recarregar" onClick={carregar}>
-          <Refresh size={18} />
+          <RefreshCw size={18} />
         </IconButton>
       </Box>
 
@@ -99,9 +106,7 @@ export default function IdososList() {
           </Box>
         ) : itens.length === 0 ? (
           <Box sx={{ p: 4 }}>
-            <Typography sx={{ opacity: 0.7 }}>
-              Nenhum idoso cadastrado.
-            </Typography>
+            <Typography sx={{ opacity: 0.7 }}>Nenhum idoso cadastrado.</Typography>
           </Box>
         ) : (
           <TableContainer>
@@ -118,7 +123,7 @@ export default function IdososList() {
               </TableHead>
               <TableBody>
                 {itens.map((it) => (
-                  <TableRow key={it.id}>
+                  <TableRow key={it.id ?? it._id ?? `${it.cpf}-${it.email}`}>
                     <TableCell>{it.nome ?? '-'}</TableCell>
                     <TableCell>{it.cpf ?? '-'}</TableCell>
                     <TableCell>{it.email ?? '-'}</TableCell>
@@ -129,8 +134,15 @@ export default function IdososList() {
                     </TableCell>
                     <TableCell>{it.ativo ? 'Sim' : 'Não'}</TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" aria-label="Editar" onClick={() => {/* abrir modal/rota */}}>
-                        <Edit size={16} />
+                      <IconButton
+                        size="small"
+                        aria-label="Editar"
+                        onClick={() => {
+                          // TODO: abrir modal/rota de edição
+                          console.log('Editar', it);
+                        }}
+                      >
+                        <Pencil size={16} />
                       </IconButton>
                       <IconButton
                         size="small"
@@ -139,14 +151,14 @@ export default function IdososList() {
                         onClick={async () => {
                           if (!confirm('Remover este idoso?')) return;
                           try {
-                            await removerIdoso(it.id);
+                            await removerIdoso(it.id ?? it._id);
                             await carregar();
                           } catch (e) {
                             alert(e?.message ?? 'Erro ao remover');
                           }
                         }}
                       >
-                        <Delete size={16} />
+                        <Trash2 size={16} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -157,7 +169,7 @@ export default function IdososList() {
         )}
       </Paper>
 
-      {/* Paginação simples (se quiser evoluir depois para MUI TablePagination) */}
+      {/* Paginação simples (evolua depois para MUI TablePagination se quiser) */}
       {total > limit && (
         <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
           <Button
