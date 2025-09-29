@@ -1,208 +1,181 @@
 // src/services/pagamentoService.js
+// Serviço único e padronizado (axios). Não usa fetch. Sem funções duplicadas.
+
 import api from './api';
 
+/* ======================= Helpers ======================= */
+
+// Garante que sempre retornamos um ARRAY de pagamentos, independente do shape
+function asArrayPagamentos(payload) {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.pagamentos)) return payload.pagamentos;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.rows)) return payload.rows; // sequelize findAndCountAll
+  return [];
+}
+
+// Formata status para UI
+export function formatarStatusPagamento(status) {
+  const map = {
+    pendente:  { texto: 'Pendente',  cor: 'warning', icone: '⏳' },
+    pago:      { texto: 'Pago',      cor: 'success', icone: '✅' },
+    falhou:    { texto: 'Falhou',    cor: 'error',   icone: '❌' },
+    cancelado: { texto: 'Cancelado', cor: 'default', icone: '🚫' },
+    expirado:  { texto: 'Expirado',  cor: 'default', icone: '⏰' },
+  };
+  return map[status] || { texto: status || '—', cor: 'default', icone: '❓' };
+}
+
+export function formatarValor(valor) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+    .format(Number(valor || 0));
+}
+
+/* ======================= Listagem / Leitura ======================= */
+
 /**
- * 💳 Listar pagamentos do usuário
- * @param {Object} filtros - Filtros opcionais (status, metodo, etc.)
- * @returns {Promise<Object>} Lista de pagamentos
+ * Lista pagamentos com filtros. Retorna { lista, total, raw }
+ * `lista` é SEMPRE um array.
  */
 export async function listarPagamentos(filtros = {}) {
   const params = new URLSearchParams();
-  
-  Object.entries(filtros).forEach(([key, value]) => {
-    if (value) params.append(key, value);
+  Object.entries(filtros).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') params.append(k, v);
   });
-  
-  const response = await api.get(`/pagamentos?${params.toString()}`);
-  return response.data;
+
+  const { data } = await api.get(`/pagamentos?${params.toString()}`);
+  const lista = asArrayPagamentos(data);
+
+  // tenta extrair "total" das formas mais comuns
+  const total =
+    Number(data?.total ?? data?.count ?? lista.length ?? 0);
+
+  return { lista, total, raw: data };
 }
 
-/**
- * 🔍 Buscar pagamento por ID
- * @param {string} id - ID do pagamento
- * @returns {Promise<Object>} Dados do pagamento
- */
 export async function buscarPagamento(id) {
-  const response = await api.get(`/pagamentos/${id}`);
-  return response.data;
+  const { data } = await api.get(`/pagamentos/${id}`);
+  return data;
 }
 
-/**
- * ➕ Criar novo pagamento
- * @param {Object} dados - Dados do pagamento
- * @returns {Promise<Object>} Pagamento criado
- */
+/* ======================= Criação / Atualização ======================= */
+
 export async function criarPagamento(dados) {
-  const response = await api.post('/pagamentos', dados);
-  return response.data;
+  const { data } = await api.post('/pagamentos', dados);
+  return data;
 }
 
-/**
- * 💳 Criar checkout do Mercado Pago
- * @param {string} pagamentoId - ID do pagamento
- * @returns {Promise<Object>} Dados do checkout (URL, QR Code, etc.)
- */
+export async function atualizarPagamento(id, dados) {
+  const { data } = await api.put(`/pagamentos/${id}`, dados);
+  return data;
+}
+
+export async function deletarPagamento(id) {
+  await api.delete(`/pagamentos/${id}`);
+  return true;
+}
+
+/* ======================= Mercado Pago / PIX ======================= */
+
 export async function criarCheckout(pagamentoId) {
-  const response = await api.post(`/pagamentos/${pagamentoId}/checkout`);
-  return response.data;
+  const { data } = await api.post(`/pagamentos/${pagamentoId}/checkout`);
+  return data; // ex: { init_point, qr_code, ... }
 }
 
-/**
- * 📱 Criar pagamento PIX direto (recarga)
- * @param {Object} dados - { valor, descricao }
- * @returns {Promise<Object>} Dados do PIX (QR Code, etc.)
- */
 export async function criarPagamentoPix(dados) {
-  const response = await api.post('/pagamentos/pix/criar', dados);
-  return response.data;
+  const { data } = await api.post('/pagamentos/pix/criar', dados);
+  return data; // ex: { pagamento: { qr_code, qr_code_base64, expiration_date, ... } }
 }
 
-/**
- * 🔄 Consultar status de um pagamento
- * @param {string} pagamentoId - ID do pagamento
- * @returns {Promise<Object>} Status atualizado do pagamento
- */
 export async function consultarStatusPagamento(pagamentoId) {
-  const response = await api.get(`/pagamentos/${pagamentoId}/status`);
-  return response.data;
+  const { data } = await api.get(`/pagamentos/${pagamentoId}/status`);
+  return data; // ex: { pagamento_local: { status, ... }, ... }
 }
 
-/**
- * ⚙️ Verificar configuração do Mercado Pago
- * @returns {Promise<Object>} Status da configuração
- */
 export async function verificarConfiguracao() {
-  const response = await api.get('/pagamentos/config/verificar');
-  return response.data;
+  const { data } = await api.get('/pagamentos/config/verificar');
+  return data;
 }
 
 /**
- * 💰 Processar recarga via PIX
- * @param {number} valor - Valor da recarga
- * @param {string} descricao - Descrição opcional
- * @returns {Promise<Object>} Dados do PIX para pagamento
+ * Fluxo de recarga PIX com validação de valor.
+ * Retorna campos úteis já “achatados” para a UI.
  */
 export async function processarRecargaPix(valor, descricao = 'Recarga de créditos') {
-  if (!valor || valor <= 0) {
-    throw new Error('Valor deve ser maior que zero');
-  }
+  const v = Number(valor);
+  if (!v || v <= 0) throw new Error('Valor deve ser maior que zero');
 
   try {
-    const pagamento = await criarPagamentoPix({
-      valor: parseFloat(valor),
-      descricao
-    });
+    const resp = await criarPagamentoPix({ valor: v, descricao });
+    const p = resp?.pagamento || {};
 
     return {
       sucesso: true,
-      pagamento: pagamento.pagamento,
-      qr_code: pagamento.pagamento?.qr_code,
-      qr_code_base64: pagamento.pagamento?.qr_code_base64,
-      expiration_date: pagamento.pagamento?.expiration_date
+      pagamento: resp?.pagamento,
+      qr_code: p.qr_code,
+      qr_code_base64: p.qr_code_base64,
+      expiration_date: p.expiration_date,
     };
-  } catch (error) {
-    console.error('❌ Erro ao processar recarga PIX:', error);
-    throw new Error(error.message || 'Erro ao processar recarga PIX');
+  } catch (err) {
+    console.error('❌ Erro ao processar recarga PIX:', err);
+    throw new Error(err?.message || 'Erro ao processar recarga PIX');
   }
 }
 
 /**
- * 🔄 Monitorar status de pagamento PIX
- * @param {string} pagamentoId - ID do pagamento
- * @param {Function} callback - Função chamada quando status muda
- * @param {number} intervalo - Intervalo de verificação em ms (padrão: 3000)
- * @returns {Function} Função para parar o monitoramento
+ * Polling simples para acompanhar um pagamento PIX.
+ * Retorna uma função para parar o monitoramento.
  */
 export function monitorarPagamentoPix(pagamentoId, callback, intervalo = 3000) {
   let ativo = true;
-  
-  const verificar = async () => {
+
+  const tick = async () => {
     if (!ativo) return;
-    
     try {
       const status = await consultarStatusPagamento(pagamentoId);
       callback(status);
-      
-      // Parar monitoramento se pagamento foi finalizado
-      if (['pago', 'falhou', 'cancelado', 'expirado'].includes(status.pagamento_local?.status)) {
+
+      const s = status?.pagamento_local?.status;
+      if (['pago', 'falhou', 'cancelado', 'expirado'].includes(s)) {
         ativo = false;
         return;
       }
-      
-      // Continuar monitoramento
-      if (ativo) {
-        setTimeout(verificar, intervalo);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao monitorar pagamento:', error);
-      callback({ erro: error.message });
-      
-      // Tentar novamente após intervalo maior em caso de erro
-      if (ativo) {
-        setTimeout(verificar, intervalo * 2);
-      }
+      if (ativo) setTimeout(tick, intervalo);
+    } catch (err) {
+      console.error('❌ Erro ao monitorar pagamento:', err);
+      callback({ erro: err?.message || String(err) });
+      if (ativo) setTimeout(tick, intervalo * 2);
     }
   };
-  
-  // Iniciar monitoramento
-  verificar();
-  
-  // Retornar função para parar
-  return () => {
-    ativo = false;
-  };
+
+  // inicia
+  tick();
+  return () => { ativo = false; };
 }
 
-/**
- * 💳 Obter histórico de pagamentos formatado
- * @param {Object} filtros - Filtros opcionais
- * @returns {Promise<Array>} Histórico formatado
- */
+/* ======================= Histórico pronto p/ UI ======================= */
+
 export async function obterHistoricoPagamentos(filtros = {}) {
   try {
-    const dados = await listarPagamentos(filtros);
-    
-    return dados.pagamentos?.map(pagamento => ({
-      id: pagamento.id,
-      valor: parseFloat(pagamento.valor),
-      status: pagamento.status,
-      metodo: pagamento.metodo,
-      descricao: pagamento.descricao,
-      data: new Date(pagamento.createdAt),
-      data_formatada: new Date(pagamento.createdAt).toLocaleString('pt-BR'),
-      status_formatado: formatarStatusPagamento(pagamento.status)
-    })) || [];
-  } catch (error) {
-    console.error('❌ Erro ao obter histórico:', error);
+    const { lista } = await listarPagamentos(filtros);
+    return lista.map((p) => {
+      const created = p?.createdAt ? new Date(p.createdAt) : null;
+      return {
+        id: p?.id,
+        valor: Number(p?.valor || 0),
+        valor_formatado: formatarValor(p?.valor),
+        status: p?.status,
+        status_formatado: formatarStatusPagamento(p?.status),
+        metodo: p?.metodo,
+        descricao: p?.descricao,
+        data: created,
+        data_formatada: created ? created.toLocaleString('pt-BR') : '—',
+      };
+    });
+  } catch (err) {
+    console.error('❌ Erro ao obter histórico:', err);
     return [];
   }
-}
-
-/**
- * 📊 Formatar status do pagamento para exibição
- * @param {string} status - Status do pagamento
- * @returns {Object} Status formatado com cor e texto
- */
-export function formatarStatusPagamento(status) {
-  const statusMap = {
-    'pendente': { texto: 'Pendente', cor: 'warning', icone: '⏳' },
-    'pago': { texto: 'Pago', cor: 'success', icone: '✅' },
-    'falhou': { texto: 'Falhou', cor: 'error', icone: '❌' },
-    'cancelado': { texto: 'Cancelado', cor: 'default', icone: '🚫' },
-    'expirado': { texto: 'Expirado', cor: 'default', icone: '⏰' }
-  };
-  
-  return statusMap[status] || { texto: status, cor: 'default', icone: '❓' };
-}
-
-/**
- * 💰 Formatar valor monetário
- * @param {number} valor - Valor numérico
- * @returns {string} Valor formatado em R$
- */
-export function formatarValor(valor) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(valor);
 }
