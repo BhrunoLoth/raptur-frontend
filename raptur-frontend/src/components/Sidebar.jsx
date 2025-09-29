@@ -12,17 +12,19 @@ import { useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
 
 const menuAdmin = [
-  { icon: <LayoutDashboard size={20} />, label: 'Dashboard', to: '/dashboard' },
-  { icon: <Users size={20} />, label: 'Usuários', to: '/usuarios' },
-  { icon: <Truck size={20} />, label: 'Motoristas', to: '/motoristas' },
-  { icon: <Bus size={20} />, label: 'Ônibus', to: '/onibus' },
-  { icon: <Route size={20} />, label: 'Viagens', to: '/viagens' },
-  { icon: <UserCheck size={20} />, label: 'Carteirinha Idoso', to: '/idosos' },
-  { icon: <CreditCard size={20} />, label: 'Pagamentos', to: '/pagamentos' },
-  { icon: <CheckSquare size={20} />, label: 'Embarques', to: '/embarques' },
-  { icon: <BarChart2 size={20} />, label: 'Relatórios', to: '/relatorios' },
-  { icon: <BarChart2 size={20} />, label: 'Painel Visual', to: '/painel-visual' },
-  { icon: <Settings size={20} />, label: 'Configurações', to: '/configuracoes' }
+  { icon: <LayoutDashboard size={20} />, label: 'Dashboard',      to: '/admin/dashboard' },
+  { icon: <Users size={20} />,            label: 'Usuários',       to: '/admin/usuarios' },
+  { icon: <Truck size={20} />,            label: 'Motoristas',     to: '/admin/motoristas' },
+  { icon: <Bus size={20} />,              label: 'Ônibus',         to: '/admin/onibus' },
+  // Se quiser manter "Viagens", a rota usada hoje é embarques:
+  { icon: <Route size={20} />,            label: 'Viagens',        to: '/admin/embarques' },
+  { icon: <UserCheck size={20} />,        label: 'Carteirinha Idoso', to: '/admin/idosos' },
+  { icon: <CreditCard size={20} />,       label: 'Pagamentos',     to: '/admin/pagamentos' },
+  { icon: <CheckSquare size={20} />,      label: 'Embarques',      to: '/admin/embarques' },
+  { icon: <BarChart2 size={20} />,        label: 'Relatórios',     to: '/admin/relatorios' },
+  // o “Painel Visual” ficou em /dashboard-visual
+  { icon: <BarChart2 size={20} />,        label: 'Painel Visual',  to: '/dashboard-visual' },
+  { icon: <Settings size={20} />,         label: 'Configurações',  to: '/admin/configuracoes' },
 ];
 
 export default function Sidebar({ onLogout }) {
@@ -135,6 +137,7 @@ export default function Sidebar({ onLogout }) {
           Administrador Raptur
         </Typography>
       </Box>
+
       {/* Drawer mobile */}
       <Drawer
         anchor="left"
@@ -148,6 +151,7 @@ export default function Sidebar({ onLogout }) {
       >
         {drawerContent}
       </Drawer>
+
       {/* Sidebar desktop */}
       <Box
         sx={{
