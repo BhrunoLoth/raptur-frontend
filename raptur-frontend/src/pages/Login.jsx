@@ -1,37 +1,53 @@
 // src/pages/Login.jsx
-import React, { useState, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import PublicLayout from "../components/PublicLayout";
-import logo from "../assets/logo-raptur.png";
-import { login as authLogin } from "../services/authService"; // ⬅️ usar authService
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import PublicLayout from '../components/PublicLayout';
+import logo from '../assets/logo-raptur.png';
+import { login as authLogin } from '../services/authService';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const emailRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // mapeia destino por perfil
+  // se já estiver logado, pula a tela
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    try {
+      const user = JSON.parse(localStorage.getItem('usuario') || 'null');
+      if (token && user?.perfil) {
+        const destinos = {
+          admin: '/admin/dashboard',
+          motorista: '/motorista/dashboard',
+          passageiro: '/passageiro/dashboard',
+        };
+        navigate(destinos[user.perfil] || '/login', { replace: true });
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const destinos = {
-    admin: "/admin/dashboard",          // ⬅️ corrigido
-    motorista: "/motorista/dashboard",
-    passageiro: "/passageiro/dashboard",
+    admin: '/admin/dashboard',
+    motorista: '/motorista/dashboard',
+    passageiro: '/passageiro/dashboard',
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErro("");
+    setErro('');
 
     if (!email.trim() || !senha.trim()) {
-      setErro("Preencha todos os campos.");
+      setErro('Preencha todos os campos.');
       emailRef.current?.focus();
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setErro("Digite um e-mail válido.");
+      setErro('Digite um e-mail válido.');
       emailRef.current?.focus();
       return;
     }
@@ -39,28 +55,28 @@ const Login = () => {
     try {
       setLoading(true);
 
-      // limpa qualquer sessão antiga
-      localStorage.removeItem("token");
-      localStorage.removeItem("usuario");
+      // limpa sessão antiga
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
 
-      // o authService já salva token/usuario no localStorage e retorna o usuário
+      // authService salva token/usuario e retorna o usuario
       const usuario = await authLogin(email, senha);
 
       if (usuario?.precisaTrocarSenha) {
-        return navigate("/trocar-senha");
+        return navigate('/trocar-senha', { replace: true });
       }
 
-      // se veio de rota protegida, volta pra lá; senão, usa destino por perfil
+      // se veio redirecionado de uma rota protegida, volta pra lá
       const from = location.state?.from?.pathname;
-      if (from && from !== "/login") {
+      if (from && from !== '/login') {
         navigate(from, { replace: true });
       } else {
-        navigate(destinos[usuario?.perfil] || "/", { replace: true });
+        navigate(destinos[usuario?.perfil] || '/admin/dashboard', { replace: true });
       }
     } catch (err) {
-      if (typeof err === "string") setErro(err);
+      if (typeof err === 'string') setErro(err);
       else if (err?.message) setErro(err.message);
-      else setErro("Erro ao fazer login. Verifique suas credenciais.");
+      else setErro('Erro ao fazer login. Verifique suas credenciais.');
       emailRef.current?.focus();
     } finally {
       setLoading(false);
@@ -69,7 +85,7 @@ const Login = () => {
 
   const handleChange = (setter) => (e) => {
     setter(e.target.value);
-    if (erro) setErro("");
+    if (erro) setErro('');
   };
 
   return (
@@ -121,12 +137,12 @@ const Login = () => {
               className="w-full bg-green-700 text-white py-2 rounded hover:bg-green-800 transition"
               disabled={loading}
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
 
           <p className="mt-4 text-center text-sm text-gray-600">
-            Ainda não tem conta?{" "}
+            Ainda não tem conta?{' '}
             <a href="/cadastro" className="text-green-700 font-medium hover:underline">
               Cadastre-se
             </a>

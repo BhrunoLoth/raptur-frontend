@@ -4,13 +4,11 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, CircularProgress, Box, Alert } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 
-// Componentes essenciais (carregamento imediato)
-import PublicLayout from './components/PublicLayout';
 import ProtectedLayout from './components/ProtectedLayout';
 import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 import ProtectedRouteByPerfil from './routes/ProtectedRouteByPerfil';
 
-// Páginas com lazy loading para otimização
+// Páginas (lazy)
 const Login = lazy(() => import('./pages/Login'));
 const CadastroPassageiro = lazy(() => import('./pages/CadastroPassageiro'));
 const UserManagement = lazy(() => import('./pages/UserManagement'));
@@ -38,7 +36,7 @@ const IdososView = lazy(() => import('./pages/IdososView'));
 
 import './styles/RapturStyle.css';
 
-// Tema Material-UI personalizado
+// Tema MUI
 const muiTheme = createTheme({
   palette: {
     primary: { main: '#61d179', light: '#8ee99f', dark: '#4fc66b' },
@@ -58,7 +56,7 @@ const muiTheme = createTheme({
   },
 });
 
-// Loading
+// Fallbacks
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', flexDirection: 'column', gap: 2 }}>
     <CircularProgress size={40} />
@@ -66,7 +64,6 @@ const LoadingFallback = () => (
   </Box>
 );
 
-// Error Boundary
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
   <Box sx={{ p: 3, textAlign: 'center' }}>
     <Alert severity="error" sx={{ mb: 2 }}>
@@ -79,51 +76,25 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
 
 function App() {
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onError={(error, info) => console.error('Erro capturado pelo Error Boundary:', error, info)}
-    >
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       <ThemeProvider theme={muiTheme}>
         <CssBaseline />
         <CustomThemeProvider>
           <Router>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
-                {/* REDIRECT RAIZ */}
+                {/* redirect raiz */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* ROTAS PÚBLICAS */}
-                <Route
-                  path="/login"
-                  element={
-                    <PublicLayout>
-                      <Login />
-                    </PublicLayout>
-                  }
-                />
+                {/* públicas */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/motorista/login" element={<MotoristaLogin />} />
+                <Route path="/cadastro" element={<CadastroPassageiro />} />
 
-                <Route
-                  path="/motorista/login"
-                  element={
-                    <PublicLayout>
-                      <MotoristaLogin />
-                    </PublicLayout>
-                  }
-                />
-
-                <Route
-                  path="/cadastro"
-                  element={
-                    <PublicLayout>
-                      <CadastroPassageiro />
-                    </PublicLayout>
-                  }
-                />
-
-                {/* ALIAS PARA DASHBOARD GENÉRICO */}
+                {/* alias de dashboard genérico para admin */}
                 <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
 
-                {/* ROTAS PROTEGIDAS - ADMIN */}
+                {/* admin */}
                 <Route
                   path="/admin"
                   element={
@@ -134,7 +105,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/dashboard"
                   element={
@@ -145,7 +115,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/usuarios"
                   element={
@@ -156,7 +125,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/motoristas"
                   element={
@@ -167,7 +135,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/onibus"
                   element={
@@ -178,7 +145,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/embarques"
                   element={
@@ -189,7 +155,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/pagamentos"
                   element={
@@ -200,7 +165,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/relatorios"
                   element={
@@ -211,7 +175,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/configuracoes"
                   element={
@@ -222,7 +185,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/idosos"
                   element={
@@ -233,7 +195,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/idosos/novo"
                   element={
@@ -244,7 +205,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/admin/idosos/:id"
                   element={
@@ -256,7 +216,7 @@ function App() {
                   }
                 />
 
-                {/* ROTAS PROTEGIDAS - MOTORISTA */}
+                {/* motorista */}
                 <Route
                   path="/motorista"
                   element={
@@ -267,7 +227,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/motorista/dashboard"
                   element={
@@ -278,7 +237,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/motorista/scanner"
                   element={
@@ -289,7 +247,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/motorista/embarque-manual"
                   element={
@@ -300,7 +257,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/motorista/historico"
                   element={
@@ -312,7 +268,7 @@ function App() {
                   }
                 />
 
-                {/* ROTAS PROTEGIDAS - PASSAGEIRO */}
+                {/* passageiro */}
                 <Route
                   path="/passageiro"
                   element={
@@ -323,7 +279,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/passageiro/dashboard"
                   element={
@@ -334,7 +289,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/passageiro/qrcode"
                   element={
@@ -345,7 +299,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/passageiro/recarga"
                   element={
@@ -356,7 +309,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/passageiro/historico"
                   element={
@@ -368,7 +320,7 @@ function App() {
                   }
                 />
 
-                {/* ROTAS COMPARTILHADAS */}
+                {/* compartilhadas */}
                 <Route
                   path="/trocar-senha"
                   element={
@@ -379,7 +331,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/dashboard-visual"
                   element={
@@ -390,7 +341,6 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-
                 <Route
                   path="/simulador"
                   element={
@@ -406,14 +356,13 @@ function App() {
                 <Route
                   path="*"
                   element={
-                    <PublicLayout>
-                      <Box sx={{ textAlign: 'center', p: 4 }}>
-                        <Alert severity="warning">
-                          <strong>Página não encontrada</strong><br />
-                          A página que você está procurando não existe.
-                        </Alert>
-                      </Box>
-                    </PublicLayout>
+                    <Box sx={{ textAlign: 'center', p: 4 }}>
+                      <Alert severity="warning">
+                        <strong>Página não encontrada</strong>
+                        <br />
+                        A página que você está procurando não existe.
+                      </Alert>
+                    </Box>
                   }
                 />
               </Routes>
