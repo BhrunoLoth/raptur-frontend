@@ -1,50 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Printer, Edit, QrCode } from 'lucide-react';
-import api from '../services/api';
-import Carteirinha from '../components/Carteirinha';
+// src/pages/IdososView.jsx
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Printer } from 'lucide-react';
+import { buscarIdoso } from '../services/idosoService';
+import IdosoCard from '../components/IdosoCard';
 
 const API = import.meta.env.VITE_API_URL;
-const API_BASE = API.replace('/api','');
 
 export default function IdososView() {
-  const [idoso, setIdoso] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
   const { id } = useParams();
-  const carteirinhaRef = useRef();
+  const navigate = useNavigate();
+  const [idoso, setIdoso] = useState(null);
+  const [erro, setErro] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchIdoso(); }, [id]);
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await buscarIdoso(id);
+        setIdoso(data);
+        setErro('');
+      } catch (e) {
+        console.error(e);
+        setErro('Erro ao carregar dados do idoso');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
 
-  const fetchIdoso = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(`/idosos/${id}`);
-      setIdoso(data); setError('');
-    } catch (err) {
-      setError('Erro ao carregar dados do idoso');
-      console.error(err);
-    } finally { setLoading(false); }
-  };
+  const abrirPdf = () => window.open(`${API}/idosos/${id}/carteirinha.pdf`, '_blank', 'noopener');
 
-  const openPdf = () => window.open(`${API}/idosos/${id}/carteirinha.pdf`, '_blank', 'noopener');
-
-  if (loading) return <p>Carregando...</p>;
-  if (error || !idoso) return <p>{error || 'Idoso não encontrado'}</p>;
+  if (loading) return <div style={{ padding: 16 }}>Carregando...</div>;
+  if (erro || !idoso) return <div style={{ padding: 16 }}>{erro || 'Não encontrado'}</div>;
 
   return (
-    <div className="p-6">
-      <Carteirinha
-        ref={carteirinhaRef}
-        idoso={idoso}
-        fotoPreview={
-          idoso.fotoUrl?.startsWith('http')
-            ? idoso.fotoUrl
-            : (idoso.fotoUrl ? `${API_BASE}${idoso.fotoUrl}` : null)
-        }
-      />
-      <button onClick={openPdf}>Imprimir PDF</button>
+    <div style={{ padding: 16 }}>
+      <div className="no-print" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button onClick={() => navigate('/admin/idosos')} style={{ display: 'flex', gap: 6 }}>
+          <ArrowLeft size={16} /> Voltar
+        </button>
+        <button onClick={abrirPdf} style={{ display: 'flex', gap: 6 }}>
+          <Printer size={16} /> Abrir PDF
+        </button>
+      </div>
+
+      <IdosoCard idoso={idoso} />
     </div>
   );
 }

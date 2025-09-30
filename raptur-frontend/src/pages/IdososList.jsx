@@ -1,9 +1,8 @@
 // src/pages/IdososList.jsx
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   listarIdosos,
-  criarIdoso,
-  atualizarIdoso,
   removerIdoso,
 } from '../services/idosoService';
 
@@ -21,22 +20,24 @@ import {
   TableRow,
   TextField,
   Typography,
+  Tooltip,
 } from '@mui/material';
 
-// Correção: esses são os nomes válidos em lucide-react
-import { Pencil, Trash2, RefreshCw } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Plus, Printer } from 'lucide-react';
 
 export default function IdososList() {
-  const [itens, setItens] = useState([]);        // lista
-  const [total, setTotal] = useState(0);         // total para paginação
-  const [page, setPage] = useState(1);           // página atual (1-based)
-  const [limit] = useState(10);                  // por página
-  const [search, setSearch] = useState('');      // filtro
-  const [loading, setLoading] = useState(true);  // carregando
-  const [erro, setErro] = useState(null);        // erro
+  const navigate = useNavigate();
+
+  const [itens, setItens] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState(null);
 
   const params = useMemo(
-    () => ({ page, limit, search, ativo: true }),
+    () => ({ page, limit, search, ativo: true, min_age: 65 }),
     [page, limit, search]
   );
 
@@ -45,11 +46,8 @@ export default function IdososList() {
       setLoading(true);
       setErro(null);
       const res = await listarIdosos(params);
-
-      // API pode retornar { rows, total } ou um array simples; normalizamos:
-      const rows = Array.isArray(res) ? res : (res.rows ?? []);
-      const totalCount = Array.isArray(res) ? rows.length : (res.total ?? rows.length);
-
+      const rows = res?.rows ?? [];
+      const totalCount = res?.total ?? rows.length;
       setItens(rows);
       setTotal(totalCount);
     } catch (e) {
@@ -84,9 +82,19 @@ export default function IdososList() {
           }}
         />
 
-        <IconButton aria-label="Recarregar" onClick={carregar}>
-          <RefreshCw size={18} />
-        </IconButton>
+        <Tooltip title="Recarregar">
+          <IconButton aria-label="Recarregar" onClick={carregar}>
+            <RefreshCw size={18} />
+          </IconButton>
+        </Tooltip>
+
+        <Button
+          variant="contained"
+          startIcon={<Plus size={16} />}
+          onClick={() => navigate('/admin/idosos/novo')}
+        >
+          Novo
+        </Button>
       </Box>
 
       <Paper elevation={1}>
@@ -106,7 +114,7 @@ export default function IdososList() {
           </Box>
         ) : itens.length === 0 ? (
           <Box sx={{ p: 4 }}>
-            <Typography sx={{ opacity: 0.7 }}>Nenhum idoso cadastrado.</Typography>
+            <Typography sx={{ opacity: 0.7 }}>Nenhum idoso com 65+ cadastrado.</Typography>
           </Box>
         ) : (
           <TableContainer>
@@ -122,61 +130,68 @@ export default function IdososList() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {itens.map((it) => (
-                  <TableRow key={it.id ?? it._id ?? `${it.cpf}-${it.email}`}>
-                    <TableCell>{it.nome ?? '-'}</TableCell>
-                    <TableCell>{it.cpf ?? '-'}</TableCell>
-                    <TableCell>{it.email ?? '-'}</TableCell>
-                    <TableCell>
-                      {it.data_nascimento
-                        ? new Date(it.data_nascimento).toLocaleDateString('pt-BR')
-                        : '-'}
-                    </TableCell>
-                    <TableCell>{it.ativo ? 'Sim' : 'Não'}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        aria-label="Editar"
-                        onClick={() => {
-                          // TODO: abrir modal/rota de edição
-                          console.log('Editar', it);
-                        }}
-                      >
-                        <Pencil size={16} />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        aria-label="Remover"
-                        onClick={async () => {
-                          if (!confirm('Remover este idoso?')) return;
-                          try {
-                            await removerIdoso(it.id ?? it._id);
-                            await carregar();
-                          } catch (e) {
-                            alert(e?.message ?? 'Erro ao remover');
-                          }
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {itens.map((it) => {
+                  const id = it.id ?? it._id;
+                  return (
+                    <TableRow key={id ?? `${it.cpf}-${it.email}`}>
+                      <TableCell>{it.nome ?? '-'}</TableCell>
+                      <TableCell>{it.cpf ?? '-'}</TableCell>
+                      <TableCell>{it.email ?? '-'}</TableCell>
+                      <TableCell>
+                        {it.dataNascimento || it.data_nascimento
+                          ? new Date(it.dataNascimento ?? it.data_nascimento).toLocaleDateString('pt-BR')
+                          : '-'}
+                      </TableCell>
+                      <TableCell>{it.ativo ? 'Sim' : 'Não'}</TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Editar">
+                          <IconButton
+                            size="small"
+                            onClick={() => navigate(`/admin/idosos/${id}`)}
+                          >
+                            <Pencil size={16} />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Imprimir carteirinha">
+                          <IconButton
+                            size="small"
+                            onClick={() => navigate(`/admin/idosos/${id}/carteirinha`)}
+                          >
+                            <Printer size={16} />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Remover">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={async () => {
+                              if (!confirm('Remover este idoso?')) return;
+                              try {
+                                await removerIdoso(id);
+                                await carregar();
+                              } catch (e) {
+                                alert(e?.message ?? 'Erro ao remover');
+                              }
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
         )}
       </Paper>
 
-      {/* Paginação simples (evolua depois para MUI TablePagination se quiser) */}
       {total > limit && (
         <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Button
-            size="small"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
+          <Button size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
             Anterior
           </Button>
           <Typography variant="body2">
