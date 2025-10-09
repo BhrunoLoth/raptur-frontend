@@ -4,7 +4,8 @@
 .card {
   width: 86mm;
   height: 54mm;
-  background: url('/assets/carteirinha-template.png') no-repeat center/cover;
+  /* ⬇️ caminho corrigido (o template está em src/assets) */
+  background: url('../assets/carteirinha-template.png') no-repeat center/cover;
   position: relative;
   overflow: hidden;
   -webkit-print-color-adjust: exact;

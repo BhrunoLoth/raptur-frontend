@@ -1,69 +1,108 @@
 // src/components/IdosoCard.jsx
 import React, { forwardRef } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react'; // ✅ Compatível com ESM e Vercel
 import '../styles/carteirinha.css';
 
-const mm = (n) => `${n}mm`;
+/** Formata CPF no padrão xxx.xxx.xxx-xx */
+function fmtCPF(v = '') {
+  const d = String(v).replace(/\D/g, '');
+  return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+/** Formata data completa DD/MM/YYYY */
+function fmtDMY(iso = '') {
+  const d = iso ? new Date(iso) : null;
+  if (!d || isNaN(d)) return '-';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = d.getFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+
+/** Formata data MM/YYYY */
+function fmtMY(iso = '') {
+  const d = iso ? new Date(iso) : null;
+  if (!d || isNaN(d)) return '-';
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = d.getFullYear();
+  return `${mm}/${yy}`;
+}
 
 /**
- * idoso: {
- *   nome, cpf, numeroCarteira, dataNascimento, dataEmissao, dataValidade, qrConteudo, fotoUrl
- * }
- * fotoPreview: se quiser forçar uma imagem (dataURL) vinda do formulário
+ * Componente da carteirinha do idoso
+ * @param {object} idoso - Dados do idoso
+ * @param {string} fotoPreview - Caminho ou base64 da foto
  */
 const IdosoCard = forwardRef(({ idoso, fotoPreview }, ref) => {
-  const fotoSrc = fotoPreview || idoso?.fotoUrl || '';
-  const qrValue = idoso?.qrConteudo || `raptur:idoso:${idoso?.id}`;
+  if (!idoso) return null;
 
-  const fmtCPF = (digits = '') =>
-    String(digits).replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  const {
+    nome,
+    cpf,
+    numeroCarteira,
+    dataNascimento,
+    dataEmissao,
+    dataValidade,
+    qrConteudo,
+    id,
+  } = idoso;
 
-  const fmtDMY = (d) => {
-    if (!d) return '-';
-    const date = new Date(d);
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm_ = String(date.getMonth() + 1).padStart(2, '0');
-    const yy = date.getFullYear();
-    return `${dd}/${mm_}/${yy}`;
-  };
-
-  const fmtMY = (d) => {
-    if (!d) return '-';
-    const date = new Date(d);
-    const mm_ = String(date.getMonth() + 1).padStart(2, '0');
-    const yy = date.getFullYear();
-    return `${mm_}/${yy}`;
-  };
+  // Conteúdo do QR Code (JSON seguro)
+  const qrValue = qrConteudo || JSON.stringify({
+    id,
+    nome,
+    cpf,
+    numeroCarteira,
+    tipo: 'carteirinha_idoso',
+  });
 
   return (
-    <div className="card" ref={ref}>
-      {/* Foto */}
-      {fotoSrc ? (
-        <img className="foto" src={fotoSrc} alt="Foto do idoso" />
-      ) : (
-        <div className="foto foto--placeholder" />
-      )}
+    <div ref={ref} className="carteirinha-wrap">
+      {/* Template de fundo */}
+      <img
+        className="carteirinha-bg"
+        src="/assets/carteirinha-template.png"
+        alt="template da carteirinha"
+      />
+
+      {/* Foto do idoso */}
+      <div className="carteirinha-foto">
+        {fotoPreview ? (
+          <img src={fotoPreview} alt="foto do idoso" />
+        ) : (
+          <div className="foto-placeholder" />
+        )}
+      </div>
 
       {/* Nome */}
-      <div className="nome">{idoso?.nome ?? '-'}</div>
+      <div className="carteirinha-nome">{nome || '-'}</div>
 
-      {/* Labels */}
-      <div className="label label-cpf">CPF:</div>
-      <div className="label label-num">Nº:</div>
-      <div className="label label-nasc">Nascimento:</div>
-      <div className="label label-emis">Emissão:</div>
-      <div className="label label-val">Validade:</div>
+      {/* Dados principais */}
+      <div className="carteirinha-linha">
+        <strong>CPF:</strong>&nbsp;{fmtCPF(cpf)}
+      </div>
+      <div className="carteirinha-linha">
+        <strong>Nº:</strong>&nbsp;{numeroCarteira || '-'}
+      </div>
+      <div className="carteirinha-linha">
+        <strong>Nascimento:</strong>&nbsp;{fmtDMY(dataNascimento)}
+      </div>
+      <div className="carteirinha-linha">
+        <strong>Emissão:</strong>&nbsp;{fmtMY(dataEmissao)}
+      </div>
+      <div className="carteirinha-linha">
+        <strong>Validade:</strong>&nbsp;{fmtMY(dataValidade)}
+      </div>
 
-      {/* Valores */}
-      <div className="value value-cpf">{fmtCPF(idoso?.cpf)}</div>
-      <div className="value value-num">{idoso?.numeroCarteira ?? '-'}</div>
-      <div className="value value-nasc">{fmtDMY(idoso?.dataNascimento)}</div>
-      <div className="value value-emis">{fmtMY(idoso?.dataEmissao)}</div>
-      <div className="value value-val">{fmtMY(idoso?.dataValidade)}</div>
-
-      {/* QR */}
-      <div className="qr">
-        <QRCode value={qrValue} size={140} includeMargin={false} />
+      {/* QR Code */}
+      <div className="carteirinha-qr">
+        <QRCodeSVG
+          value={qrValue}
+          size={90}
+          includeMargin={false}
+          bgColor="#ffffff"
+          fgColor="#000000"
+        />
       </div>
     </div>
   );
