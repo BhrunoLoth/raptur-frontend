@@ -1,10 +1,10 @@
 // src/pages/IdososList.jsx
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   listarIdosos,
   removerIdoso,
-} from '../services/idosoService';
+} from "../services/idosoService";
 
 import {
   Box,
@@ -21,9 +21,25 @@ import {
   TextField,
   Typography,
   Tooltip,
-} from '@mui/material';
+} from "@mui/material";
 
-import { Pencil, Trash2, RefreshCw, Plus, Printer } from 'lucide-react';
+import { Pencil, Trash2, RefreshCw, Plus, Printer, Eye } from "lucide-react";
+
+const API = import.meta.env.VITE_API_URL;
+
+// Funções auxiliares para formatação
+const fmtCPF = (v = "") =>
+  String(v)
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{2})$/, "$1-$2");
+
+const fmtData = (iso) => {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  return isNaN(d) ? "-" : d.toLocaleDateString("pt-BR");
+};
 
 export default function IdososList() {
   const navigate = useNavigate();
@@ -32,12 +48,12 @@ export default function IdososList() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
 
   const params = useMemo(
-    () => ({ page, limit, search, ativo: true, min_age: 65 }),
+    () => ({ page, limit, search, ativo: true, min_age: 60 }),
     [page, limit, search]
   );
 
@@ -51,8 +67,8 @@ export default function IdososList() {
       setItens(rows);
       setTotal(totalCount);
     } catch (e) {
-      console.error('❌ Erro ao listar idosos:', e);
-      setErro(e?.message ?? 'Erro ao carregar lista de idosos');
+      console.error("❌ Erro ao listar idosos:", e);
+      setErro(e?.message ?? "Erro ao carregar lista de idosos");
       setItens([]);
       setTotal(0);
     } finally {
@@ -65,16 +81,45 @@ export default function IdososList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, search]);
 
+  // Abre o PDF autenticado
+  const abrirCarteirinhaPdf = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sessão expirada. Faça login novamente.");
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(`${API}/idosos/${id}/carteirinha.pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Erro ao gerar carteirinha PDF");
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao abrir carteirinha PDF");
+    }
+  };
+
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="h5" sx={{ flex: 1, fontWeight: 700 }}>
-          Carteirinha Idoso
+      {/* Cabeçalho e busca */}
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+        <Typography
+          variant="h5"
+          sx={{ flex: 1, fontWeight: 700, color: "#136c3a" }}
+        >
+          Carteirinhas de Idosos
         </Typography>
 
         <TextField
           size="small"
-          placeholder="Buscar por nome/CPF..."
+          placeholder="Buscar por nome ou CPF..."
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -91,15 +136,28 @@ export default function IdososList() {
         <Button
           variant="contained"
           startIcon={<Plus size={16} />}
-          onClick={() => navigate('/admin/idosos/novo')}
+          sx={{
+            bgcolor: "#136c3a",
+            "&:hover": { bgcolor: "#0f5a2f" },
+            textTransform: "none",
+          }}
+          onClick={() => navigate("/admin/idosos/novo")}
         >
           Novo
         </Button>
       </Box>
 
+      {/* Tabela */}
       <Paper elevation={1}>
         {loading ? (
-          <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              p: 4,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <CircularProgress size={24} />
             <Typography sx={{ ml: 2 }}>Carregando...</Typography>
           </Box>
@@ -114,7 +172,9 @@ export default function IdososList() {
           </Box>
         ) : itens.length === 0 ? (
           <Box sx={{ p: 4 }}>
-            <Typography sx={{ opacity: 0.7 }}>Nenhum idoso com 65+ cadastrado.</Typography>
+            <Typography sx={{ opacity: 0.7 }}>
+              Nenhum idoso cadastrado.
+            </Typography>
           </Box>
         ) : (
           <TableContainer>
@@ -123,8 +183,9 @@ export default function IdososList() {
                 <TableRow>
                   <TableCell>Nome</TableCell>
                   <TableCell>CPF</TableCell>
-                  <TableCell>E-mail</TableCell>
+                  <TableCell>Nº Carteira</TableCell>
                   <TableCell>Data Nasc.</TableCell>
+                  <TableCell>Validade</TableCell>
                   <TableCell>Ativo</TableCell>
                   <TableCell align="right">Ações</TableCell>
                 </TableRow>
@@ -133,32 +194,40 @@ export default function IdososList() {
                 {itens.map((it) => {
                   const id = it.id ?? it._id;
                   return (
-                    <TableRow key={id ?? `${it.cpf}-${it.email}`}>
-                      <TableCell>{it.nome ?? '-'}</TableCell>
-                      <TableCell>{it.cpf ?? '-'}</TableCell>
-                      <TableCell>{it.email ?? '-'}</TableCell>
-                      <TableCell>
-                        {it.dataNascimento || it.data_nascimento
-                          ? new Date(it.dataNascimento ?? it.data_nascimento).toLocaleDateString('pt-BR')
-                          : '-'}
-                      </TableCell>
-                      <TableCell>{it.ativo ? 'Sim' : 'Não'}</TableCell>
+                    <TableRow key={id}>
+                      <TableCell>{it.nome ?? "-"}</TableCell>
+                      <TableCell>{fmtCPF(it.cpf)}</TableCell>
+                      <TableCell>{it.numeroCarteira ?? "-"}</TableCell>
+                      <TableCell>{fmtData(it.dataNascimento)}</TableCell>
+                      <TableCell>{fmtData(it.dataValidade)}</TableCell>
+                      <TableCell>{it.ativo ? "Sim" : "Não"}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Editar">
+                        <Tooltip title="Visualizar">
                           <IconButton
                             size="small"
                             onClick={() => navigate(`/admin/idosos/${id}`)}
                           >
-                            <Pencil size={16} />
+                            <Eye size={16} />
                           </IconButton>
                         </Tooltip>
 
-                        <Tooltip title="Imprimir carteirinha">
+                        <Tooltip title="Imprimir Carteirinha">
                           <IconButton
                             size="small"
-                            onClick={() => navigate(`/admin/idosos/${id}/carteirinha`)}
+                            onClick={() => abrirCarteirinhaPdf(id)}
                           >
                             <Printer size={16} />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Editar">
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              navigate(`/admin/idosos/${id}?edit=true`)
+                            }
+                          >
+                            <Pencil size={16} />
                           </IconButton>
                         </Tooltip>
 
@@ -167,12 +236,12 @@ export default function IdososList() {
                             size="small"
                             color="error"
                             onClick={async () => {
-                              if (!confirm('Remover este idoso?')) return;
+                              if (!confirm("Remover este idoso?")) return;
                               try {
                                 await removerIdoso(id);
                                 await carregar();
                               } catch (e) {
-                                alert(e?.message ?? 'Erro ao remover');
+                                alert(e?.message ?? "Erro ao remover");
                               }
                             }}
                           >
@@ -189,9 +258,14 @@ export default function IdososList() {
         )}
       </Paper>
 
+      {/* Paginação */}
       {total > limit && (
-        <Box sx={{ mt: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Button size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+        <Box sx={{ mt: 2, display: "flex", gap: 1, alignItems: "center" }}>
+          <Button
+            size="small"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
             Anterior
           </Button>
           <Typography variant="body2">

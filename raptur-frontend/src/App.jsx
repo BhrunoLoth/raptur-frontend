@@ -7,25 +7,32 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { CssBaseline, CircularProgress, Box, Alert, Button } from "@mui/material";
+import {
+  ThemeProvider,
+  createTheme
+} from "@mui/material/styles";
+import {
+  CssBaseline,
+  CircularProgress,
+  Box,
+  Alert,
+  Button,
+  Typography,
+} from "@mui/material";
 import { ErrorBoundary } from "react-error-boundary";
 
 import ProtectedLayout from "./components/ProtectedLayout";
 import { ThemeProvider as CustomThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRouteByPerfil from "./routes/ProtectedRouteByPerfil";
-
 import "./styles/RapturStyle.css";
 
-/* ========================== Lazy pages ========================== */
+/* ========================== Lazy Pages ========================== */
 const Login = lazy(() => import("./pages/Login"));
 const CadastroPassageiro = lazy(() => import("./pages/CadastroPassageiro"));
 const UserManagement = lazy(() => import("./pages/UserManagement"));
-
 const MotoristaLogin = lazy(() => import("./pages/MotoristaLogin"));
 const MotoristaDashboard = lazy(() => import("./pages/MotoristaDashboard"));
 const MotoristaManagement = lazy(() => import("./pages/MotoristaManagement"));
-
 const QRCodeSimulator = lazy(() => import("./pages/QRCodeSimulator"));
 const ScannerQRCode = lazy(() => import("./pages/ScannerQRCode"));
 const Simulador = lazy(() => import("./pages/Simulador"));
@@ -47,26 +54,28 @@ const IdososList = lazy(() => import("./pages/IdososList"));
 const IdososForm = lazy(() => import("./pages/IdososForm"));
 const IdososView = lazy(() => import("./pages/IdososView"));
 
-/* ============================ MUI theme ============================ */
+/* Validação pública via QR Code */
+const CarteirinhaView = lazy(() => import("./pages/CarteirinhaView"));
+
+/* ============================ Tema MUI ============================ */
 const muiTheme = createTheme({
   palette: {
-    primary: { main: "#61d179", light: "#8ee99f", dark: "#4fc66b" },
-    secondary: { main: "#e07828", light: "#ff9800", dark: "#d84315" },
-    background: { default: "#f5f5f5", paper: "#ffffff" },
+    primary: { main: "#136c3a", light: "#61d179", dark: "#0f5a2f" },
+    secondary: { main: "#e07828", light: "#ffa040", dark: "#c85f1a" },
+    background: { default: "#f4f6f4", paper: "#ffffff" },
   },
   typography: {
     fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
     h1: { fontSize: "2rem", fontWeight: 600 },
-    h2: { fontSize: "1.75rem", fontWeight: 500 },
+    h2: { fontSize: "1.6rem", fontWeight: 500 },
     body1: { fontSize: "1rem", lineHeight: 1.6 },
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 10 },
   components: {
     MuiButton: {
-      styleOverrides: { root: { textTransform: "none", borderRadius: 8, fontWeight: 500 } },
-    },
-    MuiCard: {
-      styleOverrides: { root: { borderRadius: 16, boxShadow: "0px 6px 25px rgba(0,0,0,.15)" } },
+      styleOverrides: {
+        root: { textTransform: "none", borderRadius: 8, fontWeight: 500 },
+      },
     },
   },
 });
@@ -83,8 +92,10 @@ const LoadingFallback = () => (
       gap: 2,
     }}
   >
-    <CircularProgress size={40} />
-    <Box sx={{ textAlign: "center" }}>Carregando...</Box>
+    <CircularProgress size={40} color="success" />
+    <Typography sx={{ textAlign: "center", color: "#136c3a" }}>
+      Carregando...
+    </Typography>
   </Box>
 );
 
@@ -126,18 +137,18 @@ function App() {
           <WithErrorBoundary>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
-                {/* redirect raiz */}
+                {/* 🔸 Redirecionamento padrão */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* públicas */}
+                {/* 🔸 Rotas públicas */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/motorista/login" element={<MotoristaLogin />} />
                 <Route path="/cadastro" element={<CadastroPassageiro />} />
 
-                {/* alias de dashboard genérico para admin */}
-                <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+                {/* 🔸 Nova rota pública para validação de carteirinha (via QR Code) */}
+                <Route path="/validar/:id" element={<CarteirinhaView />} />
 
-                {/* ============================== Admin ============================== */}
+                {/* =========================== Admin =========================== */}
                 <Route
                   path="/admin"
                   element={
@@ -148,6 +159,7 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
+
                 <Route
                   path="/admin/dashboard"
                   element={
@@ -158,6 +170,7 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
+
                 <Route
                   path="/admin/usuarios"
                   element={
@@ -168,68 +181,8 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-                <Route
-                  path="/admin/motoristas"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <MotoristaManagement />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/admin/onibus"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <OnibusManagement />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/admin/embarques"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <Embarques />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/admin/pagamentos"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <Pagamentos />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/admin/relatorios"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <Relatorios />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/admin/configuracoes"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <Configuracoes />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
 
-                {/* Idosos */}
+                {/* 🧓 Carteirinhas do Idoso */}
                 <Route
                   path="/admin/idosos"
                   element={
@@ -261,17 +214,7 @@ function App() {
                   }
                 />
 
-                {/* ============================ Motorista ============================ */}
-                <Route
-                  path="/motorista"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["motorista"]}>
-                      <ProtectedLayout>
-                        <MotoristaDashboard />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
+                {/* =========================== Motorista =========================== */}
                 <Route
                   path="/motorista/dashboard"
                   element={
@@ -292,38 +235,8 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-                <Route
-                  path="/motorista/embarque-manual"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["motorista"]}>
-                      <ProtectedLayout>
-                        <EmbarqueManual />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/motorista/historico"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["motorista"]}>
-                      <ProtectedLayout>
-                        <HistoricoEmbarques />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
 
-                {/* ============================ Passageiro ============================ */}
-                <Route
-                  path="/passageiro"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["passageiro"]}>
-                      <ProtectedLayout>
-                        <PassageiroDashboard />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
+                {/* =========================== Passageiro =========================== */}
                 <Route
                   path="/passageiro/dashboard"
                   element={
@@ -334,78 +247,30 @@ function App() {
                     </ProtectedRouteByPerfil>
                   }
                 />
-                <Route
-                  path="/passageiro/qrcode"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["passageiro"]}>
-                      <ProtectedLayout>
-                        <QRCodeSimulator />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/passageiro/recarga"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["passageiro"]}>
-                      <ProtectedLayout>
-                        <RecargaPix />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/passageiro/historico"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["passageiro"]}>
-                      <ProtectedLayout>
-                        <HistoricoEmbarques />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
 
-                {/* ============================ Compartilhadas ============================ */}
+                {/* =========================== Outras =========================== */}
                 <Route
                   path="/trocar-senha"
                   element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin", "motorista", "passageiro"]}>
+                    <ProtectedRouteByPerfil
+                      perfisPermitidos={["admin", "motorista", "passageiro"]}
+                    >
                       <ProtectedLayout>
                         <TrocarSenha />
                       </ProtectedLayout>
                     </ProtectedRouteByPerfil>
                   }
                 />
-                <Route
-                  path="/dashboard-visual"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin", "motorista"]}>
-                      <ProtectedLayout>
-                        <DashboardVisual />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
-                <Route
-                  path="/simulador"
-                  element={
-                    <ProtectedRouteByPerfil perfisPermitidos={["admin"]}>
-                      <ProtectedLayout>
-                        <Simulador />
-                      </ProtectedLayout>
-                    </ProtectedRouteByPerfil>
-                  }
-                />
 
-                {/* 404 */}
+                {/* 🔸 Página 404 */}
                 <Route
                   path="*"
                   element={
                     <Box sx={{ textAlign: "center", p: 4 }}>
-                      <Alert severity="warning">
+                      <Alert severity="warning" sx={{ maxWidth: 420, margin: "auto" }}>
                         <strong>Página não encontrada</strong>
                         <br />
-                        A página que você está procurando não existe.
+                        O endereço acessado não existe.
                       </Alert>
                     </Box>
                   }

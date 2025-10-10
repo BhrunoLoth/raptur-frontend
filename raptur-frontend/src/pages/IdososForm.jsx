@@ -1,4 +1,5 @@
 // src/pages/IdososForm.jsx
+import "../styles/formulario.css";
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Upload, Save, Printer, ArrowLeft } from 'lucide-react';
