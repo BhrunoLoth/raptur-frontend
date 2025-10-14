@@ -1,0 +1,195 @@
+/* ===============================
+   🎨 FORMULÁRIO PADRÃO RAPTUR
+   =============================== */
+
+:root {
+  --verde-raptur: #136c3a;
+  --laranja-raptur: #f58220;
+  --cinza-claro: #f7f7f7;
+  --cinza-borda: #ddd;
+  --texto-escuro: #222;
+  --radius: 8px;
+  --transicao: 0.2s ease;
+}
+
+/* CONTAINER PRINCIPAL */
+.form-container {
+  background: var(--cinza-claro);
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 700px;
+  margin: 20px auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* TÍTULO */
+.form-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--verde-raptur);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* CAMPOS */
+.form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  font-weight: 600;
+  color: var(--texto-escuro);
+  display: block;
+  font-size: 0.95rem;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--radius);
+  transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--verde-raptur);
+  box-shadow: 0 0 0 2px rgba(19, 108, 58, 0.15);
+}
+
+/* BOTÕES */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background var(--transicao), transform var(--transicao);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* BOTÕES ESPECÍFICOS */
+.btn-salvar {
+  background: var(--verde-raptur);
+  color: white;
+}
+
+.btn-salvar:hover {
+  background: #0f5a2f;
+  transform: scale(1.02);
+}
+
+.btn-imprimir {
+  background: var(--laranja-raptur);
+  color: white;
+}
+
+.btn-imprimir:hover {
+  background: #e06f0e;
+  transform: scale(1.02);
+}
+
+.btn-voltar {
+  background: transparent;
+  color: var(--verde-raptur);
+  border: 1px solid var(--verde-raptur);
+}
+
+.btn-voltar:hover {
+  background: rgba(19, 108, 58, 0.08);
+}
+
+/* AÇÕES (rodapé) */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* UPLOAD E CÂMERA */
+.foto-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.upload-btn {
+  background: #eee;
+  color: var(--texto-escuro);
+  border: 1px dashed var(--cinza-borda);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transicao);
+}
+
+.upload-btn:hover {
+  background: #ddd;
+}
+
+.camera-btn {
+  background: var(--verde-raptur);
+  color: white;
+}
+
+.camera-btn:hover {
+  background: #0f5a2f;
+}
+
+/* PRÉVIA DA CARTEIRINHA */
+.preview-card {
+  margin-top: 28px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--cinza-borda);
+  background: white;
+  text-align: center;
+}
+
+.preview-card h3 {
+  color: var(--verde-raptur);
+  margin-bottom: 12px;
+}
+
+/* MENSAGENS DE ERRO */
+.erro-msg {
+  color: red;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* RESPONSIVO */
+@media (max-width: 640px) {
+  .form-container {
+    padding: 16px;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,88 @@
+/* src/styles/carteirinha.css */
+
+/* Tamanho físico do cartão (ID-1): ~86 x 54 mm */
+.card {
+  width: 86mm;
+  height: 54mm;
+  /* ⬇️ caminho corrigido (o template está em src/assets) */
+  background: url('../assets/carteirinha-template.png') no-repeat center/cover;
+  position: relative;
+  overflow: hidden;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Foto (ajuste fino conforme o template) */
+.card .foto {
+  position: absolute;
+  left: 6mm;
+  top: 22mm;
+  width: 30mm;
+  height: 30mm;
+  object-fit: cover;
+  border-radius: 2mm;
+  background: #ddd;
+}
+.card .foto--placeholder {
+  display: block;
+}
+
+/* Nome (verde, grande) */
+.card .nome {
+  position: absolute;
+  left: 42mm;
+  top: 22mm;
+  width: 38mm;
+  font-weight: 700;
+  font-size: 5mm;
+  line-height: 6mm;
+  color: #136c3a; /* ajuste pro tom da arte */
+}
+
+/* Labels */
+.card .label {
+  position: absolute;
+  font-weight: 700;
+  font-size: 3.2mm;
+  color: #136c3a;
+}
+.card .label-cpf { left: 42mm; top: 32mm; }
+.card .label-num { left: 42mm; top: 37mm; }
+.card .label-nasc { left: 42mm; top: 42mm; }
+.card .label-emis { left: 42mm; top: 47mm; }
+.card .label-val { left: 42mm; top: 52mm; }
+
+/* Valores */
+.card .value {
+  position: absolute;
+  font-size: 3.2mm;
+  color: #000;
+  font-weight: 500;
+}
+.card .value-cpf { left: 56mm; top: 32mm; }
+.card .value-num { left: 52mm; top: 37mm; }
+.card .value-nasc { left: 64mm; top: 42mm; }
+.card .value-emis { left: 58mm; top: 47mm; }
+.card .value-val { left: 58mm; top: 52mm; }
+
+/* QR à direita */
+.card .qr {
+  position: absolute;
+  right: 4mm;
+  top: 22mm;
+  width: 30mm;
+  height: 30mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Impressão */
+@page {
+  size: 86mm 54mm;
+  margin: 0;
+}
+@media print {
+  body { margin: 0; }
+  .no-print { display: none !important; }
+}

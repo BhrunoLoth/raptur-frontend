@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Raptur Admin</title>
+    <meta name="description" content="Painel administrativo Raptur" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  </head>
+
+  <!--
+    Usamos Tailwind com darkMode: 'class'.
+    - bg-app-light e bg-app-dark foram definidas em src/index.css
+    - A classe "dark" no <html> habilita o tema escuro (você pode alternar via JS)
+  -->
+  <body class="min-h-screen bg-app-light dark:bg-app-dark">
+    <noscript>Ative o JavaScript para usar este aplicativo.</noscript>
+    <div id="root" class="min-h-screen"></div>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
