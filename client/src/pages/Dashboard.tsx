@@ -190,6 +190,22 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           )}
+
+          {user?.perfil === 'admin' && (
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-secondary" onClick={() => navigateTo('/importar-alunos')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Importar Alunos Gratuitos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Importar lista de alunos via Excel</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

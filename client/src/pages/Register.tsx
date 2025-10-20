@@ -19,6 +19,7 @@ export default function Register() {
     confirmarSenha: '',
     telefone: '',
     dataNascimento: '',
+    tipoPassageiro: 'comum',
   });
 
   const formatCPF = (value: string) => {
@@ -75,6 +76,7 @@ export default function Register() {
         telefone: formData.telefone,
         dataNascimento: formData.dataNascimento,
         perfil: 'passageiro',
+        tipoPassageiro: formData.tipoPassageiro,
       });
 
       toast.success('Cadastro realizado com sucesso!');
@@ -181,6 +183,26 @@ export default function Register() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tipoPassageiro">Tipo de Passageiro *</Label>
+              <select
+                id="tipoPassageiro"
+                name="tipoPassageiro"
+                value={formData.tipoPassageiro}
+                onChange={(e) => setFormData({ ...formData, tipoPassageiro: e.target.value })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                required
+              >
+                <option value="comum">Passageiro Comum (R$ 5,50)</option>
+                <option value="aluno_pagante">Estudante - Meia Passagem (R$ 2,75)</option>
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.tipoPassageiro === 'comum' 
+                  ? 'Valor inteiro da passagem: R$ 5,50'
+                  : 'Estudantes pagam metade do valor: R$ 2,75'}
+              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

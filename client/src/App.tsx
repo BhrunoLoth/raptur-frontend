@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import Passageiro from "./pages/Passageiro";
 import CarteirinhaIdoso from "./pages/CarteirinhaIdoso";
 import Motorista from "./pages/Motorista";
+import ImportarAlunos from "./pages/ImportarAlunos";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path={"/passageiro"} component={Passageiro} />
       <Route path={"/carteirinha"} component={CarteirinhaIdoso} />
       <Route path={"/motorista"} component={Motorista} />
+      <Route path={"/importar-alunos"} component={ImportarAlunos} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

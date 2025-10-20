@@ -84,7 +84,7 @@ export default function CarteirinhaIdoso() {
                 <div className="bg-muted p-6 rounded-lg space-y-3">
                   <h3 className="font-semibold text-lg">Requisitos:</h3>
                   <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
-                    <li>Ter 60 anos ou mais</li>
+                    <li>Ter 65 anos ou mais</li>
                     <li>Cadastro completo no sistema</li>
                     <li>Documento de identidade válido</li>
                   </ul>
