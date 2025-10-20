@@ -8,6 +8,10 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Cobrador from "./pages/Cobrador";
+import Register from "./pages/Register";
+import Passageiro from "./pages/Passageiro";
+import CarteirinhaIdoso from "./pages/CarteirinhaIdoso";
+import Motorista from "./pages/Motorista";
 
 function Router() {
   return (
@@ -16,6 +20,10 @@ function Router() {
       <Route path={"/login"} component={Login} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/cobrador"} component={Cobrador} />
+      <Route path={"/register"} component={Register} />
+      <Route path={"/passageiro"} component={Passageiro} />
+      <Route path={"/carteirinha"} component={CarteirinhaIdoso} />
+      <Route path={"/motorista"} component={Motorista} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
