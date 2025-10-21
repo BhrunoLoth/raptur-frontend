@@ -1,6 +1,0 @@
-import{a3 as c}from"./index-B9Nf5u-5.js";import{a as n}from"./api-DLJ_9syT.js";/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */const d=[["path",{d:"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2",key:"143wyd"}],["path",{d:"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6",key:"1itne7"}],["rect",{x:"6",y:"14",width:"12",height:"8",rx:"1",key:"1ue0tg"}]],m=c("printer",d);async function h({page:t=1,limit:a=10,search:e="",ativo:r=!0,min_age:i=65}={}){const s=new URLSearchParams;s.set("page",t),s.set("limit",a),e&&s.set("search",e),r!==void 0&&s.set("ativo",String(r)),i&&s.set("min_age",String(i));const{data:o}=await n.get(`/idosos?${s.toString()}`);return o!=null&&o.idosos?{rows:o.idosos,total:o.totalItems??o.idosos.length,page:o.currentPage??t,limit:a}:o??{rows:[],total:0,page:t,limit:a}}async function p(t){const{data:a}=await n.get(`/idosos/${t}`);return a}async function g(t){const e=t instanceof FormData?{"Content-Type":"multipart/form-data"}:void 0,{data:r}=await n.post("/idosos",t,{headers:e});return r}async function w(t){const{data:a}=await n.delete(`/idosos/${t}`);return a}export{m as P,p as b,g as c,h as l,w as r};
