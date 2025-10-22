@@ -55,7 +55,7 @@ export default function GerenciarUsuarios() {
     email: '',
     telefone: '',
     senha: '',
-    perfil: 'passageiro' as const,
+    perfil: 'passageiro' as 'admin' | 'passageiro' | 'motorista' | 'cobrador',
   });
 
   useEffect(() => {
