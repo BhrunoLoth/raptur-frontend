@@ -13,19 +13,32 @@ import Passageiro from "./pages/Passageiro";
 import CarteirinhaIdoso from "./pages/CarteirinhaIdoso";
 import Motorista from "./pages/Motorista";
 import ImportarAlunos from "./pages/ImportarAlunos";
+import GerenciarUsuarios from "./pages/GerenciarUsuarios";
+import GerenciarOnibus from "./pages/GerenciarOnibus";
+import GerenciarRotas from "./pages/GerenciarRotas";
+import GerenciarMotoristas from "./pages/GerenciarMotoristas";
+import GerenciarCobradores from "./pages/GerenciarCobradores";
+import Relatorios from "./pages/Relatorios";
+import DashboardAdmin from "./pages/DashboardAdmin";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
-      <Route path={"/dashboard"} component={Dashboard} />
+      <Route path={"/dashboard"} component={DashboardAdmin} />
       <Route path={"/cobrador"} component={Cobrador} />
       <Route path={"/register"} component={Register} />
       <Route path={"/passageiro"} component={Passageiro} />
       <Route path={"/carteirinha"} component={CarteirinhaIdoso} />
       <Route path={"/motorista"} component={Motorista} />
       <Route path={"/importar-alunos"} component={ImportarAlunos} />
+      <Route path={"/gerenciar-usuarios"} component={GerenciarUsuarios} />
+      <Route path={"/gerenciar-onibus"} component={GerenciarOnibus} />
+      <Route path={"/gerenciar-rotas"} component={GerenciarRotas} />
+      <Route path={"/gerenciar-motoristas"} component={GerenciarMotoristas} />
+      <Route path={"/gerenciar-cobradores"} component={GerenciarCobradores} />
+      <Route path={"/relatorios"} component={Relatorios} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
