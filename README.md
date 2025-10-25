@@ -1,222 +1,221 @@
-# 🎨 Raptur Frontend - Interface Web
+# RAPTUR Frontend 2.0
 
-Interface moderna e responsiva para o sistema de gestão de transporte público Raptur, desenvolvida com React e Material-UI.
+Sistema de Gestão de Transporte Público - Interface Web Moderna
 
-## ✨ Funcionalidades
+## 🎨 Tecnologias
 
-- 📱 **Interface Responsiva** - Design mobile-first adaptável
-- 🎨 **Material Design** - Componentes modernos e intuitivos
-- 🌙 **Tema Claro/Escuro** - Alternância suave entre temas
-- 🔐 **Autenticação Segura** - Login protegido por perfil
-- 💳 **Recarga PIX** - Interface completa para pagamentos
-- 📱 **QR Code** - Geração automática para embarques
-- 📷 **Scanner QR** - Validação de embarques para motoristas
-- 📊 **Dashboards** - Painéis específicos por perfil
-- 📈 **Relatórios** - Visualização de dados e estatísticas
+- **React 19** - Framework UI
+- **Vite** - Build tool ultrarrápido
+- **TailwindCSS 4** - Estilização moderna
+- **shadcn/ui** - Componentes de alta qualidade
+- **Wouter** - Roteamento leve
+- **Zustand** - Gerenciamento de estado
+- **Axios** - Cliente HTTP
+- **html5-qrcode** - Scanner QR Code
+- **react-qr-code** - Geração de QR Code
+- **TypeScript** - Tipagem estática
 
-## 🚀 Instalação Rápida
+## 🚀 Funcionalidades
+
+### ✅ Autenticação
+- Login com CPF e senha
+- Registro de passageiros
+- Gerenciamento de sessão com JWT
+- Logout seguro
+
+### ✅ Passageiro
+- Visualização de saldo
+- QR Code para embarque
+- Recarga via PIX (QR Code dinâmico)
+- Histórico de recargas
+- Perfil completo
+
+### ✅ Carteirinha do Idoso
+- Solicitação automática (verifica idade 60+)
+- Carteirinha visual bonita (verde + dourado)
+- QR Code para embarque gratuito
+- Validade de 5 anos
+- Status ativo/inativo
+
+### ✅ Motorista
+- Visualização de viagens agendadas
+- Iniciar/finalizar viagens
+- Acompanhamento em tempo real
+- Histórico de viagens
+- Totalizadores (passageiros, arrecadação)
+
+### ✅ Cobrador
+- Scanner QR Code em tempo real
+- Validação de embarques
+- Seleção de viagem ativa
+- Lista de embarques do dia
+- Identificação de gratuidades
+
+### ✅ Dashboard
+- Estatísticas gerais (admin)
+- Navegação por perfil
+- Cards interativos
+- Responsivo
+
+## 📁 Estrutura
+
+```
+client/
+├── src/
+│   ├── components/
+│   │   ├── ui/              # Componentes shadcn/ui
+│   │   ├── Layout.tsx       # Layout compartilhado
+│   │   ├── QRScanner.tsx    # Scanner QR Code
+│   │   ├── QRCodeDisplay.tsx # Exibição QR Code
+│   │   └── RecargaPIX.tsx   # Modal de recarga
+│   ├── pages/
+│   │   ├── Home.tsx         # Redirecionamento
+│   │   ├── Login.tsx        # Tela de login
+│   │   ├── Register.tsx     # Cadastro
+│   │   ├── Dashboard.tsx    # Dashboard principal
+│   │   ├── Passageiro.tsx   # Área do passageiro
+│   │   ├── CarteirinhaIdoso.tsx # Carteirinha
+│   │   ├── Motorista.tsx    # Área do motorista
+│   │   └── Cobrador.tsx     # Scanner do cobrador
+│   ├── lib/
+│   │   ├── api.ts           # Cliente Axios + endpoints
+│   │   ├── store.ts         # Zustand store (auth)
+│   │   └── utils.ts         # Utilitários
+│   ├── App.tsx              # Rotas
+│   ├── index.css            # Tema RAPTUR
+│   └── main.tsx             # Entry point
+└── public/                  # Assets estáticos
+```
+
+## 🎨 Design System
+
+### Cores
+
+```css
+/* Verde Esmeralda - Primary */
+--primary: oklch(0.45 0.15 165); /* #00764A */
+
+/* Dourado - Secondary/Accent */
+--secondary: oklch(0.75 0.12 85); /* #F5A623 */
+```
+
+### Componentes
+
+- **Cards** - Informações organizadas
+- **Buttons** - Primary, Secondary, Outline, Ghost
+- **Inputs** - Validação e formatação
+- **Modals** - Diálogos interativos
+- **QR Codes** - Scanner e display
+
+## 🔧 Instalação
 
 ```bash
-# Clonar repositório
-git clone https://github.com/BhrunoLoth/raptur-frontend.git
-cd raptur-frontend/raptur-frontend
-
 # Instalar dependências
-npm install
+pnpm install
 
 # Configurar variáveis de ambiente
 cp .env.example .env
-# Editar .env com suas configurações
 
-# Iniciar desenvolvimento
-npm run dev
+# Editar .env
+VITE_API_URL=http://localhost:3000/api
+VITE_MERCADOPAGO_PUBLIC_KEY=sua_public_key
+```
+
+## 🏃 Desenvolvimento
+
+```bash
+# Iniciar servidor de desenvolvimento
+pnpm dev
 
 # Build para produção
-npm run build
+pnpm build
+
+# Preview do build
+pnpm preview
 ```
-
-## 🔧 Configuração
-
-### Variáveis de Ambiente (.env)
-```env
-VITE_API_URL=http://localhost:3000/api
-VITE_BACKEND_URL=http://localhost:3000
-VITE_MERCADO_PAGO_PUBLIC_KEY=sua_chave_publica_mp
-VITE_NODE_ENV=development
-VITE_DEBUG=true
-```
-
-## 🏗️ Estrutura do Projeto
-
-```
-raptur-frontend/
-├── src/
-│   ├── components/     # Componentes reutilizáveis
-│   ├── pages/         # Páginas da aplicação
-│   ├── services/      # Serviços de API
-│   ├── contexts/      # Contextos React
-│   ├── routes/        # Configuração de rotas
-│   ├── styles/        # Estilos CSS
-│   └── utils/         # Utilitários
-├── public/            # Assets estáticos
-└── dist/             # Build de produção
-```
-
-## 👥 Perfis de Usuário
-
-### 👨‍💼 Administrador
-- Dashboard com estatísticas gerais
-- Gestão completa de usuários
-- Controle de motoristas e ônibus
-- Relatórios detalhados
-- Configurações do sistema
-- Gestão de idosos beneficiários
-
-### 🚌 Motorista
-- Dashboard com viagens ativas
-- Scanner QR Code integrado
-- Histórico de embarques
-- Embarque manual (backup)
-- Sincronização offline
-
-### 👤 Passageiro
-- Dashboard com saldo atual
-- QR Code automático para embarque
-- Sistema de recarga via PIX
-- Histórico de viagens
-- Carteirinha digital
-
-## 🎨 Componentes Principais
-
-### QRCodeEmbarque
-Componente que gera automaticamente QR Code para passageiros com:
-- Renovação automática a cada 5 minutos
-- Timer de expiração visual
-- Informações do usuário
-- Design responsivo
-
-### QRCodeScanner
-Scanner profissional para motoristas com:
-- Acesso à câmera do dispositivo
-- Validação em tempo real
-- Processamento automático de embarques
-- Feedback visual completo
-
-### RecargaPix
-Interface completa para recarga via PIX:
-- Valores sugeridos
-- QR Code e código copia-e-cola
-- Monitoramento em tempo real
-- Timer de expiração
 
 ## 📱 Responsividade
 
-### Breakpoints
-- **Mobile**: 320px - 767px
-- **Tablet**: 768px - 1199px
-- **Desktop**: 1200px+
+- **Mobile First** - Design otimizado para celular
+- **Breakpoints** - sm (640px), md (768px), lg (1024px)
+- **Touch Friendly** - Botões e áreas clicáveis grandes
+- **Scanner** - Funciona em mobile e desktop
 
-### Características
-- Design mobile-first
-- Componentes flexíveis
-- Navegação touch-friendly
-- Sem scroll horizontal
-- Layout estável (sem "tela dançante")
+## 🔐 Segurança
 
-## 🔒 Segurança
+- **JWT** - Token armazenado em localStorage
+- **Interceptors** - Adiciona token automaticamente
+- **Auto Logout** - Em caso de token inválido (401)
+- **Validação** - Formulários com validação client-side
 
-- ✅ Rotas protegidas por autenticação
-- ✅ Controle de acesso por perfil
-- ✅ Interceptors de erro automáticos
-- ✅ Redirecionamento em token expirado
-- ✅ Validação de entrada
-- ✅ Error boundaries para captura de erros
-
-## ⚡ Performance
-
-### Otimizações Implementadas
-- **Lazy Loading** - Carregamento sob demanda
-- **Code Splitting** - Divisão automática de código
-- **Tree Shaking** - Remoção de código não utilizado
-- **Asset Optimization** - Compressão de imagens e CSS
-- **Bundle Analysis** - Análise de tamanho dos pacotes
-
-### Métricas de Build
-```
-Build Size: ~1.7MB (gzipped: ~520KB)
-Chunks: Otimizados por rota
-Load Time: <3s em conexões 3G
-```
-
-## 🎯 Funcionalidades por Tela
-
-### Login (/login)
-- Autenticação segura
-- Validação de credenciais
-- Redirecionamento por perfil
-- Recuperação de senha
-
-### Dashboard Admin (/admin)
-- Estatísticas em tempo real
-- Gráficos interativos
-- Resumo de atividades
-- Acesso rápido às funcionalidades
-
-### Recarga PIX (/passageiro/recarga)
-- Seleção de valores
-- Geração de PIX
-- Monitoramento de pagamento
-- Histórico de recargas
-
-### Scanner QR (/motorista/scanner)
-- Acesso à câmera
-- Validação automática
-- Processamento de embarques
-- Histórico em tempo real
-
-## 📊 Scripts Disponíveis
+## 🚀 Deploy (Vercel)
 
 ```bash
-npm run dev           # Servidor desenvolvimento
-npm run build         # Build produção
-npm run preview       # Preview do build
-npm run lint          # Verificar código
-npm run test          # Executar testes
-node scripts/validateFrontend.js # Validar sistema
+# Build command
+pnpm build
+
+# Output directory
+dist
+
+# Environment Variables
+VITE_API_URL=https://sua-api.railway.app/api
+VITE_MERCADOPAGO_PUBLIC_KEY=APP_USR-...
 ```
 
-## 🚀 Status do Projeto
+## 📊 Fluxos Principais
 
-✅ **100% Validado** - Todas as funcionalidades implementadas e testadas
+### Login
+1. Usuário insere CPF e senha
+2. Frontend envia para `/api/auth/login`
+3. Backend retorna token + dados do usuário
+4. Token salvo em localStorage
+5. Redirecionamento para dashboard
 
-- Interface: 100% responsiva
-- Componentes: Todos funcionais
-- Rotas: Protegidas e operacionais
-- Build: Otimizado para produção
-- Testes: 100% de taxa de sucesso
+### Recarga PIX
+1. Passageiro clica em "Adicionar Créditos"
+2. Informa valor desejado
+3. Frontend chama `/api/pix/recarga`
+4. Backend gera QR Code Mercado Pago
+5. Usuário paga com app do banco
+6. Webhook atualiza saldo automaticamente
+7. Frontend verifica status a cada 3s
 
-## 🔄 Integração com Backend
+### Embarque (Cobrador)
+1. Cobrador seleciona viagem ativa
+2. Abre scanner QR Code
+3. Passageiro mostra QR Code
+4. Scanner lê e envia para `/api/embarques/validar`
+5. Backend valida (saldo, gratuidade, etc.)
+6. Retorna sucesso + tipo de embarque
+7. Embarque registrado na lista
 
-### Comunicação API
-- Axios para requisições HTTP
-- Interceptors para tratamento de erros
-- Retry automático em falhas de rede
-- Cache inteligente de dados
+### Carteirinha Idoso
+1. Passageiro clica em "Solicitar"
+2. Backend verifica idade (60+)
+3. Gera número único (0001-2025)
+4. Cria QR Code assinado
+5. Gera PDF com layout verde + dourado
+6. Retorna carteirinha completa
+7. Frontend exibe visual bonito
 
-### Monitoramento
-- Verificação de conectividade
-- Alertas visuais para problemas
-- Reconexão automática
-- Feedback em tempo real
+## 🎯 Próximas Melhorias
 
-## 📞 Suporte
+- [ ] Modo offline (Service Worker)
+- [ ] Notificações push
+- [ ] Histórico de embarques (passageiro)
+- [ ] Relatórios (admin)
+- [ ] Gestão de usuários (admin)
+- [ ] Gestão de ônibus/rotas (admin)
+- [ ] Chat de suporte
+- [ ] Tema escuro completo
+- [ ] PWA (instalável)
+- [ ] App mobile (React Native)
 
-Para dúvidas ou problemas:
-1. Consulte a documentação completa
-2. Verifique o console do navegador
-3. Execute os scripts de validação
-4. Entre em contato via issues do GitHub
+## 📝 Licença
+
+MIT
 
 ---
 
-**Interface moderna para o futuro do transporte público** 🚀
+**Desenvolvido com 💚 pela equipe Raptur**
+
