@@ -1,7 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import fs from "node:fs";
-import path from "path";
+import fs from "node:fs"; // <-- Já estava correto
+import path from "node:path"; // <-- CORRIGIDO
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
@@ -41,3 +41,4 @@ export default defineConfig({
     },
   },
 });
+
