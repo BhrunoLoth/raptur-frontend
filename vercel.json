@@ -1,8 +1,9 @@
 {
-  "buildCommand": "pnpm install && pnpm run build",
-  "outputDirectory": "dist/public",
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
-  "framework": null,
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
@@ -10,4 +11,3 @@
     }
   ]
 }
-
