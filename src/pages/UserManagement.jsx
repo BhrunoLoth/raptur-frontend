@@ -6,10 +6,10 @@ export default function UserManagement() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
 
-  // URL base do backend definida no .env do Vite (VITE_API_URL)
+  // URL base do backend definida no Vercel como VITE_API_URL
   const BACKEND = import.meta.env.VITE_API_URL;
 
-  // Token que você salvou no login
+  // Token salvo no login
   const token = localStorage.getItem("token");
 
   async function carregarUsuarios() {
@@ -17,7 +17,7 @@ export default function UserManagement() {
       setCarregando(true);
       setErro("");
 
-      // ROTA CORRETA AGORA 👇
+      // ROTA CORRETA (sem /api/api)
       const resp = await axios.get(`${BACKEND}/api/usuarios`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
@@ -25,9 +25,8 @@ export default function UserManagement() {
         },
       });
 
-      // Ajusta o formato conforme o backend responde:
-      // Se o backend devolve { usuarios: [...] } -> pega .usuarios
-      // Se já devolve um array direto -> usa direto
+      // Caso o backend responda { usuarios: [...] }
+      // ou responda um array direto
       const lista = Array.isArray(resp.data)
         ? resp.data
         : resp.data.usuarios || [];
@@ -155,3 +154,28 @@ export default function UserManagement() {
                         className="text-red-600 hover:underline text-xs font-medium"
                         onClick={() => console.log("desativar", u)}
                       >
+                        Desativar
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Toast de erro */}
+      {erro && (
+        <div className="mt-6 bg-white border border-gray-200 shadow rounded-md p-4 flex items-start gap-3 max-w-lg">
+          <div className="text-xl leading-none text-gray-700">⚠</div>
+          <div>
+            <p className="text-sm text-gray-800 font-medium">
+              {erro || "Erro ao carregar usuários"}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
