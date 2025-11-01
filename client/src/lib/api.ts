@@ -10,7 +10,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Pega o token diretamente do localStorage ou do store Zustand
-    const token = localStorage.getItem('authToken') || useAuthStore.getState().token;
+    const token = localStorage.getItem('token') || useAuthStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -41,5 +41,15 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Exporta um objeto de autenticação separado.
+ * Como VITE_API_URL não inclui /api no final, adicionamos explicitamente /api nas rotas.
+ */
+export const authAPI = {
+  login: (cpf: string, senha: string) =>
+    api.post('/api/auth/login', { cpf, senha }),
+  getProfile: () => api.get('/api/auth/profile'),
+};
 
 export default api;
