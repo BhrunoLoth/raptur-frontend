@@ -4,9 +4,12 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+
+// Páginas do sistema
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import DashboardAdmin from "./pages/DashboardAdmin";
 import Cobrador from "./pages/Cobrador";
 import Register from "./pages/Register";
 import Passageiro from "./pages/Passageiro";
@@ -19,44 +22,48 @@ import GerenciarRotas from "./pages/GerenciarRotas";
 import GerenciarMotoristas from "./pages/GerenciarMotoristas";
 import GerenciarCobradores from "./pages/GerenciarCobradores";
 import Relatorios from "./pages/Relatorios";
-import DashboardAdmin from "./pages/DashboardAdmin";
+
+// ✅ Páginas novas de pagamento
+import PagamentoSucesso from "./pages/PagamentoSucesso";
+import PagamentoErro from "./pages/PagamentoErro";
+import PagamentoPendente from "./pages/PagamentoPendente";
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/login"} component={Login} />
-      <Route path={"/dashboard"} component={DashboardAdmin} />
-      <Route path={"/cobrador"} component={Cobrador} />
-      <Route path={"/register"} component={Register} />
-      <Route path={"/passageiro"} component={Passageiro} />
-      <Route path={"/carteirinha"} component={CarteirinhaIdoso} />
-      <Route path={"/motorista"} component={Motorista} />
-      <Route path={"/importar-alunos"} component={ImportarAlunos} />
-      <Route path={"/gerenciar-usuarios"} component={GerenciarUsuarios} />
-      <Route path={"/gerenciar-onibus"} component={GerenciarOnibus} />
-      <Route path={"/gerenciar-rotas"} component={GerenciarRotas} />
-      <Route path={"/gerenciar-motoristas"} component={GerenciarMotoristas} />
-      <Route path={"/gerenciar-cobradores"} component={GerenciarCobradores} />
-      <Route path={"/relatorios"} component={Relatorios} />
-      <Route path={"/404"} component={NotFound} />
+      {/* Rotas principais */}
+      <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/dashboard" component={DashboardAdmin} />
+      <Route path="/cobrador" component={Cobrador} />
+      <Route path="/register" component={Register} />
+      <Route path="/passageiro" component={Passageiro} />
+      <Route path="/carteirinha" component={CarteirinhaIdoso} />
+      <Route path="/motorista" component={Motorista} />
+      <Route path="/importar-alunos" component={ImportarAlunos} />
+      <Route path="/gerenciar-usuarios" component={GerenciarUsuarios} />
+      <Route path="/gerenciar-onibus" component={GerenciarOnibus} />
+      <Route path="/gerenciar-rotas" component={GerenciarRotas} />
+      <Route path="/gerenciar-motoristas" component={GerenciarMotoristas} />
+      <Route path="/gerenciar-cobradores" component={GerenciarCobradores} />
+      <Route path="/relatorios" component={Relatorios} />
+
+      {/* ✅ Rotas do pagamento */}
+      <Route path="/pagamento/sucesso" component={PagamentoSucesso} />
+      <Route path="/pagamento/erro" component={PagamentoErro} />
+      <Route path="/pagamento/pendente" component={PagamentoPendente} />
+
+      {/* 404 */}
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
