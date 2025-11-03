@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 export default function Passageiro() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuthStore();
+
   const [perfil, setPerfil] = useState<any>(null);
   const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,47 +25,41 @@ export default function Passageiro() {
     loadData();
   }, [isAuthenticated, user]);
 
-  const loadData = async () => {
+  async function loadData() {
     try {
-      const [perfilRes, pagamentosRes] = await Promise.all([
-        authAPI.getProfile(),
-        pixAPI.listarPagamentos(),
-      ]);
+      const perfilRes = await authAPI.getProfile();
+      const pagamentosRes = await pixAPI.listarPagamentos();
 
-      setPerfil(perfilRes.data.data);
-      setPagamentos(pagamentosRes.data.data || []);
+      setPerfil(perfilRes.data);
+      setPagamentos(pagamentosRes.data || []);
     } catch (error: any) {
-      toast.error('Erro ao carregar dados');
+      toast.error('Erro ao carregar informações');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const handleRecargaSuccess = () => {
+    toast.success('Saldo atualizado!');
     loadData();
-    toast.success('Recarga realizada com sucesso!');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Carregando...</p>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        Carregando...
       </div>
     );
   }
 
   const saldo = perfil?.carteira?.saldo || 0;
-  const qrCodeData = perfil?.passageiro?.qrCode || JSON.stringify({ id: perfil?.id, cpf: perfil?.cpf });
+  const qr = perfil?.qrCode || JSON.stringify({ id: perfil?.id, cpf: perfil?.cpf });
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b bg-card">
-        <div className="container flex items-center justify-between h-16">
-          <h1 className="text-2xl font-bold text-primary">Minha Carteira</h1>
+        <div className="container flex justify-between h-16 items-center">
+          <h1 className="text-2xl font-bold">Minha Carteira</h1>
           <Button variant="outline" onClick={() => setLocation('/dashboard')}>
             Voltar
           </Button>
@@ -72,103 +67,58 @@ export default function Passageiro() {
       </header>
 
       <main className="container py-8 space-y-6">
-        {/* Saldo */}
-        <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+        <Card className="bg-gradient-to-br from-primary to-green-600 text-white">
           <CardHeader>
-            <CardTitle className="text-lg opacity-90">Saldo Disponível</CardTitle>
+            <CardTitle>Saldo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">R$ {saldo.toFixed(2)}</span>
-            </div>
+            <p className="text-5xl font-bold">R$ {saldo.toFixed(2)}</p>
             <Button
               onClick={() => setShowRecarga(true)}
-              className="mt-4 bg-secondary text-secondary-foreground hover:bg-secondary/90"
+              className="mt-4 bg-white text-primary"
             >
-              Adicionar Créditos
+              Recarregar
             </Button>
           </CardContent>
         </Card>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* QR Code */}
-          <QRCodeDisplay
-            value={qrCodeData}
-            title="Meu QR Code de Embarque"
-            size={220}
-          />
+          <QRCodeDisplay value={qr} size={220} title="QR de Embarque" />
 
-          {/* Informações */}
           <Card>
             <CardHeader>
-              <CardTitle>Informações</CardTitle>
+              <CardTitle>Meus Dados</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Nome</p>
-                <p className="font-medium">{perfil?.nome}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">CPF</p>
-                <p className="font-medium">{perfil?.cpf}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{perfil?.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Telefone</p>
-                <p className="font-medium">{perfil?.telefone}</p>
-              </div>
+            <CardContent>
+              <p><b>Nome:</b> {perfil?.nome}</p>
+              <p><b>CPF:</b> {perfil?.cpf}</p>
+              <p><b>Email:</b> {perfil?.email}</p>
+              <p><b>Telefone:</b> {perfil?.telefone}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Histórico de Recargas */}
         <Card>
           <CardHeader>
             <CardTitle>Histórico de Recargas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {pagamentos.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Nenhuma recarga realizada ainda
-                </p>
-              ) : (
-                pagamentos.slice(0, 10).map((pagamento) => (
-                  <div
-                    key={pagamento.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">Recarga PIX</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(pagamento.createdAt).toLocaleDateString('pt-BR')} às{' '}
-                        {new Date(pagamento.createdAt).toLocaleTimeString('pt-BR')}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary">
-                        + R$ {pagamento.valor.toFixed(2)}
-                      </p>
-                      <p className={`text-xs capitalize ${
-                        pagamento.status === 'aprovado' ? 'text-green-600' :
-                        pagamento.status === 'pendente' ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {pagamento.status}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            {pagamentos.length === 0 && (
+              <p className="text-center py-6 text-muted-foreground">
+                Nenhuma recarga feita ainda
+              </p>
+            )}
+
+            {pagamentos.map((p) => (
+              <div key={p.id} className="flex justify-between py-2 border-b">
+                <span>{new Date(p.createdAt).toLocaleString()}</span>
+                <span>+ R$ {p.valor.toFixed(2)}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </main>
 
-      {/* Modal de Recarga */}
       <RecargaPIX
         open={showRecarga}
         onClose={() => setShowRecarga(false)}
@@ -177,4 +127,3 @@ export default function Passageiro() {
     </div>
   );
 }
-
