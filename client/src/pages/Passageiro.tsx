@@ -31,8 +31,8 @@ export default function Passageiro() {
         pixAPI.listarPagamentos(),
       ]);
 
-      setPerfil(perfilRes.data.data);
-      setPagamentos(pagamentosRes.data.data || []);
+      setPerfil(perfilRes.data);
+      setPagamentos(pagamentosRes.data || []);
     } catch (error: any) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -61,7 +61,6 @@ export default function Passageiro() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b bg-card">
         <div className="container flex items-center justify-between h-16">
           <h1 className="text-2xl font-bold text-primary">Minha Carteira</h1>
@@ -72,15 +71,12 @@ export default function Passageiro() {
       </header>
 
       <main className="container py-8 space-y-6">
-        {/* Saldo */}
         <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
           <CardHeader>
             <CardTitle className="text-lg opacity-90">Saldo Disponível</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">R$ {saldo.toFixed(2)}</span>
-            </div>
+            <span className="text-5xl font-bold">R$ {saldo.toFixed(2)}</span>
             <Button
               onClick={() => setShowRecarga(true)}
               className="mt-4 bg-secondary text-secondary-foreground hover:bg-secondary/90"
@@ -91,90 +87,66 @@ export default function Passageiro() {
         </Card>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* QR Code */}
-          <QRCodeDisplay
-            value={qrCodeData}
-            title="Meu QR Code de Embarque"
-            size={220}
-          />
+          <QRCodeDisplay value={qrCodeData} title="Meu QR Code de Embarque" size={220} />
 
-          {/* Informações */}
           <Card>
             <CardHeader>
               <CardTitle>Informações</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Nome</p>
-                <p className="font-medium">{perfil?.nome}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">CPF</p>
-                <p className="font-medium">{perfil?.cpf}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{perfil?.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Telefone</p>
-                <p className="font-medium">{perfil?.telefone}</p>
-              </div>
+              {[
+                ['Nome', perfil?.nome],
+                ['CPF', perfil?.cpf],
+                ['Email', perfil?.email],
+                ['Telefone', perfil?.telefone],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <p className="text-sm text-muted-foreground">{label}</p>
+                  <p className="font-medium">{value}</p>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>
 
-        {/* Histórico de Recargas */}
         <Card>
           <CardHeader>
             <CardTitle>Histórico de Recargas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {pagamentos.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Nenhuma recarga realizada ainda
-                </p>
-              ) : (
-                pagamentos.slice(0, 10).map((pagamento) => (
-                  <div
-                    key={pagamento.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">Recarga PIX</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(pagamento.createdAt).toLocaleDateString('pt-BR')} às{' '}
-                        {new Date(pagamento.createdAt).toLocaleTimeString('pt-BR')}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary">
-                        + R$ {pagamento.valor.toFixed(2)}
-                      </p>
-                      <p className={`text-xs capitalize ${
-                        pagamento.status === 'aprovado' ? 'text-green-600' :
-                        pagamento.status === 'pendente' ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {pagamento.status}
-                      </p>
-                    </div>
+            {pagamentos.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Nenhuma recarga realizada ainda</p>
+            ) : (
+              pagamentos.slice(0, 10).map((p) => (
+                <div key={p.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Recarga PIX</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(p.createdAt).toLocaleDateString('pt-BR')} às {new Date(p.createdAt).toLocaleTimeString('pt-BR')}
+                    </p>
                   </div>
-                ))
-              )}
-            </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-primary">+ R$ {p.valor.toFixed(2)}</p>
+                    <p
+                      className={`text-xs capitalize ${
+                        p.status === 'aprovado'
+                          ? 'text-green-600'
+                          : p.status === 'pendente'
+                          ? 'text-yellow-600'
+                          : 'text-red-600'
+                      }`}
+                    >
+                      {p.status}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </main>
 
-      {/* Modal de Recarga */}
-      <RecargaPIX
-        open={showRecarga}
-        onClose={() => setShowRecarga(false)}
-        onSuccess={handleRecargaSuccess}
-      />
+      <RecargaPIX open={showRecarga} onClose={() => setShowRecarga(false)} onSuccess={handleRecargaSuccess} />
     </div>
   );
 }
-
