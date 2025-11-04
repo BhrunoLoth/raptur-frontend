@@ -1,155 +1,111 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import QRCodeDisplay from './QRCodeDisplay';
+import { useEffect, useState } from 'react';
+import QRCodeDisplay from '@/components/QRCodeDisplay';
 import { pixAPI } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
-interface RecargaPIXProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
-
-export default function RecargaPIX({ open, onClose, onSuccess }: RecargaPIXProps) {
+export default function RecargaPIX() {
   const [valor, setValor] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [qrCode, setQRCode] = useState('');
   const [pagamentoId, setPagamentoId] = useState<string | null>(null);
-  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const valorNum = parseFloat(valor);
-    if (isNaN(valorNum) || valorNum < 1) {
-      toast.error('Valor mínimo é R$ 1,00');
-      return;
+  const handleRecarga = async () => {
+    if (!valor || Number(valor) <= 0) {
+      return toast.error('Informe um valor válido');
     }
 
-    setLoading(true);
     try {
-      const response = await pixAPI.criarRecarga(valorNum);
-      const { qrCode: qrCodeData, pagamentoId: id } = response.data.data;
-      
-      setQrCode(qrCodeData);
-      setPagamentoId(id);
-      toast.success('QR Code gerado! Escaneie para pagar');
-      
-      startStatusCheck(id);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao gerar QR Code');
+      setLoading(true);
+      const valorNumber = Number(valor);
+
+      const res = await pixAPI.criarRecarga(valorNumber);
+      if (!res?.id || !res?.qr_code) {
+        throw new Error('Resposta inválida do servidor');
+      }
+
+      setPagamentoId(res.id);
+      setQRCode(res.qr_code);
+      toast.success('QR Code gerado!');
+
+      setValor('');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao gerar pagamento Pix');
     } finally {
       setLoading(false);
     }
   };
 
-  const startStatusCheck = (id: string) => {
+  // Pooling para verificar pagamento
+  useEffect(() => {
+    if (!pagamentoId) return;
+
     const interval = setInterval(async () => {
       try {
-        setCheckingStatus(true);
-        const response = await pixAPI.consultarStatus(id);
-        const { status } = response.data.data;
+        const status = await pixAPI.consultarStatus(pagamentoId);
 
-        if (status === 'aprovado') {
+        if (status?.status === 'approved' || status?.status === 'pago') {
           clearInterval(interval);
-          toast.success('Pagamento aprovado! Saldo atualizado');
-          onSuccess?.();
-          handleClose();
-        } else if (['cancelado', 'expirado'].includes(status)) {
-          clearInterval(interval);
-          toast.error('Pagamento não realizado');
+          setPagamentoId(null);
+          toast.success('Pagamento confirmado! ✅');
+
+          window.dispatchEvent(new Event("saldo-atualizado"));
+          setQRCode('');
         }
       } catch {
-      } finally {
-        setCheckingStatus(false);
+        // Ignora erros silenciosamente
       }
-    }, 3000);
+    }, 5000);
 
-    setTimeout(() => clearInterval(interval), 300000);
-  };
-
-  const handleClose = () => {
-    setValor('');
-    setQrCode(null);
-    setPagamentoId(null);
-    onClose();
-  };
+    return () => clearInterval(interval);
+  }, [pagamentoId]);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-primary">Recarga via PIX</DialogTitle>
-          <DialogDescription>
-            Adicione créditos à sua carteira usando PIX
-          </DialogDescription>
-        </DialogHeader>
+    <div className="max-w-md mx-auto mt-10 p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Recarga via PIX</CardTitle>
+        </CardHeader>
 
-        {!qrCode ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="valor">Valor da Recarga</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  R$
-                </span>
-                <Input
-                  id="valor"
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  placeholder="0,00"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Valor mínimo: R$ 1,00</p>
-            </div>
+        <CardContent className="space-y-4">
+          {!qrCode && (
+            <>
+              <input
+                type="number"
+                placeholder="Valor da recarga"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                className="w-full p-3 border rounded-lg"
+              />
 
-            <div className="flex gap-2">
-              {['10', '20', '50'].map(v => (
-                <Button key={v} type="button" variant="outline" onClick={() => setValor(v)} className="flex-1">
-                  R$ {v}
-                </Button>
-              ))}
-            </div>
+              <Button onClick={handleRecarga} disabled={loading}>
+                {loading ? 'Gerando...' : 'Gerar QR Code PIX'}
+              </Button>
+            </>
+          )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Gerando QR Code...' : 'Gerar QR Code PIX'}
-            </Button>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <QRCodeDisplay value={qrCode} title={`Pagar R$ ${parseFloat(valor).toFixed(2)}`} size={200} />
-            
-            <div className="bg-muted p-4 rounded-lg space-y-2">
-              <p className="text-sm font-medium">Como pagar:</p>
-              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Abra o app do seu banco</li>
-                <li>Escolha pagar com PIX</li>
-                <li>Escaneie o QR Code acima</li>
-                <li>Confirme o pagamento</li>
-              </ol>
-            </div>
+          {qrCode && (
+            <div className="space-y-4">
+              <QRCodeDisplay value={qrCode} title="Escaneie para pagar" />
 
-            {checkingStatus && (
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setQRCode('');
+                  setPagamentoId(null);
+                }}
+              >
+                Cancelar
+              </Button>
+
+              <p className="text-xs text-center text-muted-foreground">
                 Aguardando pagamento...
-              </div>
-            )}
-
-            <Button variant="outline" onClick={handleClose} className="w-full">
-              Cancelar
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
