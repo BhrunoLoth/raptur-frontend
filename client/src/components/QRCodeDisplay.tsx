@@ -1,103 +1,65 @@
-import QRCode from 'react-qr-code';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Download, Share2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useRef } from 'react';
+import QRCode from 'qrcode.react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface QRCodeDisplayProps {
   value: string;
   title?: string;
   size?: number;
-  showValue?: boolean;
 }
 
-export default function QRCodeDisplay({ 
-  value, 
-  title = 'QR Code', 
-  size = 256,
-  showValue = false 
+export default function QRCodeDisplay({
+  value,
+  title = 'Seu QR Code',
+  size = 200,
 }: QRCodeDisplayProps) {
+  const qrRef = useRef<HTMLDivElement>(null);
 
-  const downloadQRCode = () => {
-    try {
-      const svg = document.querySelector('#qrcode-svg') as SVGSVGElement;
-      if (!svg) return;
+  const downloadQR = () => {
+    const canvas = qrRef.current?.querySelector('canvas');
+    if (!canvas) return;
 
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      canvas.width = size + 40;
-      canvas.height = size + 40;
-      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-
-      img.onload = () => {
-        if (ctx) {
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 20, 20);
-
-          const pngFile = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.download = `qrcode-raptur.png`;
-          link.href = pngFile;
-          link.click();
-          toast.success('✅ QR Code baixado com sucesso!');
-        }
-      };
-    } catch (err) {
-      toast.error('Erro ao baixar QR Code');
-    }
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `qrcode-${Date.now()}.png`;
+    link.click();
   };
 
-  const shareQRCode = async () => {
-    if (!navigator.share) {
-      toast.info('Compartilhamento não suportado neste dispositivo.');
-      return;
-    }
-
-    try {
-      await navigator.share({
-        title: 'Meu QR Code RAPTUR',
-        text: 'Use este QR Code para embarcar no ônibus.',
-      });
-    } catch {
-      // cancelado
-    }
-  };
+  if (!value) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>QR Code não disponível</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-sm">
+            O código ainda não foi gerado ou não está disponível.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
+    <Card className="text-center">
       <CardHeader>
-        <CardTitle className="text-center">{title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-4">
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <QRCode id="qrcode-svg" value={value} size={size} />
+      <CardContent className="space-y-4 flex flex-col items-center">
+        
+        {/* QR CODE */}
+        <div ref={qrRef} className="p-4 bg-white rounded-lg shadow">
+          <QRCode value={value} size={size} level="H" includeMargin />
         </div>
 
-        <div className="grid grid-cols-2 gap-2 w-full">
-          <Button variant="outline" onClick={downloadQRCode}>
-            <Download className="w-4 h-4 mr-2" />
-            Baixar
-          </Button>
-
-          <Button variant="outline" onClick={shareQRCode}>
-            <Share2 className="w-4 h-4 mr-2" />
-            Compartilhar
-          </Button>
-        </div>
-
-        <p className="text-xs text-muted-foreground text-center bg-primary/10 border border-primary/20 rounded-lg p-3">
-          🔒 Este é seu <strong>QR Code permanente</strong>.
+        <p className="text-xs text-muted-foreground break-all">
+          {value}
         </p>
 
-        {showValue && (
-          <p className="text-xs text-muted-foreground text-center break-all max-w-xs">
-            {value}
-          </p>
-        )}
+        <Button onClick={downloadQR} variant="outline" className="w-full">
+          Baixar QR Code
+        </Button>
       </CardContent>
     </Card>
   );
