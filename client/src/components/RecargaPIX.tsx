@@ -38,7 +38,6 @@ export default function RecargaPIX({ open, onClose, onSuccess }: RecargaPIXProps
       setPagamentoId(id);
       toast.success('QR Code gerado! Escaneie para pagar');
       
-      // Iniciar verificação de status
       startStatusCheck(id);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao gerar QR Code');
@@ -59,18 +58,16 @@ export default function RecargaPIX({ open, onClose, onSuccess }: RecargaPIXProps
           toast.success('Pagamento aprovado! Saldo atualizado');
           onSuccess?.();
           handleClose();
-        } else if (status === 'cancelado' || status === 'expirado') {
+        } else if (['cancelado', 'expirado'].includes(status)) {
           clearInterval(interval);
           toast.error('Pagamento não realizado');
         }
-      } catch (error) {
-        console.error('Erro ao verificar status:', error);
+      } catch {
       } finally {
         setCheckingStatus(false);
       }
-    }, 3000); // Verificar a cada 3 segundos
+    }, 3000);
 
-    // Parar após 5 minutos
     setTimeout(() => clearInterval(interval), 300000);
   };
 
@@ -115,30 +112,11 @@ export default function RecargaPIX({ open, onClose, onSuccess }: RecargaPIXProps
             </div>
 
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setValor('10')}
-                className="flex-1"
-              >
-                R$ 10
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setValor('20')}
-                className="flex-1"
-              >
-                R$ 20
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setValor('50')}
-                className="flex-1"
-              >
-                R$ 50
-              </Button>
+              {['10', '20', '50'].map(v => (
+                <Button key={v} type="button" variant="outline" onClick={() => setValor(v)} className="flex-1">
+                  R$ {v}
+                </Button>
+              ))}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
@@ -147,11 +125,7 @@ export default function RecargaPIX({ open, onClose, onSuccess }: RecargaPIXProps
           </form>
         ) : (
           <div className="space-y-4">
-            <QRCodeDisplay 
-              value={qrCode} 
-              title={`Pagar R$ ${parseFloat(valor).toFixed(2)}`}
-              size={200}
-            />
+            <QRCodeDisplay value={qrCode} title={`Pagar R$ ${parseFloat(valor).toFixed(2)}`} size={200} />
             
             <div className="bg-muted p-4 rounded-lg space-y-2">
               <p className="text-sm font-medium">Como pagar:</p>
@@ -179,4 +153,3 @@ export default function RecargaPIX({ open, onClose, onSuccess }: RecargaPIXProps
     </Dialog>
   );
 }
-
