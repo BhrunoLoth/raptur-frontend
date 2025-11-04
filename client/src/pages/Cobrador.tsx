@@ -7,12 +7,27 @@ import QRScanner from '@/components/QRScanner';
 import { embarqueAPI, viagemAPI } from '@/lib/api';
 import { toast } from 'sonner';
 
+interface Viagem {
+  id: string;
+  rota?: { nome: string };
+  onibus?: { placa: string };
+}
+
+interface Embarque {
+  id: string;
+  createdAt: string;
+  valor: number;
+  tipoEmbarque: string;
+  passageiro?: { usuario?: { nome: string } };
+}
+
 export default function Cobrador() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuthStore();
-  const [viagens, setViagens] = useState<any[]>([]);
+
+  const [viagens, setViagens] = useState<Viagem[]>([]);
   const [viagemSelecionada, setViagemSelecionada] = useState<string>('');
-  const [embarques, setEmbarques] = useState<any[]>([]);
+  const [embarques, setEmbarques] = useState<Embarque[]>([]);
   const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
@@ -25,9 +40,9 @@ export default function Cobrador() {
 
   const loadViagens = async () => {
     try {
-      const response = await viagemAPI.listar({ status: 'em_andamento' });
-      setViagens(response.data.data);
-    } catch (error) {
+      const data = await viagemAPI.listar({ status: 'em_andamento' });
+      setViagens(data?.data || data || []);
+    } catch {
       toast.error('Erro ao carregar viagens');
     }
   };
@@ -39,14 +54,21 @@ export default function Cobrador() {
     }
 
     try {
-      const response = await embarqueAPI.validar(qrCodeData, viagemSelecionada);
-      const embarque = response.data.data;
-      
-      setEmbarques([embarque, ...embarques]);
-      toast.success(`Embarque validado! ${embarque.tipoEmbarque === 'gratuito' ? 'GRATUITO' : `R$ ${embarque.valor}`}`);
+      const data = await embarqueAPI.validar(qrCodeData, viagemSelecionada);
+      const embarque = data?.data || data;
+
+      setEmbarques((prev) => [embarque, ...prev]);
+      toast.success(
+        `Embarque validado! ${
+          embarque.tipoEmbarque === 'gratuito'
+            ? 'GRATUITO'
+            : `R$ ${embarque.valor}`
+        }`
+      );
+
       setShowScanner(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao validar embarque');
+      toast.error(error?.message || 'Erro ao validar embarque');
     }
   };
 
@@ -62,7 +84,7 @@ export default function Cobrador() {
       </header>
 
       <main className="container py-8 space-y-6">
-        {/* Seleção de Viagem */}
+        {/* Selecionar Viagem */}
         <Card>
           <CardHeader>
             <CardTitle>Selecionar Viagem</CardTitle>
@@ -83,7 +105,7 @@ export default function Cobrador() {
           </CardContent>
         </Card>
 
-        {/* Scanner */}
+        {/* Botão / Scanner */}
         {viagemSelecionada && (
           <>
             {!showScanner ? (
@@ -117,14 +139,24 @@ export default function Cobrador() {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div>
-                      <p className="font-medium">{embarque.passageiro?.usuario?.nome}</p>
+                      <p className="font-medium">
+                        {embarque.passageiro?.usuario?.nome}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(embarque.createdAt).toLocaleTimeString('pt-BR')}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${embarque.tipoEmbarque === 'gratuito' ? 'text-secondary' : 'text-primary'}`}>
-                        {embarque.tipoEmbarque === 'gratuito' ? 'GRATUITO' : `R$ ${embarque.valor}`}
+                      <p
+                        className={`font-bold ${
+                          embarque.tipoEmbarque === 'gratuito'
+                            ? 'text-secondary'
+                            : 'text-primary'
+                        }`}
+                      >
+                        {embarque.tipoEmbarque === 'gratuito'
+                          ? 'GRATUITO'
+                          : `R$ ${embarque.valor}`}
                       </p>
                       <p className="text-xs text-muted-foreground capitalize">
                         {embarque.tipoEmbarque}
@@ -140,4 +172,3 @@ export default function Cobrador() {
     </div>
   );
 }
-
