@@ -1,137 +1,75 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api` || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// Garante `/api`
+const baseURL = API_URL.includes("/api") ? API_URL : `${API_URL}/api`;
 
 export const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL,
+  headers: { "Content-Type": "application/json" },
 });
 
-// Interceptor para adicionar token JWT
+// ✅ Adiciona token automaticamente
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    const token = localStorage.getItem("token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Interceptor para tratar erros
+// ✅ Expira sessão se 401
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
     }
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 );
 
-// Auth
+/* ---------------- AUTH ---------------- */
 export const authAPI = {
-  login: (cpf: string, senha: string) =>
-    api.post('/auth/login', { cpf, senha }),
-  
-  register: (data: any) =>
-    api.post('/auth/register', data),
-  
-  getProfile: () =>
-    api.get('/auth/perfil'),
+  login: (cpf: string, senha: string) => api.post("/auth/login", { cpf, senha }),
+  getProfile: () => api.get("/auth/me"),
 };
 
-// PIX
+/* ---------------- PIX (Ajustado p/ backend novo) ---------------- */
 export const pixAPI = {
-  criarRecarga: (valor: number) =>
-    api.post('/pix/recarga', { valor }),
-  
-  consultarStatus: (pagamentoId: string) =>
-    api.get(`/pix/status/${pagamentoId}`),
-  
-  listarPagamentos: () =>
-    api.get('/pix/pagamentos'),
+  criarRecarga: (valor: number) => api.post("/pagamento/gerar-pagamento", { valor }),
+  consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
+  listarPagamentos: () => api.get("/pagamento/meus"),
 };
 
-// Embarque
+/* ---------------- Embarques ---------------- */
 export const embarqueAPI = {
-  validar: (qrCodeData: string, viagemId: string) =>
-    api.post('/embarques/validar', { qrCodeData, viagemId }),
-  
-  listarPorViagem: (viagemId: string) =>
-    api.get(`/embarques/viagem/${viagemId}`),
-  
-  sincronizar: (embarques: any[]) =>
-    api.post('/embarques/sincronizar', { embarques }),
+  validar: (qrCode: string, viagemId: string) =>
+    api.post("/embarques/validar", { qrCode, viagemId }),
 };
 
-// Viagem
+/* ---------------- Viagens ---------------- */
 export const viagemAPI = {
-  listar: (params?: any) =>
-    api.get('/viagens', { params }),
-  
-  minhas: () =>
-    api.get('/viagens/minhas'),
-  
-  buscar: (id: string) =>
-    api.get(`/viagens/${id}`),
-  
-  iniciar: (id: string) =>
-    api.put(`/viagens/${id}/iniciar`),
-  
-  finalizar: (id: string, observacoes?: string) =>
-    api.put(`/viagens/${id}/finalizar`, { observacoes }),
+  minhas: () => api.get("/viagens/minhas"),
+  iniciar: (id: string) => api.post(`/viagens/${id}/iniciar`),
+  finalizar: (id: string) => api.post(`/viagens/${id}/finalizar`),
 };
 
-// Carteirinha Idoso
+/* ---------------- Idoso ---------------- */
 export const idosoAPI = {
-  solicitar: () =>
-    api.post('/idosos'),
-  
-  minha: () =>
-    api.get('/idosos/minha'),
-  
-  validar: (numero: string) =>
-    api.get(`/idosos/validar/${numero}`),
-  
-  listar: (params?: any) =>
-    api.get('/idosos', { params }),
+  minha: () => api.get("/idoso/me"),
+  solicitar: () => api.post("/idoso/solicitar"),
 };
 
-// Dashboard
-export const dashboardAPI = {
-  estatisticas: () =>
-    api.get('/dashboard/estatisticas'),
-  
-  viagens: (params?: any) =>
-    api.get('/dashboard/viagens', { params }),
-  
-  topRotas: (limit?: number) =>
-    api.get('/dashboard/top-rotas', { params: { limit } }),
-};
-
-// Usuários
+/* ---------------- Usuários ---------------- */
 export const usuarioAPI = {
-  listar: (params?: any) =>
-    api.get('/usuarios', { params }),
-  
-  buscar: (id: string) =>
-    api.get(`/usuarios/${id}`),
-  
-  criar: (data: any) =>
-    api.post('/usuarios', data),
-  
-  atualizar: (id: string, data: any) =>
-    api.put(`/usuarios/${id}`, data),
-  
-  deletar: (id: string) =>
-    api.delete(`/usuarios/${id}`),
+  listar: () => api.get("/usuarios"),
+  criar: (data: any) => api.post("/usuarios", data),
+  editar: (id: string, data: any) => api.put(`/usuarios/${id}`, data),
+  ativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: true }),
+  desativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: false }),
 };
-
-export default api;
-
