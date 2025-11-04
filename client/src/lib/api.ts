@@ -10,7 +10,7 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// ✅ Adiciona token automaticamente
+// ✅ Intercepta token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -39,7 +39,7 @@ export const authAPI = {
   getProfile: () => api.get("/auth/me"),
 };
 
-/* ---------------- PIX (Ajustado p/ backend novo) ---------------- */
+/* ---------------- PIX ---------------- */
 export const pixAPI = {
   criarRecarga: (valor: number) => api.post("/pagamento/gerar-pagamento", { valor }),
   consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
@@ -72,4 +72,9 @@ export const usuarioAPI = {
   editar: (id: string, data: any) => api.put(`/usuarios/${id}`, data),
   ativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: true }),
   desativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: false }),
+};
+
+/* ---------------- Dashboard Admin ✅ NOVO ---------------- */
+export const dashboardAPI = {
+  estatisticas: () => api.get("/admin/dashboard/resumo"),
 };
