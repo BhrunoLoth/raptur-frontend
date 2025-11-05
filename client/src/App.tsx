@@ -74,63 +74,33 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
 
-      {/* Redirecionamento */}
+      {/* Redirect */}
       <Route path="/dashboard" component={DashboardRedirect} />
 
-      {/* ROTAS */}
+      {/* Admin Dashboard */}
       <Route
         path="/dashboard/admin"
-        component={(p) => (
-          <PrivateRoute component={DashboardAdmin} roles={["admin"]} {...p} />
+        component={(props) => (
+          <PrivateRoute component={DashboardAdmin} roles={["admin"]} {...props} />
         )}
       />
 
-      <Route path="/cobrador" component={(p) =>
-        <PrivateRoute component={Cobrador} roles={["cobrador"]} {...p} />
-      } />
+      {/* Role Routes */}
+      <Route path="/cobrador" component={(p) => <PrivateRoute component={Cobrador} roles={["cobrador"]} {...p} />} />
+      <Route path="/passageiro" component={(p) => <PrivateRoute component={Passageiro} roles={["passageiro"]} {...p} />} />
+      <Route path="/carteirinha" component={(p) => <PrivateRoute component={CarteirinhaIdoso} roles={["passageiro"]} {...p} />} />
+      <Route path="/motorista" component={(p) => <PrivateRoute component={Motorista} roles={["motorista"]} {...p} />} />
 
-      <Route path="/passageiro" component={(p) =>
-        <PrivateRoute component={Passageiro} roles={["passageiro"]} {...p} />
-      } />
+      {/* Admin menu links */}
+      <Route path="/importar-alunos" component={(p) => <PrivateRoute component={ImportarAlunos} roles={["admin"]} {...p} />} />
+      <Route path="/gerenciar-usuarios" component={(p) => <PrivateRoute component={GerenciarUsuarios} roles={["admin"]} {...p} />} />
+      <Route path="/gerenciar-onibus" component={(p) => <PrivateRoute component={GerenciarOnibus} roles={["admin"]} {...p} />} />
+      <Route path="/gerenciar-rotas" component={(p) => <PrivateRoute component={GerenciarRotas} roles={["admin"]} {...p} />} />
+      <Route path="/gerenciar-motoristas" component={(p) => <PrivateRoute component={GerenciarMotoristas} roles={["admin"]} {...p} />} />
+      <Route path="/gerenciar-cobradores" component={(p) => <PrivateRoute component={GerenciarCobradores} roles={["admin"]} {...p} />} />
+      <Route path="/relatorios" component={(p) => <PrivateRoute component={Relatorios} roles={["admin"]} {...p} />} />
 
-      <Route path="/carteirinha" component={(p) =>
-        <PrivateRoute component={CarteirinhaIdoso} roles={["passageiro"]} {...p} />
-      } />
-
-      <Route path="/motorista" component={(p) =>
-        <PrivateRoute component={Motorista} roles={["motorista"]} {...p} />
-      } />
-
-      {/* Admin pages */}
-      <Route path="/importar-alunos" component={(p) =>
-        <PrivateRoute component={ImportarAlunos} roles={["admin"]} {...p} />
-      } />
-
-      <Route path="/gerenciar-usuarios" component={(p) =>
-        <PrivateRoute component={GerenciarUsuarios} roles={["admin"]} {...p} />
-      } />
-
-      <Route path="/gerenciar-onibus" component={(p) =>
-        <PrivateRoute component={GerenciarOnibus} roles={["admin"]} {...p} />
-      } />
-
-      <Route path="/gerenciar-rotas" component={(p) =>
-        <PrivateRoute component={GerenciarRotas} roles={["admin"]} {...p} />
-      } />
-
-      <Route path="/gerenciar-motoristas" component={(p) =>
-        <PrivateRoute component={GerenciarMotoristas} roles={["admin"]} {...p} />
-      } />
-
-      <Route path="/gerenciar-cobradores" component={(p) =>
-        <PrivateRoute component={GerenciarCobradores} roles={["admin"]} {...p} />
-      } />
-
-      <Route path="/relatorios" component={(p) =>
-        <PrivateRoute component={Relatorios} roles={["admin"]} {...p} />
-      } />
-
-      {/* PAYMENT */}
+      {/* Payment */}
       <Route path="/pagamento/sucesso" component={PagamentoSucesso} />
       <Route path="/pagamento/erro" component={PagamentoErro} />
       <Route path="/pagamento/pendente" component={PagamentoPendente} />
