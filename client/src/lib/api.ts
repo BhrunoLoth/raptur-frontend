@@ -1,30 +1,20 @@
 import axios from "axios";
 
-// ✅ Ajuste inteligente da URL base para evitar /api/api
-let API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-// Remove barra final se existir
-API_URL = API_URL.replace(/\/$/, "");
-
-// Remove /api final se existir
-API_URL = API_URL.replace(/\/api$/, "");
-
-// Adiciona /api no final corretamente
-const baseURL = `${API_URL}/api`;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export const api = axios.create({
-  baseURL,
+  baseURL: API_URL, // ✅ sem lógica adicional, usa a env já com /api
   headers: { "Content-Type": "application/json" },
 });
 
-// ✅ Anexa Token
+// ✅ Interceptor para Token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ✅ Redireciona no 401
+// ✅ Redireciona se 401
 api.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -77,7 +67,7 @@ export const usuarioAPI = {
   desativar: (id) => api.put(`/usuarios/${id}`, { ativo: false }),
 };
 
-/* ---------------- Dashboard Admin ✅ ---------------- */
+/* ---------------- Dashboard Admin ---------------- */
 export const dashboardAPI = {
   resumo: () => api.get("/dashboard/resumo"),
   estatisticas: () => api.get("/dashboard/estatisticas"),
