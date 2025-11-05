@@ -1,7 +1,16 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const baseURL = API_URL.includes("/api") ? API_URL : `${API_URL}/api`;
+// ✅ Ajuste inteligente da URL base para evitar /api/api
+let API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// Remove barra final se existir
+API_URL = API_URL.replace(/\/$/, "");
+
+// Remove /api final se existir
+API_URL = API_URL.replace(/\/api$/, "");
+
+// Adiciona /api no final corretamente
+const baseURL = `${API_URL}/api`;
 
 export const api = axios.create({
   baseURL,
