@@ -37,7 +37,7 @@ export default function Login() {
     try {
       await login(cpf, senha);
       toast.success('Login realizado com sucesso!');
-      setLocation('./dashboard');
+      setLocation('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao fazer login');
     }
