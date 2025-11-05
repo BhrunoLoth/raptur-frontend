@@ -1,28 +1,24 @@
 import axios from "axios";
 
-let API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = rawUrl.endsWith("/") ? rawUrl.slice(0, -1) : rawUrl;
 
-// ✅ Remove barra no final (se existir)
-API_URL = API_URL.replace(/\/$/, "");
-
-// ✅ Remove `/api` se o env já tiver, pra não duplicar
-API_URL = API_URL.replace(/\/api$/, "");
-
-const baseURL = `${API_URL}/api`;
+// Se já termina com /api, usa direto. Senão adiciona.
+const baseURL = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
 
 export const api = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },
 });
 
-// ✅ Token interceptor
+// ✅ Token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ✅ 401 handler
+// ✅ 401 Handler
 api.interceptors.response.use(
   (res) => res,
   (err) => {
