@@ -9,9 +9,9 @@ import { useAuthStore } from "@/lib/store";
 // Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import Cobrador from "./pages/Cobrador";
-import Register from "./pages/Register";
 import Passageiro from "./pages/Passageiro";
 import CarteirinhaIdoso from "./pages/CarteirinhaIdoso";
 import Motorista from "./pages/Motorista";
@@ -28,7 +28,7 @@ import PagamentoSucesso from "./pages/PagamentoSucesso";
 import PagamentoErro from "./pages/PagamentoErro";
 import PagamentoPendente from "./pages/PagamentoPendente";
 
-// ✅ Component para proteger rota
+// ✅ Route wrapper
 function PrivateRoute({ component: Component, roles, ...rest }) {
   const { isAuthenticated, user } = useAuthStore();
   const [, setLocation] = useLocation();
@@ -46,7 +46,7 @@ function PrivateRoute({ component: Component, roles, ...rest }) {
   return <Component {...rest} />;
 }
 
-// ✅ Redirecionamento para dashboard correto
+// ✅ redirect router
 function DashboardRedirect() {
   const { user } = useAuthStore();
   const [, setLocation] = useLocation();
@@ -57,7 +57,7 @@ function DashboardRedirect() {
   }
 
   const rotas = {
-    admin: "/dashboard",
+    admin: "/dashboard/admin",
     passageiro: "/passageiro",
     cobrador: "/cobrador",
     motorista: "/motorista",
@@ -74,72 +74,63 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
 
-      {/* ✅ Redirecionamento */}
+      {/* Redirecionamento */}
       <Route path="/dashboard" component={DashboardRedirect} />
 
-      {/* ✅ Rotas protegidas */}
+      {/* ROTAS */}
       <Route
         path="/dashboard/admin"
-        component={(props) => (
-          <PrivateRoute component={DashboardAdmin} roles={["admin"]} {...props} />
-        )}
-      />
-      <Route
-        path="/cobrador"
-        component={(props) => (
-          <PrivateRoute component={Cobrador} roles={["cobrador"]} {...props} />
-        )}
-      />
-      <Route
-        path="/passageiro"
-        component={(props) => (
-          <PrivateRoute component={Passageiro} roles={["passageiro"]} {...props} />
-        )}
-      />
-      <Route
-        path="/carteirinha"
-        component={(props) => (
-          <PrivateRoute component={CarteirinhaIdoso} roles={["passageiro"]} {...props} />
-        )}
-      />
-      <Route
-        path="/motorista"
-        component={(props) => (
-          <PrivateRoute component={Motorista} roles={["motorista"]} {...props} />
+        component={(p) => (
+          <PrivateRoute component={DashboardAdmin} roles={["admin"]} {...p} />
         )}
       />
 
-      {/* Admin Extras */}
-      <Route
-        path="/importar-alunos"
-        component={(p) => <PrivateRoute component={ImportarAlunos} roles={["admin"]} {...p} />}
-      />
-      <Route
-        path="/gerenciar-usuarios"
-        component={(p) => <PrivateRoute component={GerenciarUsuarios} roles={["admin"]} {...p} />}
-      />
-      <Route
-        path="/gerenciar-onibus"
-        component={(p) => <PrivateRoute component={GerenciarOnibus} roles={["admin"]} {...p} />}
-      />
-      <Route
-        path="/gerenciar-rotas"
-        component={(p) => <PrivateRoute component={GerenciarRotas} roles={["admin"]} {...p} />}
-      />
-      <Route
-        path="/gerenciar-motoristas"
-        component={(p) => <PrivateRoute component={GerenciarMotoristas} roles={["admin"]} {...p} />}
-      />
-      <Route
-        path="/gerenciar-cobradores"
-        component={(p) => <PrivateRoute component={GerenciarCobradores} roles={["admin"]} {...p} />}
-      />
-      <Route
-        path="/relatorios"
-        component={(p) => <PrivateRoute component={Relatorios} roles={["admin"]} {...p} />}
-      />
+      <Route path="/cobrador" component={(p) =>
+        <PrivateRoute component={Cobrador} roles={["cobrador"]} {...p} />
+      } />
 
-      {/* Pagamento */}
+      <Route path="/passageiro" component={(p) =>
+        <PrivateRoute component={Passageiro} roles={["passageiro"]} {...p} />
+      } />
+
+      <Route path="/carteirinha" component={(p) =>
+        <PrivateRoute component={CarteirinhaIdoso} roles={["passageiro"]} {...p} />
+      } />
+
+      <Route path="/motorista" component={(p) =>
+        <PrivateRoute component={Motorista} roles={["motorista"]} {...p} />
+      } />
+
+      {/* Admin pages */}
+      <Route path="/importar-alunos" component={(p) =>
+        <PrivateRoute component={ImportarAlunos} roles={["admin"]} {...p} />
+      } />
+
+      <Route path="/gerenciar-usuarios" component={(p) =>
+        <PrivateRoute component={GerenciarUsuarios} roles={["admin"]} {...p} />
+      } />
+
+      <Route path="/gerenciar-onibus" component={(p) =>
+        <PrivateRoute component={GerenciarOnibus} roles={["admin"]} {...p} />
+      } />
+
+      <Route path="/gerenciar-rotas" component={(p) =>
+        <PrivateRoute component={GerenciarRotas} roles={["admin"]} {...p} />
+      } />
+
+      <Route path="/gerenciar-motoristas" component={(p) =>
+        <PrivateRoute component={GerenciarMotoristas} roles={["admin"]} {...p} />
+      } />
+
+      <Route path="/gerenciar-cobradores" component={(p) =>
+        <PrivateRoute component={GerenciarCobradores} roles={["admin"]} {...p} />
+      } />
+
+      <Route path="/relatorios" component={(p) =>
+        <PrivateRoute component={Relatorios} roles={["admin"]} {...p} />
+      } />
+
+      {/* PAYMENT */}
       <Route path="/pagamento/sucesso" component={PagamentoSucesso} />
       <Route path="/pagamento/erro" component={PagamentoErro} />
       <Route path="/pagamento/pendente" component={PagamentoPendente} />
@@ -151,7 +142,7 @@ function Router() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
@@ -163,5 +154,3 @@ function App() {
     </ErrorBoundary>
   );
 }
-
-export default App;
