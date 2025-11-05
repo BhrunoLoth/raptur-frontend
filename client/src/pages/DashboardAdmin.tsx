@@ -6,31 +6,34 @@ import { Button } from "@/components/ui/button";
 import { dashboardAPI } from "@/lib/api";
 import { toast } from "sonner";
 
-export default function Dashboard() {
+export default function DashboardAdmin() {
   const [, setLocation] = useLocation();
   const { user, logout, isAuthenticated } = useAuthStore();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setLocation("/login");
-      return;
-    }
+    if (!isAuthenticated) return setLocation("/login");
+    if (user?.perfil !== "admin") return setLocation("/");
 
-    if (user?.perfil === "passageiro") setLocation("/passageiro");
-    if (user?.perfil === "motorista") setLocation("/motorista");
-    if (user?.perfil === "cobrador") setLocation("/cobrador");
-
-    if (user?.perfil === "admin") loadStats();
-    else setLocation("/login");
+    loadStats();
   }, [isAuthenticated, user]);
 
   const loadStats = async () => {
     try {
-      const response = await dashboardAPI.estatisticas();
-      setStats(response.data.data);
-    } catch {
+      const [resumo, estatisticas, notificacoes] = await Promise.all([
+        dashboardAPI.resumo(),
+        dashboardAPI.estatisticas(),
+        dashboardAPI.notificacoes(),
+      ]);
+
+      setStats({
+        resumo: resumo.data.data,
+        estatisticas: estatisticas.data.data,
+        notificacoes: notificacoes.data.data,
+      });
+    } catch (err) {
+      console.error(err);
       toast.error("Erro ao carregar estatísticas");
     } finally {
       setLoading(false);
@@ -46,7 +49,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="mt-4 text-muted-foreground">Carregando...</p>
         </div>
       </div>
@@ -55,38 +58,65 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* HEADER */}
       <header className="border-b bg-card">
         <div className="container flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-primary">RAPTUR</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-medium">{user?.nome}</p>
-              <p className="text-sm text-muted-foreground capitalize">{user?.perfil}</p>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>Sair</Button>
+          <h1 className="text-2xl font-bold text-primary">RAPTUR</h1>
+          <div className="flex gap-4 items-center">
+            <span>{user?.nome}</span>
+            <Button variant="outline" onClick={handleLogout}>
+              Sair
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="container py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold">Bem-vindo, {user?.nome?.split(" ")[0]}!</h2>
-          <p className="text-muted-foreground mt-1">Resumo do sistema</p>
-        </div>
+        <h2 className="text-3xl font-bold mb-2">
+          Bem-vindo, {user?.nome?.split(" ")[0]}!
+        </h2>
+        <p className="text-muted-foreground mb-6">Resumo do sistema</p>
 
         {stats && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card><CardHeader className="pb-3"><CardTitle>Total Usuários</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-primary">{stats.totais.usuarios}</div></CardContent></Card>
-            <Card><CardHeader className="pb-3"><CardTitle>Passageiros</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-primary">{stats.totais.passageiros}</div></CardContent></Card>
-            <Card><CardHeader className="pb-3"><CardTitle>Viagens Hoje</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-primary">{stats.hoje.viagens}</div><p className="text-sm text-muted-foreground">{stats.hoje.viagensEmAndamento} em andamento</p></CardContent></Card>
-            <Card><CardHeader className="pb-3"><CardTitle>Receita Hoje</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-secondary">R$ {stats.hoje.receita.toFixed(2)}</div></CardContent></Card>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader><CardTitle>Total Usuários</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">
+                  {stats.estatisticas.totais.usuarios}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle>Passageiros</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">
+                  {stats.estatisticas.totais.passageiros}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle>Viagens Hoje</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">
+                  {stats.resumo.hoje.viagens}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {stats.resumo.hoje.viagensEmAndamento} em andamento
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle>Receita Hoje</CardTitle></CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-secondary">
+                  R$ {stats.resumo.hoje.receita.toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </main>
