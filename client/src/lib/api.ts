@@ -1,11 +1,16 @@
 import axios from "axios";
 
 const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-// ✅ remove a duplicação e garante URL limpa
-const API_URL = rawUrl.replace(/\/+$/, ""); // remove barra final se existir
+let API_URL = rawUrl.trim();
+
+// ✅ Garante que termina com /api (sem duplicar)
+if (!API_URL.endsWith("/api")) {
+  API_URL = `${API_URL}/api`;
+}
+API_URL = API_URL.replace(/\/+$/, ""); // remove barras extras no final
 
 export const api = axios.create({
-  baseURL: API_URL, // usa exatamente o valor da env
+  baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
