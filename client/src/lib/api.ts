@@ -1,27 +1,29 @@
 import axios from "axios";
 
+// 🌐 Base da API
 const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 let API_URL = rawUrl.trim();
 
-// ✅ Garante que termina com /api (sem duplicar)
+// ✅ Garante que há apenas um /api (sem duplicar)
 if (!API_URL.endsWith("/api")) {
   API_URL = `${API_URL}/api`;
+} else {
+  API_URL = API_URL.replace(/\/+$/, ""); // remove barras extras no final
 }
-API_URL = API_URL.replace(/\/+$/, ""); // remove barras extras no final
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// ✅ Token
+// ✅ Interceptor de Token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ✅ 401 Handler
+// ✅ Redireciona se o token for inválido
 api.interceptors.response.use(
   (res) => res,
   (err) => {
