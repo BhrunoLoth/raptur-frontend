@@ -69,7 +69,7 @@ export default function GerenciarUsuarios() {
   const loadUsuarios = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/usuarios');
+      const response = await api.get('/usuarios');
       setUsuarios(response.data.data);
     } catch (error: any) {
       toast.error('Erro ao carregar usuários');
