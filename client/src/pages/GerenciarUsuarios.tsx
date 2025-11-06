@@ -107,11 +107,11 @@ export default function GerenciarUsuarios() {
     try {
       if (editingUser) {
         // Atualizar usuário
-        await api.put(`/api/usuarios/${editingUser.id}`, formData);
+        await api.put(`/usuarios/${editingUser.id}`, formData);
         toast.success('Usuário atualizado com sucesso!');
       } else {
         // Criar novo usuário
-        await api.post('/api/usuarios', formData);
+        await api.post('/usuarios', formData);
         toast.success('Usuário criado com sucesso!');
       }
       setDialogOpen(false);

@@ -62,8 +62,8 @@ export default function GerenciarCobradores() {
     try {
       setLoading(true);
       const [cobradoresRes, usuariosRes] = await Promise.all([
-        api.get('/api/cobradores'),
-        api.get('/api/usuarios?perfil=cobrador'),
+        api.get('/cobradores'),
+        api.get('/usuarios?perfil=cobrador'),
       ]);
       setCobradores(cobradoresRes.data.data || []);
       setUsuarios(usuariosRes.data.data || []);
@@ -81,7 +81,7 @@ export default function GerenciarCobradores() {
 
   const handleSave = async () => {
     try {
-      await api.post('/api/cobradores', { usuarioId: selectedUsuarioId });
+      await api.post('/cobradores', { usuarioId: selectedUsuarioId });
       toast.success('Cobrador cadastrado com sucesso!');
       setDialogOpen(false);
       loadData();
@@ -92,7 +92,7 @@ export default function GerenciarCobradores() {
 
   const handleToggleStatus = async (cobrador: Cobrador) => {
     try {
-      await api.put(`/api/cobradores/${cobrador.id}`, {
+      await api.put(`/cobradores/${cobrador.id}`, {
         ativo: !cobrador.ativo,
       });
       toast.success(`Cobrador ${cobrador.ativo ? 'desativado' : 'ativado'} com sucesso!`);

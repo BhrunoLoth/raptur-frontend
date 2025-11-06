@@ -59,7 +59,7 @@ export default function GerenciarOnibus() {
   const loadOnibus = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/onibus');
+      const response = await api.get('/onibus');
       setOnibus(response.data.data || []);
     } catch (error: any) {
       toast.error('Erro ao carregar ônibus');
@@ -93,10 +93,10 @@ export default function GerenciarOnibus() {
   const handleSave = async () => {
     try {
       if (editingOnibus) {
-        await api.put(`/api/onibus/${editingOnibus.id}`, formData);
+        await api.put(`/onibus/${editingOnibus.id}`, formData);
         toast.success('Ônibus atualizado com sucesso!');
       } else {
-        await api.post('/api/onibus', formData);
+        await api.post('/onibus', formData);
         toast.success('Ônibus cadastrado com sucesso!');
       }
       setDialogOpen(false);
@@ -108,7 +108,7 @@ export default function GerenciarOnibus() {
 
   const handleToggleStatus = async (bus: Onibus) => {
     try {
-      await api.put(`/api/onibus/${bus.id}`, {
+      await api.put(`/onibus/${bus.id}`, {
         ativo: !bus.ativo,
       });
       toast.success(`Ônibus ${bus.ativo ? 'desativado' : 'ativado'} com sucesso!`);
