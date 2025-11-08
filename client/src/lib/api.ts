@@ -11,6 +11,7 @@ if (!API_URL.endsWith("/api")) {
   API_URL = API_URL.replace(/\/+$/, ""); // remove barras extras no final
 }
 
+// 🧠 Cria instância global do Axios
 export const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
@@ -38,42 +39,61 @@ api.interceptors.response.use(
 
 /* ---------------- AUTH ---------------- */
 export const authAPI = {
-  login: (cpf, senha) => api.post("/auth/login", { cpf, senha }),
+  login: (cpf: string, senha: string) => api.post("/auth/login", { cpf, senha }),
   getProfile: () => api.get("/auth/me"),
 };
 
 /* ---------------- PIX ---------------- */
 export const pixAPI = {
-  criarRecarga: (valor) => api.post("/pagamento/gerar-pagamento", { valor }),
-  consultarStatus: (id) => api.get(`/pagamento/status/${id}`),
+  criarRecarga: (valor: number) => api.post("/pagamento/gerar-pagamento", { valor }),
+  consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
   listarPagamentos: () => api.get("/pagamento/meus"),
 };
 
 /* ---------------- Embarques ---------------- */
 export const embarqueAPI = {
-  validar: (qrCode, viagemId) => api.post("/embarques/validar", { qrCode, viagemId }),
+  validar: (qrCode: string, viagemId: string) =>
+    api.post("/embarques/validar", { qrCode, viagemId }),
 };
 
 /* ---------------- Viagens ---------------- */
 export const viagemAPI = {
   minhas: () => api.get("/viagens/minhas"),
-  iniciar: (id) => api.post(`/viagens/${id}/iniciar`),
-  finalizar: (id) => api.post(`/viagens/${id}/finalizar`),
+  iniciar: (id: string) => api.post(`/viagens/${id}/iniciar`),
+  finalizar: (id: string) => api.post(`/viagens/${id}/finalizar`),
 };
 
-/* ---------------- Idoso ---------------- */
+/* ---------------- Idoso 🧓 ---------------- */
 export const idosoAPI = {
+  // ✅ Para o painel do passageiro (autogerar carteirinha)
   minha: () => api.get("/idoso/me"),
   solicitar: () => api.post("/idoso/solicitar"),
+
+  // ✅ Para o painel administrativo
+  listarSolicitacoes: () => api.get("/idoso/solicitacoes"),
+  aprovar: (id: string) => api.put(`/idoso/aprovar/${id}`),
+  rejeitar: (id: string) => api.put(`/idoso/rejeitar/${id}`),
+
+  // ✅ Upload de foto (campo multipart/form-data)
+  uploadFoto: (id: string, arquivo: File) => {
+    const formData = new FormData();
+    formData.append("foto", arquivo);
+    return api.post(`/idoso/foto/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // ✅ Impressão de carteirinha PDF
+  imprimirCarteira: (id: string) => window.open(`${API_URL}/idoso/carteira/${id}`, "_blank"),
 };
 
 /* ---------------- Usuários ---------------- */
 export const usuarioAPI = {
   listar: () => api.get("/usuarios"),
-  criar: (data) => api.post("/usuarios", data),
-  editar: (id, data) => api.put(`/usuarios/${id}`, data),
-  ativar: (id) => api.put(`/usuarios/${id}`, { ativo: true }),
-  desativar: (id) => api.put(`/usuarios/${id}`, { ativo: false }),
+  criar: (data: any) => api.post("/usuarios", data),
+  editar: (id: string, data: any) => api.put(`/usuarios/${id}`, data),
+  ativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: true }),
+  desativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: false }),
 };
 
 /* ---------------- Dashboard Admin ✅ ---------------- */
