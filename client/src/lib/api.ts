@@ -7,10 +7,8 @@ let API_URL = rawUrl.trim();
 
 // ✅ Garante que tenha apenas UM /api, sem duplicar nem cortar errado
 if (!/\/api\/?$/.test(API_URL)) {
-  // se não terminar com /api, adiciona
   API_URL = `${API_URL.replace(/\/+$/, "")}/api`;
 } else {
-  // se já terminar com /api, remove barras extras
   API_URL = API_URL.replace(/\/+$/, "");
 }
 
@@ -41,6 +39,13 @@ api.interceptors.response.use(
   }
 );
 
+/* ---------------- UTILIDADES ---------------- */
+const formatCPF = (cpf: string) =>
+  cpf.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+
+const formatTelefone = (tel: string) =>
+  tel.replace(/\D/g, "").replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+
 /* ---------------- AUTH ---------------- */
 export const authAPI = {
   login: (cpf: string, senha: string) => api.post("/auth/login", { cpf, senha }),
@@ -69,16 +74,11 @@ export const viagemAPI = {
 
 /* ---------------- Idoso 🧓 ---------------- */
 export const idosoAPI = {
-  // ✅ Para o painel do passageiro (autogerar carteirinha)
   minha: () => api.get("/idoso/me"),
   solicitar: () => api.post("/idoso/solicitar"),
-
-  // ✅ Para o painel administrativo
   listarSolicitacoes: () => api.get("/idoso/solicitacoes"),
   aprovar: (id: string) => api.put(`/idoso/aprovar/${id}`),
   rejeitar: (id: string) => api.put(`/idoso/rejeitar/${id}`),
-
-  // ✅ Upload de foto (campo multipart/form-data)
   uploadFoto: (id: string, arquivo: File) => {
     const formData = new FormData();
     formData.append("foto", arquivo);
@@ -86,18 +86,31 @@ export const idosoAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-
-  // ✅ Impressão de carteirinha PDF
-  imprimirCarteira: (id: string) => window.open(`${API_URL}/idoso/carteira/${id}`, "_blank"),
+  imprimirCarteira: (id: string) =>
+    window.open(`${API_URL}/idoso/carteira/${id}`, "_blank"),
 };
 
 /* ---------------- Usuários ---------------- */
 export const usuarioAPI = {
   listar: () => api.get("/usuarios"),
-  criar: (data: any) => api.post("/usuarios", data),
-  editar: (id: string, data: any) => api.put(`/usuarios/${id}`, data),
-  ativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: true }),
-  desativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: false }),
+  criar: (data: any) => {
+    const payload = {
+      ...data,
+      cpf: formatCPF(data.cpf),
+      telefone: formatTelefone(data.telefone || ""),
+    };
+    return api.post("/usuarios", payload);
+  },
+  editar: (id: string, data: any) => {
+    const payload = {
+      ...data,
+      cpf: formatCPF(data.cpf),
+      telefone: formatTelefone(data.telefone || ""),
+    };
+    return api.put(`/usuarios/${id}`, payload);
+  },
+  ativar: (id: string) => api.put(`/usuarios/${id}/ativar`),
+  desativar: (id: string) => api.put(`/usuarios/${id}/desativar`),
 };
 
 /* ---------------- Dashboard Admin ✅ ---------------- */
