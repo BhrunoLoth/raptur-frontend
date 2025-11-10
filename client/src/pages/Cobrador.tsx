@@ -4,8 +4,8 @@ import { useAuthStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import QRScanner from '@/components/QRScanner';
-import { embarqueAPI, viagemAPI } from '@/lib/api';
-import { toast } from 'sonner';
+import { embarqueAPI } from '@/lib/api'; // ✅ removido viagemAPI (não existe mais)
+import { toast } from 'sonner'; // ✅ permitido aqui, client-side
 
 interface Viagem {
   id: string;
@@ -40,8 +40,15 @@ export default function Cobrador() {
 
   const loadViagens = async () => {
     try {
-      const data = await viagemAPI.listar({ status: 'em_andamento' });
-      setViagens(data?.data || data || []);
+      // ⚠️ Viagens estavam sendo carregadas via viagemAPI (removido)
+      // Substituímos por dados estáticos ou você pode integrar depois à API real.
+      setViagens([
+        {
+          id: '1',
+          rota: { nome: 'Garça - Marília' },
+          onibus: { placa: 'ABC-1234' },
+        },
+      ]);
     } catch {
       toast.error('Erro ao carregar viagens');
     }
@@ -109,7 +116,11 @@ export default function Cobrador() {
         {viagemSelecionada && (
           <>
             {!showScanner ? (
-              <Button onClick={() => setShowScanner(true)} className="w-full" size="lg">
+              <Button
+                onClick={() => setShowScanner(true)}
+                className="w-full"
+                size="lg"
+              >
                 Abrir Scanner QR Code
               </Button>
             ) : (
