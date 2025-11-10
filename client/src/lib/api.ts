@@ -100,6 +100,33 @@ export const embarqueAPI = {
 };
 
 /* ==============================
+   IDOSO 👴 Carteirinha Digital
+============================== */
+export const idosoAPI = {
+  // Passageiro: visualizar e solicitar carteirinha
+  minha: () => api.get("/idoso/me"),
+  solicitar: () => api.post("/idoso/solicitar"),
+
+  // Admin: listar e gerenciar solicitações
+  listarSolicitacoes: () => api.get("/idoso/solicitacoes"),
+  aprovar: (id: string) => api.put(`/idoso/aprovar/${id}`),
+  rejeitar: (id: string) => api.put(`/idoso/rejeitar/${id}`),
+
+  // Upload de foto
+  uploadFoto: (id: string, arquivo: File) => {
+    const formData = new FormData();
+    formData.append("foto", arquivo);
+    return api.post(`/idoso/foto/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // Download do PDF da carteirinha
+  imprimirCarteira: (id: string) =>
+    window.open(`${api.defaults.baseURL}/idoso/carteira/${id}`, "_blank"),
+};
+
+/* ==============================
    DASHBOARD / RELATÓRIOS
 ============================== */
 export const dashboardAPI = {
