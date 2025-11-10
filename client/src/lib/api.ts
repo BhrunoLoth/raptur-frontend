@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 });
 
 /* ==============================
-   FORMATAÇÕES ÚTEIS
+   FORMATADORES
 ============================== */
 export const formatCPF = (cpf: string) => {
   if (!cpf) return "";
@@ -45,27 +45,21 @@ export const formatTelefone = (telefone: string) => {
 ============================== */
 export const usuarioAPI = {
   listar: () => api.get("/usuarios"),
-
   obterPorId: (id: string) => api.get(`/usuarios/${id}`),
-
   criar: (dados: any) =>
     api.post("/usuarios", {
       ...dados,
       cpf: formatCPF(dados.cpf),
       telefone: formatTelefone(dados.telefone),
     }),
-
   atualizar: (id: string, dados: any) =>
     api.put(`/usuarios/${id}`, {
       ...dados,
       cpf: formatCPF(dados.cpf),
       telefone: formatTelefone(dados.telefone),
     }),
-
   deletar: (id: string) => api.delete(`/usuarios/${id}`),
-
   ativar: (id: string) => api.put(`/usuarios/${id}/ativar`),
-
   desativar: (id: string) => api.put(`/usuarios/${id}/desativar`),
 };
 
@@ -73,22 +67,19 @@ export const usuarioAPI = {
    LOGIN / AUTENTICAÇÃO
 ============================== */
 export const authAPI = {
-  login: (email: string, senha: string) =>
-    api.post("/auth/login", { email, senha }),
-
+  login: (email: string, senha: string) => api.post("/auth/login", { email, senha }),
   validarToken: () => api.get("/auth/validar"),
 };
 
 /* ==============================
-   PAGAMENTOS PIX 💰
+   VIAGENS 🚌
 ============================== */
-export const pixAPI = {
-  criarRecarga: (valor: number) =>
-    api.post("/pagamento/gerar-pagamento", { valor }),
-
-  consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
-
-  listarPagamentos: () => api.get("/pagamento/meus"),
+export const viagemAPI = {
+  listar: (params?: any) => api.get("/viagens", { params }),
+  criar: (dados: any) => api.post("/viagens", dados),
+  atualizar: (id: string, dados: any) => api.put(`/viagens/${id}`, dados),
+  finalizar: (id: string) => api.put(`/viagens/${id}/finalizar`),
+  detalhes: (id: string) => api.get(`/viagens/${id}`),
 };
 
 /* ==============================
@@ -97,22 +88,27 @@ export const pixAPI = {
 export const embarqueAPI = {
   validar: (qrCode: string, viagemId: string) =>
     api.post(`/embarques/validar`, { qrCode, viagemId }),
+  listarPorViagem: (viagemId: string) => api.get(`/embarques/viagem/${viagemId}`),
+};
+
+/* ==============================
+   PAGAMENTOS PIX 💰
+============================== */
+export const pixAPI = {
+  criarRecarga: (valor: number) => api.post("/pagamento/gerar-pagamento", { valor }),
+  consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
+  listarPagamentos: () => api.get("/pagamento/meus"),
 };
 
 /* ==============================
    IDOSO 👴 Carteirinha Digital
 ============================== */
 export const idosoAPI = {
-  // Passageiro: visualizar e solicitar carteirinha
   minha: () => api.get("/idoso/me"),
   solicitar: () => api.post("/idoso/solicitar"),
-
-  // Admin: listar e gerenciar solicitações
   listarSolicitacoes: () => api.get("/idoso/solicitacoes"),
   aprovar: (id: string) => api.put(`/idoso/aprovar/${id}`),
   rejeitar: (id: string) => api.put(`/idoso/rejeitar/${id}`),
-
-  // Upload de foto
   uploadFoto: (id: string, arquivo: File) => {
     const formData = new FormData();
     formData.append("foto", arquivo);
@@ -120,8 +116,6 @@ export const idosoAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-
-  // Download do PDF da carteirinha
   imprimirCarteira: (id: string) =>
     window.open(`${api.defaults.baseURL}/idoso/carteira/${id}`, "_blank"),
 };
