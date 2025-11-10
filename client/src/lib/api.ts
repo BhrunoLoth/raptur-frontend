@@ -80,12 +80,15 @@ export const authAPI = {
 };
 
 /* ==============================
-   DASHBOARD / RELATÓRIOS
+   PAGAMENTOS PIX 💰
 ============================== */
-export const dashboardAPI = {
-  resumo: () => api.get("/admin/dashboard/resumo"),
-  estatisticas: () => api.get("/admin/dashboard/estatisticas"),
-  notificacoes: () => api.get("/admin/dashboard/notificacoes"),
+export const pixAPI = {
+  criarRecarga: (valor: number) =>
+    api.post("/pagamento/gerar-pagamento", { valor }),
+
+  consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
+
+  listarPagamentos: () => api.get("/pagamento/meus"),
 };
 
 /* ==============================
@@ -94,4 +97,13 @@ export const dashboardAPI = {
 export const embarqueAPI = {
   validar: (qrCode: string, viagemId: string) =>
     api.post(`/embarques/validar`, { qrCode, viagemId }),
+};
+
+/* ==============================
+   DASHBOARD / RELATÓRIOS
+============================== */
+export const dashboardAPI = {
+  resumo: () => api.get("/admin/dashboard/resumo"),
+  estatisticas: () => api.get("/admin/dashboard/estatisticas"),
+  notificacoes: () => api.get("/admin/dashboard/notificacoes"),
 };
