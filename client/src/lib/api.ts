@@ -1,16 +1,17 @@
 import axios from "axios";
 
-/* 🌐 BASE DA API (CORRIGIDA)
+/* 🌐 BASE DA API (Auto-correção de /api duplicado)
 ---------------------------------------------------------- */
 const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-let API_URL = rawUrl.trim();
 
-// ✅ Garante que tenha apenas UM /api, sem duplicar nem cortar errado
-if (!/\/api\/?$/.test(API_URL)) {
-  API_URL = `${API_URL.replace(/\/+$/, "")}/api`;
-} else {
-  API_URL = API_URL.replace(/\/+$/, "");
-}
+// Remove barras extras e /api duplicado
+let API_URL = rawUrl
+  .trim()
+  .replace(/\/+$/, "") // remove barras no final
+  .replace(/\/api$/, ""); // remove /api se já existir
+
+// Adiciona /api de forma garantida e única
+API_URL = `${API_URL}/api`;
 
 /* 🧠 Instância global do Axios
 ---------------------------------------------------------- */
