@@ -1,25 +1,46 @@
 import axios from "axios";
 
-/* ==============================
-   CONFIGURAÇÃO BASE
-============================== */
+/* 🌐 BASE DA API (corrigida e segura para deploy)
+---------------------------------------------------------- */
+const rawUrl = import.meta.env.VITE_API_URL || "https://raptur-system-production.up.railway.app";
+let API_URL = rawUrl.trim();
+
+// ✅ Garante que tenha apenas UM /api, sem duplicar nem cortar errado
+if (!/\/api\/?$/.test(API_URL)) {
+  API_URL = `${API_URL.replace(/\/+$/, "")}/api`;
+} else {
+  API_URL = API_URL.replace(/\/+$/, "");
+}
+
+/* 🧠 Instância global do Axios
+---------------------------------------------------------- */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://raptur-system-production.up.railway.app/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: API_URL,
+  headers: { "Content-Type": "application/json" },
 });
 
-// Adiciona o token automaticamente se existir
+/* 🔐 Interceptores de Autenticação
+---------------------------------------------------------- */
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-/* ==============================
-   FORMATAÇÕES ÚTEIS
-============================== */
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(err);
+  }
+);
+
+/* 🧾 FORMATAÇÃO DE CAMPOS
+---------------------------------------------------------- */
 export const formatCPF = (cpf: string) => {
   if (!cpf) return "";
   return cpf
@@ -38,50 +59,35 @@ export const formatTelefone = (telefone: string) => {
     .substring(0, 15);
 };
 
-/* ==============================
-   USUÁRIOS
-============================== */
+/* ---------------- Usuários ---------------- */
 export const usuarioAPI = {
   listar: () => api.get("/usuarios"),
-
-  obterPorId: (id: string) => api.get(`/usuarios/${id}`),
-
-  criar: (dados: any) =>
+  criar: (data: any) =>
     api.post("/usuarios", {
-      ...dados,
-      cpf: formatCPF(dados.cpf),
-      telefone: formatTelefone(dados.telefone),
+      ...data,
+      cpf: formatCPF(data.cpf),
+      telefone: formatTelefone(data.telefone),
     }),
-
-  atualizar: (id: string, dados: any) =>
+  editar: (id: string, data: any) =>
     api.put(`/usuarios/${id}`, {
-      ...dados,
-      cpf: formatCPF(dados.cpf),
-      telefone: formatTelefone(dados.telefone),
+      ...data,
+      cpf: formatCPF(data.cpf),
+      telefone: formatTelefone(data.telefone),
     }),
-
-  deletar: (id: string) => api.delete(`/usuarios/${id}`),
-
   ativar: (id: string) => api.put(`/usuarios/${id}/ativar`),
-
   desativar: (id: string) => api.put(`/usuarios/${id}/desativar`),
+  deletar: (id: string) => api.delete(`/usuarios/${id}`),
 };
 
-/* ==============================
-   LOGIN / AUTENTICAÇÃO
-============================== */
+/* ---------------- Auth ---------------- */
 export const authAPI = {
-  login: (email: string, senha: string) =>
-    api.post("/auth/login", { email, senha }),
-
-  validarToken: () => api.get("/auth/validar"),
+  login: (cpf: string, senha: string) => api.post("/auth/login", { cpf, senha }),
+  getProfile: () => api.get("/auth/me"),
 };
 
-/* ==============================
-   DASHBOARD / RELATÓRIOS
-============================== */
+/* ---------------- Dashboard Admin ---------------- */
 export const dashboardAPI = {
-  resumo: () => api.get("/admin/dashboard/resumo"),
-  estatisticas: () => api.get("/admin/dashboard/estatisticas"),
-  notificacoes: () => api.get("/admin/dashboard/notificacoes"),
+  resumo: () => api.get("/dashboard/resumo"),
+  estatisticas: () => api.get("/dashboard/estatisticas"),
+  notificacoes: () => api.get("/dashboard/notificacoes"),
 };
