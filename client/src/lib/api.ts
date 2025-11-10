@@ -1,30 +1,34 @@
 import axios from "axios";
 
-// 🌐 Base da API
+/* 🌐 BASE DA API (CORRIGIDA)
+---------------------------------------------------------- */
 const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 let API_URL = rawUrl.trim();
 
-// ✅ Garante que há apenas um /api (sem duplicar)
-if (!API_URL.endsWith("/api")) {
-  API_URL = `${API_URL}/api`;
+// ✅ Garante que tenha apenas UM /api, sem duplicar nem cortar errado
+if (!/\/api\/?$/.test(API_URL)) {
+  // se não terminar com /api, adiciona
+  API_URL = `${API_URL.replace(/\/+$/, "")}/api`;
 } else {
-  API_URL = API_URL.replace(/\/+$/, ""); // remove barras extras no final
+  // se já terminar com /api, remove barras extras
+  API_URL = API_URL.replace(/\/+$/, "");
 }
 
-// 🧠 Cria instância global do Axios
+/* 🧠 Instância global do Axios
+---------------------------------------------------------- */
 export const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// ✅ Interceptor de Token
+/* 🔐 Interceptores de Autenticação
+---------------------------------------------------------- */
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ✅ Redireciona se o token for inválido
 api.interceptors.response.use(
   (res) => res,
   (err) => {
