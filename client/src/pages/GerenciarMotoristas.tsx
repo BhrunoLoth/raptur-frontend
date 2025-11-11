@@ -72,8 +72,8 @@ export default function GerenciarMotoristas() {
     try {
       setLoading(true);
       const [motoristasRes, usuariosRes] = await Promise.all([
-        api.get('/api/motoristas'),
-        api.get('/api/usuarios?perfil=motorista'),
+        api.get('/motoristas'),
+        api.get('/usuarios?perfil=motorista'),
       ]);
       setMotoristas(motoristasRes.data.data || []);
       setUsuarios(usuariosRes.data.data || []);
@@ -108,10 +108,10 @@ export default function GerenciarMotoristas() {
   const handleSave = async () => {
     try {
       if (editingMotorista) {
-        await api.put(`/api/motoristas/${editingMotorista.id}`, formData);
+        await api.put(`/motoristas/${editingMotorista.id}`, formData);
         toast.success('Motorista atualizado com sucesso!');
       } else {
-        await api.post('/api/motoristas', formData);
+        await api.post('/motoristas', formData);
         toast.success('Motorista cadastrado com sucesso!');
       }
       setDialogOpen(false);
@@ -123,7 +123,7 @@ export default function GerenciarMotoristas() {
 
   const handleToggleStatus = async (motorista: Motorista) => {
     try {
-      await api.put(`/api/motoristas/${motorista.id}`, {
+      await api.put(`/motoristas/${motorista.id}`, {
         ativo: !motorista.ativo,
       });
       toast.success(`Motorista ${motorista.ativo ? 'desativado' : 'ativado'} com sucesso!`);

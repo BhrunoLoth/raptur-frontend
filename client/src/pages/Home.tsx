@@ -1,22 +1,41 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuthStore } from "@/lib/store";
-import { Button } from "@/components/ui/button";
+import { authAPI } from "@/lib/api";
+import { toast } from "sonner";
 
-/**
- * All content in this page are only for example, delete if unneeded
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, setUser, logout } = useAuthStore();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      setLocation('/dashboard');
-    } else {
-      setLocation('/login');
-    }
+    const verifySession = async () => {
+      try {
+        // Se não tiver token, ir para login
+        if (!isAuthenticated) {
+          setLocation("/login");
+          return;
+        }
+
+        // Valida token e obtém perfil
+        const res = await authAPI.getProfile();
+        const user = res.data?.data;
+
+        if (!user) throw new Error("Usuário inválido");
+
+        setUser(user);
+
+        // Vai para dashboard conforme perfil
+        setLocation("/dashboard");
+      } catch (error) {
+        // Token inválido → força logout
+        logout();
+        toast.error("Sua sessão expirou! Faça login novamente.");
+        setLocation("/login");
+      }
+    };
+
+    verifySession();
   }, [isAuthenticated]);
 
   return (

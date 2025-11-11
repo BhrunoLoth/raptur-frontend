@@ -1,75 +1,118 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-// Garante `/api`
-const baseURL = API_URL.includes("/api") ? API_URL : `${API_URL}/api`;
-
+/* ==============================
+   CONFIGURAÇÃO BASE
+============================== */
 export const api = axios.create({
-  baseURL,
-  headers: { "Content-Type": "application/json" },
+  baseURL: (() => {
+    const base = import.meta.env.VITE_API_URL || "https://raptur-system-production.up.railway.app";
+    return base.endsWith("/api") ? base : `${base}/api`;
+  })(),
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// ✅ Adiciona token automaticamente
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Adiciona o token automaticamente se existir
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-// ✅ Expira sessão se 401
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
-    return Promise.reject(err);
-  }
-);
-
-/* ---------------- AUTH ---------------- */
-export const authAPI = {
-  login: (cpf: string, senha: string) => api.post("/auth/login", { cpf, senha }),
-  getProfile: () => api.get("/auth/me"),
+/* ==============================
+   FORMATAÇÕES
+============================== */
+export const formatCPF = (cpf: string) => {
+  if (!cpf) return "";
+  return cpf
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 };
 
-/* ---------------- PIX (Ajustado p/ backend novo) ---------------- */
-export const pixAPI = {
-  criarRecarga: (valor: number) => api.post("/pagamento/gerar-pagamento", { valor }),
-  consultarStatus: (id: string) => api.get(`/pagamento/status/${id}`),
-  listarPagamentos: () => api.get("/pagamento/meus"),
+export const formatTelefone = (telefone: string) => {
+  if (!telefone) return "";
+  return telefone
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .substring(0, 15);
 };
 
-/* ---------------- Embarques ---------------- */
-export const embarqueAPI = {
-  validar: (qrCode: string, viagemId: string) =>
-    api.post("/embarques/validar", { qrCode, viagemId }),
-};
-
-/* ---------------- Viagens ---------------- */
-export const viagemAPI = {
-  minhas: () => api.get("/viagens/minhas"),
-  iniciar: (id: string) => api.post(`/viagens/${id}/iniciar`),
-  finalizar: (id: string) => api.post(`/viagens/${id}/finalizar`),
-};
-
-/* ---------------- Idoso ---------------- */
-export const idosoAPI = {
-  minha: () => api.get("/idoso/me"),
-  solicitar: () => api.post("/idoso/solicitar"),
-};
-
-/* ---------------- Usuários ---------------- */
+/* ==============================
+   USUÁRIOS
+============================== */
 export const usuarioAPI = {
   listar: () => api.get("/usuarios"),
-  criar: (data: any) => api.post("/usuarios", data),
-  editar: (id: string, data: any) => api.put(`/usuarios/${id}`, data),
-  ativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: true }),
-  desativar: (id: string) => api.put(`/usuarios/${id}`, { ativo: false }),
+  obterPorId: (id: string) => api.get(`/usuarios/${id}`),
+  criar: (dados: any) =>
+    api.post("/usuarios", {
+      ...dados,
+      cpf: formatCPF(dados.cpf),
+      telefone: formatTelefone(dados.telefone),
+    }),
+  atualizar: (id: string, dados: any) =>
+    api.put(`/usuarios/${id}`, {
+      ...dados,
+      cpf: formatCPF(dados.cpf),
+      telefone: formatTelefone(dados.telefone),
+    }),
+  deletar: (id: string) => api.delete(`/usuarios/${id}`),
+  ativar: (id: string) => api.put(`/usuarios/${id}/ativar`),
+  desativar: (id: string) => api.put(`/usuarios/${id}/desativar`),
+};
+
+/* ==============================
+   LOGIN / AUTENTICAÇÃO
+============================== */
+export const authAPI = {
+  login: (cpf: string, senha: string) =>
+    api.post("/auth/login", { cpf, senha }),
+  validarToken: () => api.get("/auth/validar"),
+};
+
+/* ==============================
+   DASHBOARD / RELATÓRIOS
+============================== */
+export const dashboardAPI = {
+  resumo: () => api.get("/dashboard/resumo"),
+  estatisticas: () => api.get("/dashboard/estatisticas"),
+  notificacoes: () => api.get("/dashboard/notificacoes"),
+};
+
+/* ==============================
+   PAGAMENTO / PIX
+============================== */
+export const pixAPI = {
+  gerar: (valor: number, passageiroId: string) =>
+    api.post("/pagamentos/gerar-pagamento", { valor, passageiroId }),
+  verificar: (idPagamento: string) =>
+    api.get(`/pagamentos/verificar/${idPagamento}`),
+};
+
+/* ==============================
+   EMBARQUE / VIAGEM
+============================== */
+export const embarqueAPI = {
+  validar: (qrCode: string, viagemId: string) =>
+    api.post(`/embarques/validar`, { qrCode, viagemId }),
+  listarPorViagem: (viagemId: string) =>
+    api.get(`/embarques/viagem/${viagemId}`),
+};
+
+export const viagemAPI = {
+  listar: (filtros?: any) => api.get("/viagens", { params: filtros }),
+  iniciar: (id: string) => api.put(`/viagens/${id}/iniciar`),
+  finalizar: (id: string) => api.put(`/viagens/${id}/finalizar`),
+};
+
+/* ==============================
+   IDOSOS / CARTEIRINHA
+============================== */
+export const idosoAPI = {
+  gerarCarteirinha: (dados: any) => api.post("/carteirinha/idoso", dados),
+  listar: () => api.get("/carteirinha/idoso"),
+  obterPorId: (id: string) => api.get(`/carteirinha/idoso/${id}`),
 };

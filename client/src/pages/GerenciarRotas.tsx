@@ -64,7 +64,7 @@ export default function GerenciarRotas() {
   const loadRotas = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/rotas');
+      const response = await api.get('/rotas');
       setRotas(response.data.data || []);
     } catch (error: any) {
       toast.error('Erro ao carregar rotas');
@@ -107,10 +107,10 @@ export default function GerenciarRotas() {
       };
       
       if (editingRota) {
-        await api.put(`/api/rotas/${editingRota.id}`, data);
+        await api.put(`/rotas/${editingRota.id}`, data);
         toast.success('Rota atualizada com sucesso!');
       } else {
-        await api.post('/api/rotas', data);
+        await api.post('/rotas', data);
         toast.success('Rota cadastrada com sucesso!');
       }
       setDialogOpen(false);
@@ -122,7 +122,7 @@ export default function GerenciarRotas() {
 
   const handleToggleStatus = async (rota: Rota) => {
     try {
-      await api.put(`/api/rotas/${rota.id}`, {
+      await api.put(`/rotas/${rota.id}`, {
         ativa: !rota.ativa,
       });
       toast.success(`Rota ${rota.ativa ? 'desativada' : 'ativada'} com sucesso!`);

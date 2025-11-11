@@ -28,14 +28,12 @@ export default function Motorista() {
   const loadViagens = async () => {
     try {
       const response = await viagemAPI.minhas();
-      setViagens(response.data.data || []);
-      
-      // Verificar se há viagem em andamento
-      const emAndamento = response.data.data?.find((v: any) => v.status === 'em_andamento');
-      if (emAndamento) {
-        setViagemAtiva(emAndamento);
-      }
-    } catch (error: any) {
+      const lista = response.data?.data || response.data || [];
+      setViagens(lista);
+
+      const emAndamento = lista.find((v: any) => v.status === 'em_andamento');
+      if (emAndamento) setViagemAtiva(emAndamento);
+    } catch (_) {
       toast.error('Erro ao carregar viagens');
     } finally {
       setLoading(false);
@@ -47,8 +45,8 @@ export default function Motorista() {
       await viagemAPI.iniciar(viagemId);
       toast.success('Viagem iniciada!');
       loadViagens();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao iniciar viagem');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Erro ao iniciar viagem');
     }
   };
 
@@ -59,8 +57,8 @@ export default function Motorista() {
       setModoScanner(false);
       setViagemAtiva(null);
       loadViagens();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao finalizar viagem');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Erro ao finalizar viagem');
     }
   };
 
@@ -81,38 +79,25 @@ export default function Motorista() {
     }
 
     try {
-      const response = await embarqueAPI.validar(qrCodeData, viagemAtiva.id);
+      const res = await embarqueAPI.validar(qrCodeData, viagemAtiva.id);
+      const resultado = res.data?.data || res.data;
 
-      const resultado = response.data.data;
       setUltimoEmbarque(resultado);
 
-      // Atualizar estatísticas da viagem
-      setViagemAtiva({
-        ...viagemAtiva,
-        totalPassageiros: (viagemAtiva.totalPassageiros || 0) + 1,
-        totalArrecadado: (viagemAtiva.totalArrecadado || 0) + resultado.valor
-      });
+      setViagemAtiva((prev: any) => ({
+        ...prev,
+        totalPassageiros: (prev?.totalPassageiros || 0) + 1,
+        totalArrecadado: (prev?.totalArrecadado || 0) + (resultado?.valor || 0),
+      }));
 
-      // Feedback visual e sonoro
-      toast.success(resultado.message || 'Embarque validado!', {
-        duration: 3000
-      });
+      toast.success(resultado?.message || 'Embarque validado!', { duration: 3000 });
 
-      // Limpar após 5 segundos
-      setTimeout(() => {
-        setUltimoEmbarque(null);
-      }, 5000);
-
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao validar embarque');
-      setUltimoEmbarque({
-        success: false,
-        message: error.response?.data?.message || 'Erro ao validar embarque'
-      });
-      
-      setTimeout(() => {
-        setUltimoEmbarque(null);
-      }, 5000);
+      setTimeout(() => setUltimoEmbarque(null), 5000);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Erro ao validar embarque';
+      toast.error(msg);
+      setUltimoEmbarque({ success: false, message: msg });
+      setTimeout(() => setUltimoEmbarque(null), 5000);
     }
   };
 
@@ -120,18 +105,17 @@ export default function Motorista() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="mt-4 text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  // Modo Scanner Ativo
+  // Tela de Scanner
   if (modoScanner && viagemAtiva) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header Fixo */}
         <header className="border-b bg-card sticky top-0 z-50">
           <div className="container flex items-center justify-between h-16">
             <div>
@@ -146,7 +130,6 @@ export default function Motorista() {
         </header>
 
         <main className="container py-4 space-y-4">
-          {/* Estatísticas */}
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardContent className="pt-6">
@@ -179,7 +162,6 @@ export default function Motorista() {
             </Card>
           </div>
 
-          {/* Scanner */}
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
@@ -192,7 +174,6 @@ export default function Motorista() {
             </CardContent>
           </Card>
 
-          {/* Resultado do Último Embarque */}
           {ultimoEmbarque && (
             <Card className={ultimoEmbarque.success ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}>
               <CardContent className="py-6">
@@ -204,22 +185,18 @@ export default function Motorista() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <h3 className="text-2xl font-bold text-green-700 mb-2">
-                        ✅ Embarque Validado!
-                      </h3>
-                      <p className="text-lg font-semibold text-green-600 mb-3">
-                        {ultimoEmbarque.tipoEmbarque}
-                      </p>
+                      <h3 className="text-2xl font-bold text-green-700 mb-2">✅ Embarque Validado!</h3>
+                      <p className="text-lg font-semibold text-green-600 mb-3">{ultimoEmbarque.tipoEmbarque}</p>
                       <div className="space-y-1">
                         <p className="text-sm text-green-700">
                           <strong>Passageiro:</strong> {ultimoEmbarque.passageiro?.nome}
                         </p>
                         <p className="text-sm text-green-700">
-                          <strong>Valor:</strong> R$ {ultimoEmbarque.valor.toFixed(2)}
+                          <strong>Valor:</strong> R$ {Number(ultimoEmbarque.valor || 0).toFixed(2)}
                         </p>
-                        {ultimoEmbarque.saldoRestante !== null && (
+                        {ultimoEmbarque.saldoRestante != null && (
                           <p className="text-sm text-green-700">
-                            <strong>Saldo restante:</strong> R$ {ultimoEmbarque.saldoRestante.toFixed(2)}
+                            <strong>Saldo restante:</strong> R$ {Number(ultimoEmbarque.saldoRestante).toFixed(2)}
                           </p>
                         )}
                       </div>
@@ -231,12 +208,8 @@ export default function Motorista() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </div>
-                      <h3 className="text-2xl font-bold text-red-700 mb-2">
-                        ❌ Embarque Negado
-                      </h3>
-                      <p className="text-lg text-red-600">
-                        {ultimoEmbarque.message}
-                      </p>
+                      <h3 className="text-2xl font-bold text-red-700 mb-2">❌ Embarque Negado</h3>
+                      <p className="text-lg text-red-600">{ultimoEmbarque.message}</p>
                     </>
                   )}
                 </div>
@@ -244,7 +217,6 @@ export default function Motorista() {
             </Card>
           )}
 
-          {/* Instruções */}
           <Card className="bg-muted">
             <CardContent className="py-4">
               <h4 className="font-semibold mb-2">📱 Instruções:</h4>
@@ -258,7 +230,6 @@ export default function Motorista() {
             </CardContent>
           </Card>
 
-          {/* Botão Finalizar Viagem */}
           <Button
             onClick={() => handleFinalizarViagem(viagemAtiva.id)}
             variant="destructive"
@@ -272,10 +243,9 @@ export default function Motorista() {
     );
   }
 
-  // Modo Normal - Lista de Viagens
-  const viagensAgendadas = viagens.filter(v => v.status === 'agendada');
-  const viagensEmAndamento = viagens.filter(v => v.status === 'em_andamento');
-  const viagensFinalizadas = viagens.filter(v => v.status === 'finalizada').slice(0, 5);
+  const viagensAgendadas = viagens.filter((v) => v.status === 'agendada');
+  const viagensEmAndamento = viagens.filter((v) => v.status === 'em_andamento');
+  const viagensFinalizadas = viagens.filter((v) => v.status === 'finalizada').slice(0, 5);
 
   return (
     <div className="min-h-screen bg-background">
@@ -289,8 +259,7 @@ export default function Motorista() {
       </header>
 
       <main className="container py-8 space-y-6">
-        {/* Viagens em Andamento */}
-        {viagensEmAndamento.length > 0 && (
+        {viagensEnAndamento.length > 0 && (
           <div>
             <h2 className="text-xl font-bold mb-4 text-primary">Em Andamento</h2>
             <div className="grid gap-4">
@@ -299,9 +268,7 @@ export default function Motorista() {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{viagem.rota?.nome}</span>
-                      <span className="text-sm font-normal text-muted-foreground">
-                        {viagem.onibus?.placa}
-                      </span>
+                      <span className="text-sm font-normal text-muted-foreground">{viagem.onibus?.placa}</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -320,27 +287,17 @@ export default function Motorista() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Arrecadado</p>
-                        <p className="font-medium text-secondary">
-                          R$ {(viagem.totalArrecadado || 0).toFixed(2)}
-                        </p>
+                        <p className="font-medium text-secondary">R$ {(viagem.totalArrecadado || 0).toFixed(2)}</p>
                       </div>
                     </div>
 
                     <div className="grid gap-2">
-                      <Button
-                        onClick={() => handleAtivarScanner(viagem)}
-                        className="w-full"
-                        size="lg"
-                      >
+                      <Button onClick={() => handleAtivarScanner(viagem)} className="w-full" size="lg">
                         <Scan className="w-5 h-5 mr-2" />
                         Ativar Scanner (Sem Cobrador)
                       </Button>
-                      
-                      <Button
-                        onClick={() => handleFinalizarViagem(viagem.id)}
-                        variant="destructive"
-                        className="w-full"
-                      >
+
+                      <Button onClick={() => handleFinalizarViagem(viagem.id)} variant="destructive" className="w-full">
                         Finalizar Viagem
                       </Button>
                     </div>
@@ -351,7 +308,6 @@ export default function Motorista() {
           </div>
         )}
 
-        {/* Viagens Agendadas */}
         {viagensAgendadas.length > 0 && (
           <div>
             <h2 className="text-xl font-bold mb-4">Agendadas</h2>
@@ -364,18 +320,13 @@ export default function Motorista() {
                   <CardContent className="space-y-3">
                     <div>
                       <p className="text-sm text-muted-foreground">Saída</p>
-                      <p className="font-medium">
-                        {new Date(viagem.dataHoraSaida).toLocaleString('pt-BR')}
-                      </p>
+                      <p className="font-medium">{new Date(viagem.dataHoraSaida).toLocaleString('pt-BR')}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Ônibus</p>
                       <p className="font-medium">{viagem.onibus?.placa}</p>
                     </div>
-                    <Button
-                      onClick={() => handleIniciarViagem(viagem.id)}
-                      className="w-full"
-                    >
+                    <Button onClick={() => handleIniciarViagem(viagem.id)} className="w-full">
                       Iniciar Viagem
                     </Button>
                   </CardContent>
@@ -385,7 +336,6 @@ export default function Motorista() {
           </div>
         )}
 
-        {/* Viagens Finalizadas */}
         {viagensFinalizadas.length > 0 && (
           <div>
             <h2 className="text-xl font-bold mb-4">Finalizadas Recentemente</h2>
@@ -401,12 +351,8 @@ export default function Motorista() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">
-                          {viagem.totalPassageiros} passageiros
-                        </p>
-                        <p className="font-bold text-secondary">
-                          R$ {(viagem.totalArrecadado || 0).toFixed(2)}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{viagem.totalPassageiros} passageiros</p>
+                        <p className="font-bold text-secondary">R$ {(viagem.totalArrecadado || 0).toFixed(2)}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -416,7 +362,6 @@ export default function Motorista() {
           </div>
         )}
 
-        {/* Sem viagens */}
         {viagens.length === 0 && (
           <Card>
             <CardContent className="py-12 text-center">
@@ -424,9 +369,7 @@ export default function Motorista() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
               <p className="text-lg font-medium mb-2">Nenhuma viagem encontrada</p>
-              <p className="text-muted-foreground">
-                Aguarde o administrador agendar viagens para você
-              </p>
+              <p className="text-muted-foreground">Aguarde o administrador agendar viagens para você</p>
             </CardContent>
           </Card>
         )}
@@ -434,4 +377,3 @@ export default function Motorista() {
     </div>
   );
 }
-

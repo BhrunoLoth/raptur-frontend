@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { toast } from 'sonner';
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -9,41 +10,56 @@ interface QRScannerProps {
 }
 
 export default function QRScanner({ onScan, onError }: QRScannerProps) {
-  const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
   const [cameras, setCameras] = useState<any[]>([]);
-  const [selectedCamera, setSelectedCamera] = useState<string>('');
+  const [selectedCamera, setSelectedCamera] = useState('');
 
   useEffect(() => {
     loadCameras();
-    return () => {
-      stopScanning();
-    };
+    return () => cleanupScanner();
   }, []);
 
   const loadCameras = async () => {
     try {
       const devices = await Html5Qrcode.getCameras();
       setCameras(devices);
+
       if (devices.length > 0) {
-        // Preferir câmera traseira
-        const backCamera = devices.find(d => d.label.toLowerCase().includes('back'));
+        const backCamera = devices.find(d =>
+          d.label?.toLowerCase().includes('back') ||
+          d.label?.toLowerCase().includes('traseira')
+        );
+
         setSelectedCamera(backCamera?.id || devices[0].id);
       }
     } catch (error) {
-      console.error('Erro ao carregar câmeras:', error);
+      toast.error('Erro ao acessar câmera');
       onError?.('Erro ao acessar câmera');
+    }
+  };
+
+  const cleanupScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch {}
+      scannerRef.current = null;
+      setIsScanning(false);
     }
   };
 
   const startScanning = async () => {
     if (!selectedCamera) {
-      onError?.('Nenhuma câmera disponível');
+      toast.error('Nenhuma câmera encontrada');
       return;
     }
 
+    await cleanupScanner();
+
     try {
-      const scanner = new Html5Qrcode('qr-reader');
+      const scanner = new Html5Qrcode('qr-reader', { verbose: false });
       scannerRef.current = scanner;
 
       await scanner.start(
@@ -53,40 +69,29 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
           qrbox: { width: 250, height: 250 },
         },
         (decodedText) => {
+          cleanupScanner();
           onScan(decodedText);
-          stopScanning();
         },
-        (errorMessage) => {
-          // Ignorar erros de scan contínuo
-        }
+        () => {}
       );
 
       setIsScanning(true);
     } catch (error: any) {
-      console.error('Erro ao iniciar scanner:', error);
-      onError?.(error.message || 'Erro ao iniciar scanner');
+      toast.error('Falha ao iniciar câmera');
+      onError?.(error?.message || 'Erro ao iniciar scanner');
     }
   };
 
-  const stopScanning = async () => {
-    if (scannerRef.current && isScanning) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-        scannerRef.current = null;
-        setIsScanning(false);
-      } catch (error) {
-        console.error('Erro ao parar scanner:', error);
-      }
-    }
-  };
+  const stopScanning = () => cleanupScanner();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Scanner QR Code</CardTitle>
+        <CardTitle className="text-center">Scanner QR Code</CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-4">
+        {/* Selecionar câmera */}
         {cameras.length > 1 && !isScanning && (
           <div className="space-y-2">
             <label className="text-sm font-medium">Selecionar Câmera</label>
@@ -97,7 +102,7 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
             >
               {cameras.map((camera) => (
                 <option key={camera.id} value={camera.id}>
-                  {camera.label}
+                  {camera.label || `Câmera ${camera.id}`}
                 </option>
               ))}
             </select>
@@ -106,23 +111,17 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
 
         <div
           id="qr-reader"
-          className="w-full rounded-lg overflow-hidden bg-black"
-          style={{ minHeight: isScanning ? '300px' : '0' }}
+          className="w-full rounded-lg overflow-hidden bg-black min-h-[260px]"
         />
 
-        <div className="flex gap-2">
-          {!isScanning ? (
-            <Button onClick={startScanning} className="w-full" disabled={!selectedCamera}>
-              Iniciar Scanner
-            </Button>
-          ) : (
-            <Button onClick={stopScanning} variant="destructive" className="w-full">
-              Parar Scanner
-            </Button>
-          )}
-        </div>
+        <Button
+          onClick={isScanning ? stopScanning : startScanning}
+          variant={isScanning ? 'destructive' : 'default'}
+          className="w-full"
+        >
+          {isScanning ? 'Parar Scanner' : 'Iniciar Scanner'}
+        </Button>
       </CardContent>
     </Card>
   );
 }
-

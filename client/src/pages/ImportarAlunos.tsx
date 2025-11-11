@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Upload, Download, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
+
 
 export default function ImportarAlunos() {
   const [, setLocation] = useLocation();

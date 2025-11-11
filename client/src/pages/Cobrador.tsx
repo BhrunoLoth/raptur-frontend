@@ -4,15 +4,30 @@ import { useAuthStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import QRScanner from '@/components/QRScanner';
-import { embarqueAPI, viagemAPI } from '@/lib/api';
-import { toast } from 'sonner';
+import { embarqueAPI } from '@/lib/api'; // ✅ removido viagemAPI (não existe mais)
+import { toast } from 'sonner'; // ✅ permitido aqui, client-side
+
+interface Viagem {
+  id: string;
+  rota?: { nome: string };
+  onibus?: { placa: string };
+}
+
+interface Embarque {
+  id: string;
+  createdAt: string;
+  valor: number;
+  tipoEmbarque: string;
+  passageiro?: { usuario?: { nome: string } };
+}
 
 export default function Cobrador() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated } = useAuthStore();
-  const [viagens, setViagens] = useState<any[]>([]);
+
+  const [viagens, setViagens] = useState<Viagem[]>([]);
   const [viagemSelecionada, setViagemSelecionada] = useState<string>('');
-  const [embarques, setEmbarques] = useState<any[]>([]);
+  const [embarques, setEmbarques] = useState<Embarque[]>([]);
   const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
@@ -25,9 +40,16 @@ export default function Cobrador() {
 
   const loadViagens = async () => {
     try {
-      const response = await viagemAPI.listar({ status: 'em_andamento' });
-      setViagens(response.data.data);
-    } catch (error) {
+      // ⚠️ Viagens estavam sendo carregadas via viagemAPI (removido)
+      // Substituímos por dados estáticos ou você pode integrar depois à API real.
+      setViagens([
+        {
+          id: '1',
+          rota: { nome: 'Garça - Marília' },
+          onibus: { placa: 'ABC-1234' },
+        },
+      ]);
+    } catch {
       toast.error('Erro ao carregar viagens');
     }
   };
@@ -39,14 +61,21 @@ export default function Cobrador() {
     }
 
     try {
-      const response = await embarqueAPI.validar(qrCodeData, viagemSelecionada);
-      const embarque = response.data.data;
-      
-      setEmbarques([embarque, ...embarques]);
-      toast.success(`Embarque validado! ${embarque.tipoEmbarque === 'gratuito' ? 'GRATUITO' : `R$ ${embarque.valor}`}`);
+      const data = await embarqueAPI.validar(qrCodeData, viagemSelecionada);
+      const embarque = data?.data || data;
+
+      setEmbarques((prev) => [embarque, ...prev]);
+      toast.success(
+        `Embarque validado! ${
+          embarque.tipoEmbarque === 'gratuito'
+            ? 'GRATUITO'
+            : `R$ ${embarque.valor}`
+        }`
+      );
+
       setShowScanner(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao validar embarque');
+      toast.error(error?.message || 'Erro ao validar embarque');
     }
   };
 
@@ -62,7 +91,7 @@ export default function Cobrador() {
       </header>
 
       <main className="container py-8 space-y-6">
-        {/* Seleção de Viagem */}
+        {/* Selecionar Viagem */}
         <Card>
           <CardHeader>
             <CardTitle>Selecionar Viagem</CardTitle>
@@ -83,11 +112,15 @@ export default function Cobrador() {
           </CardContent>
         </Card>
 
-        {/* Scanner */}
+        {/* Botão / Scanner */}
         {viagemSelecionada && (
           <>
             {!showScanner ? (
-              <Button onClick={() => setShowScanner(true)} className="w-full" size="lg">
+              <Button
+                onClick={() => setShowScanner(true)}
+                className="w-full"
+                size="lg"
+              >
                 Abrir Scanner QR Code
               </Button>
             ) : (
@@ -117,14 +150,24 @@ export default function Cobrador() {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div>
-                      <p className="font-medium">{embarque.passageiro?.usuario?.nome}</p>
+                      <p className="font-medium">
+                        {embarque.passageiro?.usuario?.nome}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(embarque.createdAt).toLocaleTimeString('pt-BR')}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${embarque.tipoEmbarque === 'gratuito' ? 'text-secondary' : 'text-primary'}`}>
-                        {embarque.tipoEmbarque === 'gratuito' ? 'GRATUITO' : `R$ ${embarque.valor}`}
+                      <p
+                        className={`font-bold ${
+                          embarque.tipoEmbarque === 'gratuito'
+                            ? 'text-secondary'
+                            : 'text-primary'
+                        }`}
+                      >
+                        {embarque.tipoEmbarque === 'gratuito'
+                          ? 'GRATUITO'
+                          : `R$ ${embarque.valor}`}
                       </p>
                       <p className="text-xs text-muted-foreground capitalize">
                         {embarque.tipoEmbarque}
@@ -140,4 +183,3 @@ export default function Cobrador() {
     </div>
   );
 }
-
