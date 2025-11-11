@@ -13,6 +13,7 @@ export const api = axios.create({
   },
 });
 
+// Adiciona o token automaticamente se existir
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -69,7 +70,6 @@ export const usuarioAPI = {
 export const authAPI = {
   login: (cpf: string, senha: string) =>
     api.post("/auth/login", { cpf, senha }),
-
   validarToken: () => api.get("/auth/validar"),
 };
 
@@ -77,9 +77,9 @@ export const authAPI = {
    DASHBOARD / RELATÓRIOS
 ============================== */
 export const dashboardAPI = {
-  resumo: () => api.get("/admin/dashboard/resumo"),
-  estatisticas: () => api.get("/admin/dashboard/estatisticas"),
-  notificacoes: () => api.get("/admin/dashboard/notificacoes"),
+  resumo: () => api.get("/dashboard/resumo"),
+  estatisticas: () => api.get("/dashboard/estatisticas"),
+  notificacoes: () => api.get("/dashboard/notificacoes"),
 };
 
 /* ==============================
@@ -116,3 +116,4 @@ export const idosoAPI = {
   listar: () => api.get("/carteirinha/idoso"),
   obterPorId: (id: string) => api.get(`/carteirinha/idoso/${id}`),
 };
+git
