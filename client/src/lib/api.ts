@@ -116,4 +116,3 @@ export const idosoAPI = {
   listar: () => api.get("/carteirinha/idoso"),
   obterPorId: (id: string) => api.get(`/carteirinha/idoso/${id}`),
 };
-git
