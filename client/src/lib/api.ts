@@ -117,3 +117,12 @@ export const viagemAPI = {
   iniciar: (id: string) => api.put(`/viagens/${id}/iniciar`),
   finalizar: (id: string) => api.put(`/viagens/${id}/finalizar`),
 };
+
+/* ==============================
+   IDOSOS / CARTEIRINHA
+============================== */
+export const idosoAPI = {
+  gerarCarteirinha: (dados: any) => api.post("/carteirinha/idoso", dados),
+  listar: () => api.get("/carteirinha/idoso"),
+  obterPorId: (id: string) => api.get(`/carteirinha/idoso/${id}`),
+};
