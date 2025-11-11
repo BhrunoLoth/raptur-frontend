@@ -6,7 +6,6 @@ import axios from "axios";
 export const api = axios.create({
   baseURL: (() => {
     const base = import.meta.env.VITE_API_URL || "https://raptur-system-production.up.railway.app";
-    // 🔒 Garante que o /api seja adicionado apenas uma vez
     return base.endsWith("/api") ? base : `${base}/api`;
   })(),
   headers: {
@@ -14,7 +13,6 @@ export const api = axios.create({
   },
 });
 
-// Adiciona o token automaticamente se existir
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -22,7 +20,7 @@ api.interceptors.request.use((config) => {
 });
 
 /* ==============================
-   FORMATAÇÕES ÚTEIS
+   FORMATAÇÕES
 ============================== */
 export const formatCPF = (cpf: string) => {
   if (!cpf) return "";
@@ -47,27 +45,21 @@ export const formatTelefone = (telefone: string) => {
 ============================== */
 export const usuarioAPI = {
   listar: () => api.get("/usuarios"),
-
   obterPorId: (id: string) => api.get(`/usuarios/${id}`),
-
   criar: (dados: any) =>
     api.post("/usuarios", {
       ...dados,
       cpf: formatCPF(dados.cpf),
       telefone: formatTelefone(dados.telefone),
     }),
-
   atualizar: (id: string, dados: any) =>
     api.put(`/usuarios/${id}`, {
       ...dados,
       cpf: formatCPF(dados.cpf),
       telefone: formatTelefone(dados.telefone),
     }),
-
   deletar: (id: string) => api.delete(`/usuarios/${id}`),
-
   ativar: (id: string) => api.put(`/usuarios/${id}/ativar`),
-
   desativar: (id: string) => api.put(`/usuarios/${id}/desativar`),
 };
 
@@ -75,8 +67,8 @@ export const usuarioAPI = {
    LOGIN / AUTENTICAÇÃO
 ============================== */
 export const authAPI = {
-  login: (email: string, senha: string) =>
-    api.post("/auth/login", { email, senha }),
+  login: (cpf: string, senha: string) =>
+    api.post("/auth/login", { cpf, senha }),
 
   validarToken: () => api.get("/auth/validar"),
 };
@@ -96,7 +88,6 @@ export const dashboardAPI = {
 export const pixAPI = {
   gerar: (valor: number, passageiroId: string) =>
     api.post("/pagamentos/gerar-pagamento", { valor, passageiroId }),
-
   verificar: (idPagamento: string) =>
     api.get(`/pagamentos/verificar/${idPagamento}`),
 };
@@ -107,7 +98,6 @@ export const pixAPI = {
 export const embarqueAPI = {
   validar: (qrCode: string, viagemId: string) =>
     api.post(`/embarques/validar`, { qrCode, viagemId }),
-
   listarPorViagem: (viagemId: string) =>
     api.get(`/embarques/viagem/${viagemId}`),
 };
